@@ -18,6 +18,7 @@ from tributary.common.errors import EngineError
 from tributary.common.models import (
     DeadlineResult,
     FiscalPeriod,
+    GraphReader,
     JurisdictionCode,
     LossCarryforwardRecord,
     ObligationResult,
@@ -53,7 +54,7 @@ def _first(rules: list[Rule]) -> Rule | None:
 
 
 def build_entity_result(
-    reader,
+    reader: GraphReader,
     loader: RulePackLoader,
     base: EntityBase,
     pe_adjustment_hkd: Decimal,

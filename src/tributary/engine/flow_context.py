@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
+from tributary.common.errors import EntityNotFoundError, GraphError
 from tributary.common.models import (
     AILayerProtocol,
     ConfidenceLevel,
@@ -39,7 +40,7 @@ def build_flow_context(
     source_jurisdiction: JurisdictionCode | None = None
     try:
         source_jurisdiction = reader.get_entity(txn.source_entity_id).resident_jurisdiction
-    except Exception:  # noqa: BLE001 — unknown source entity → leave jurisdiction unknown
+    except (EntityNotFoundError, GraphError):
         source_jurisdiction = None
     return FlowContext(
         flow_id=txn.transaction_id,

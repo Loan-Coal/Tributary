@@ -14,6 +14,7 @@ import uuid
 from collections import defaultdict
 from decimal import Decimal
 
+from tributary.common.errors import EngineError
 from tributary.common.models import (
     AILayerProtocol,
     ConflictFlag,
@@ -29,7 +30,7 @@ from tributary.engine.entity_run import EntityArtifacts, build_entity_result
 from tributary.engine.flow_context import FlowJudgement, judge_flows
 from tributary.engine.pe import PeAttribution, detect_pe
 from tributary.engine.periods import compute_period
-from tributary.rules.models import RuleCategory, RulePackLoader
+from tributary.rules.models import Rule, RuleCategory, RulePackLoader
 
 _BASE_CURRENCY = "HKD"
 
@@ -192,16 +193,13 @@ class EngineRunner:
                 return entity
         return None
 
-    def _cit_rule(self, jurisdiction: JurisdictionCode):
+    def _cit_rule(self, jurisdiction: JurisdictionCode) -> Rule:
         """Return the CIT rate rule for a jurisdiction."""
         return self._loader.get_rules(jurisdiction, RuleCategory.CIT_RATE)[0]
 
-    def _elimination_rule(self, jur_a: JurisdictionCode, jur_b: JurisdictionCode):
+    def _elimination_rule(self, jur_a: JurisdictionCode, jur_b: JurisdictionCode) -> Rule:
         """Return the treaty elimination rule between two jurisdictions."""
         for rule in self._loader.get_treaty_rules(jur_a, jur_b):
             if rule.category == RuleCategory.TREATY_ELIMINATION:
                 return rule
-        raise_msg = f"No treaty elimination rule between {jur_a} and {jur_b}"
-        from tributary.common.errors import EngineError
-
-        raise EngineError(raise_msg)
+        raise EngineError(f"No treaty elimination rule between {jur_a} and {jur_b}")
