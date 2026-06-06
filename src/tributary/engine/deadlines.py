@@ -39,7 +39,10 @@ def compute_deadline(
     Returns:
         The DeadlineResult.
     """
-    filing_month = rule.parameters.filing_month or 1
+    if rule.parameters.filing_month is None:
+        from tributary.common.errors import EngineError
+        raise EngineError(f"Deadline rule {rule.id} is missing filing_month")
+    filing_month = rule.parameters.filing_month
     filing_day = rule.parameters.filing_day or 1
     end = period.end_date
     same_year = (filing_month, filing_day) > (end.month, end.day)

@@ -117,6 +117,10 @@ def compute_wht(
     Raises:
         EngineError: If no domestic WHT rule exists for the payer jurisdiction + activity.
     """
+    if payment.activity not in _DOMESTIC_CATEGORY:
+        raise EngineError(
+            f"Activity {payment.activity.value} is not a WHT-bearing activity type"
+        )
     domestic_rules = loader.get_rules(payment.payer_jurisdiction, _DOMESTIC_CATEGORY[payment.activity])
     if not domestic_rules:
         raise EngineError(

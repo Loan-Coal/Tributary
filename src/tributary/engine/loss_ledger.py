@@ -115,6 +115,6 @@ def _allocate_fifo(
                 limitation_rule_id=None,
             )
         )
-        if remaining_to_use <= 0:
-            break
+        if remaining_to_use < Decimal("0"):
+            remaining_to_use = Decimal("0")
     return records

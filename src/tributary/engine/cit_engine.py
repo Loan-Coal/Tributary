@@ -59,7 +59,10 @@ def compute_cit(
     pre_loss_base = base.net_income_hkd + pe_adjustment_hkd
     offset = apply_loss_offset(pre_loss_base, losses, loss_rule, base.jurisdiction)
     post_loss_base = offset.post_loss_base_hkd
-    rate = effective_rate(cit_rule.parameters.rate or Decimal("0"), cit_rule.parameters.surcharge_rate)
+    if cit_rule.parameters.rate is None:
+        from tributary.common.errors import EngineError
+        raise EngineError(f"CIT rate not found in rule pack for rule {cit_rule.id}")
+    rate = effective_rate(cit_rule.parameters.rate, cit_rule.parameters.surcharge_rate)
     gross = round_hkd(post_loss_base * rate)
     trace = _build_trace(base, pe_adjustment_hkd, pre_loss_base, offset, post_loss_base, gross, cit_rule)
     obligation = ObligationResult(
