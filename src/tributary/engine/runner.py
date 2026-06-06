@@ -29,6 +29,7 @@ from tributary.engine.aggregator import EntityBase, aggregate_entity
 from tributary.engine.conflict import build_pe_conflict
 from tributary.engine.entity_run import EntityArtifacts, build_entity_result
 from tributary.engine.flow_context import FlowJudgement, judge_flows
+from tributary.engine.group_relief import scan_group_relief
 from tributary.engine.pe import PeAttribution, detect_pe
 from tributary.engine.periods import compute_period
 from tributary.engine.wht_exposure import scan_wht_exposure
@@ -137,7 +138,15 @@ class EngineRunner:
             for e in entities
         }
         conflicts_by_entity = self._build_conflicts(entities, pe_attrs, artifacts, bases)
-        return [self._to_run_result(artifacts[e.entity_id], conflicts_by_entity.get(e.entity_id, [])) for e in entities]
+        group_relief = scan_group_relief(bases, entities, self._loader)
+        return [
+            self._to_run_result(
+                artifacts[e.entity_id],
+                conflicts_by_entity.get(e.entity_id, []),
+                [o for o in group_relief if o.income_entity_id == e.entity_id],
+            )
+            for e in entities
+        ]
 
     def _build_conflicts(
         self,
@@ -172,7 +181,12 @@ class EngineRunner:
                 conflicts[entity.entity_id].extend(wht_flags)
         return conflicts
 
-    def _to_run_result(self, art: EntityArtifacts, conflicts: list[ConflictFlag]) -> EngineRunResult:
+    def _to_run_result(
+        self,
+        art: EntityArtifacts,
+        conflicts: list[ConflictFlag],
+        group_relief: list,
+    ) -> EngineRunResult:
         """Assemble the final EngineRunResult for one entity."""
         unresolved = any(o.needs_review for o in art.obligations) or any(c.needs_review for c in conflicts)
         return EngineRunResult(
@@ -185,6 +199,7 @@ class EngineRunner:
             deadlines=art.deadlines,
             loss_carryforward_applied=art.loss_records,
             conflicts=conflicts,
+            group_relief_opportunities=group_relief,
             has_unresolved_items=unresolved,
         )
 

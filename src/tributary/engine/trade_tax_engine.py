@@ -48,6 +48,19 @@ def compute_trade_tax(
         result_value_hkd=gross,
         note="trade-tax rate applied to post-loss CIT base",
     )
+    return _make_obligation(base, post_loss_base_hkd, rate, gross, trade_tax_rule, step, needs_review)
+
+
+def _make_obligation(
+    base: EntityBase,
+    post_loss_base_hkd: Decimal,
+    rate: Decimal,
+    gross: Decimal,
+    rule: Rule,
+    step: ComputationStep,
+    needs_review: bool,
+) -> ObligationResult:
+    """Construct the trade-tax ObligationResult from computed values."""
     return ObligationResult(
         obligation_id=str(uuid.uuid4()),
         entity_id=base.entity_id,
@@ -59,9 +72,9 @@ def compute_trade_tax(
         gross_amount_hkd=gross,
         treaty_relief_hkd=Decimal("0"),
         net_amount_hkd=gross,
-        rule_id=trade_tax_rule.id,
-        as_of_date=trade_tax_rule.as_of_date,
-        source_citation=trade_tax_rule.source_citation,
+        rule_id=rule.id,
+        as_of_date=rule.as_of_date,
+        source_citation=rule.source_citation,
         treaty_citation=None,
         source_flow_ids=base.income_flow_ids + base.expense_flow_ids,
         computation_trace=[step],

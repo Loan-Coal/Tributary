@@ -78,7 +78,7 @@ def apply_loss_offset(
         )
     total_loss = sum((loss.remaining_loss_hkd for loss in losses), Decimal("0"))
     allowable, limited = _allowable_offset(base_hkd, total_loss, rule)
-    records = _allocate_fifo(losses, allowable, limited, jurisdiction)
+    records = _allocate_fifo(losses, allowable, limited, jurisdiction, rule)
     return LossOffsetResult(
         post_loss_base_hkd=base_hkd - allowable,
         total_offset_hkd=allowable,
@@ -92,8 +92,10 @@ def _allocate_fifo(
     allowable: Decimal,
     limited: bool,
     jurisdiction: JurisdictionCode,
+    rule: Rule | None,
 ) -> list[LossCarryforwardRecord]:
     """Distribute the allowable offset across prior losses oldest-first."""
+    limitation_rule_id = rule.id if limited and rule is not None else None
     remaining_to_use = allowable
     records: list[LossCarryforwardRecord] = []
     for loss in losses:
@@ -112,7 +114,7 @@ def _allocate_fifo(
                 used_this_period_hkd=used,
                 remaining_loss_hkd=loss.remaining_loss_hkd - used,
                 limitation_applied=limited,
-                limitation_rule_id=None,
+                limitation_rule_id=limitation_rule_id,
             )
         )
         if remaining_to_use < Decimal("0"):

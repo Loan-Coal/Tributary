@@ -26,7 +26,7 @@ from tributary.common.models import (
     ThresholdResult,
 )
 from tributary.engine.aggregator import EntityBase
-from tributary.engine.cit_engine import compute_cit
+from tributary.engine.cit_engine import CitResult, compute_cit
 from tributary.engine.deadlines import compute_deadline
 from tributary.engine.flow_context import FlowJudgement, jurisdiction_needs_review
 from tributary.engine.thresholds import zinsschranke_check
@@ -74,20 +74,7 @@ def build_entity_result(
         EngineError: If the jurisdiction has no CIT rate rule.
     """
     jur = base.jurisdiction
-    cit_rules = loader.get_rules(jur, RuleCategory.CIT_RATE)
-    if not cit_rules:
-        raise EngineError(f"No CIT rate rule for jurisdiction {jur}")
-    cit_review = jurisdiction_needs_review(
-        judgements, base.income_flow_ids + base.expense_flow_ids, jur
-    )
-    cit = compute_cit(
-        base,
-        pe_adjustment_hkd,
-        cit_rules[0],
-        _first(loader.get_rules(jur, RuleCategory.LOSS_RELIEF)),
-        reader.get_prior_period_losses(base.entity_id, jur),
-        cit_review,
-    )
+    cit, cit_review = _run_cit(reader, loader, base, pe_adjustment_hkd, judgements)
     obligations: list[ObligationResult] = [cit.obligation]
     deadlines = _deadlines(loader, base, jur)
     thresholds = _thresholds(loader, base)
@@ -105,6 +92,31 @@ def build_entity_result(
         loss_records=cit.loss_offset.records,
         cit_review=cit_review,
     )
+
+
+def _run_cit(
+    reader: GraphReader,
+    loader: RulePackLoader,
+    base: EntityBase,
+    pe_adjustment_hkd: Decimal,
+    judgements: dict[str, FlowJudgement],
+) -> tuple[CitResult, bool]:
+    """Validate and run the CIT sub-engine; return result + review flag."""
+    jur = base.jurisdiction
+    cit_rules = loader.get_rules(jur, RuleCategory.CIT_RATE)
+    if not cit_rules:
+        raise EngineError(f"No CIT rate rule for jurisdiction {jur}")
+    cit_review = jurisdiction_needs_review(
+        judgements, base.income_flow_ids + base.expense_flow_ids, jur
+    )
+    return compute_cit(
+        base,
+        pe_adjustment_hkd,
+        cit_rules[0],
+        _first(loader.get_rules(jur, RuleCategory.LOSS_RELIEF)),
+        reader.get_prior_period_losses(base.entity_id, jur),
+        cit_review,
+    ), cit_review
 
 
 def _deadlines(loader: RulePackLoader, base: EntityBase, jur: JurisdictionCode) -> list[DeadlineResult]:

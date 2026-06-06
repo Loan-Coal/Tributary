@@ -58,9 +58,12 @@ def _holding_qualifies(
     candidates = reader.get_entity_ownership(payee_id) + reader.get_entity_ownership(payer_id)
     for edge in candidates:
         pair = {edge.owner_entity_id, edge.owned_entity_id}
-        if pair == {payer_id, payee_id} and edge.ownership_pct >= min_pct:
-            if _months_between(edge.effective_from, as_of) >= min_months:
-                return True
+        if (
+            pair == {payer_id, payee_id}
+            and edge.ownership_pct >= min_pct
+            and _months_between(edge.effective_from, as_of) >= min_months
+        ):
+            return True
     return False
 
 
@@ -155,18 +158,15 @@ def _citation(rule: Rule) -> RuleCitation:
     )
 
 
-def _build_obligation(
+def _build_trace_steps(
     payment: OutboundPayment,
-    period: FiscalPeriod,
     domestic: Rule,
-    applicable_rate: Decimal,
     gross: Decimal,
     net: Decimal,
     treaty_citation: RuleCitation | None,
-    needs_review: bool,
-) -> ObligationResult:
-    """Assemble the WHT ObligationResult with a two-step (domestic → treaty) trace."""
-    trace = [
+) -> list[ComputationStep]:
+    """Build the two-step audit trace (domestic rate → treaty relief)."""
+    return [
         ComputationStep(
             step_name="apply_domestic_rate",
             input_value_hkd=payment.gross_hkd,
@@ -184,6 +184,20 @@ def _build_obligation(
             note="WHT after treaty / directive relief",
         ),
     ]
+
+
+def _build_obligation(
+    payment: OutboundPayment,
+    period: FiscalPeriod,
+    domestic: Rule,
+    applicable_rate: Decimal,
+    gross: Decimal,
+    net: Decimal,
+    treaty_citation: RuleCitation | None,
+    needs_review: bool,
+) -> ObligationResult:
+    """Assemble the WHT ObligationResult with a two-step (domestic → treaty) trace."""
+    trace = _build_trace_steps(payment, domestic, gross, net, treaty_citation)
     return ObligationResult(
         obligation_id=str(uuid.uuid4()),
         entity_id=payment.payer_entity_id,

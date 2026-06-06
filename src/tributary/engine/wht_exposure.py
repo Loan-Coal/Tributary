@@ -10,7 +10,6 @@ Used by: engine.runner
 """
 from __future__ import annotations
 
-import uuid
 from decimal import Decimal
 
 from tributary.common.logging import get_logger
@@ -52,27 +51,40 @@ def scan_wht_exposure(
     payment_map: dict[str, OutboundPayment] = {p.flow_id: p for p in payments}
     flags: list[ConflictFlag] = []
     for obligation in wht_obligations:
-        if obligation.obligation_type is not ObligationType.WHT:
-            continue
-        if obligation.treaty_citation is not None:
-            continue  # treaty was already applied — nothing to flag
-        if not obligation.source_flow_ids:
-            continue
-        payment = payment_map.get(obligation.source_flow_ids[0])
-        if payment is None:
-            logger.warning(
-                "WHT obligation flow_id not in payment map",
-                extra={"flow_id": obligation.source_flow_ids[0]},
-            )
-            continue
-        treaty = get_treaty_rate(reader, loader, payment, period.end_date)
-        if treaty is None:
-            continue  # no treaty benefit exists — domestic rate is correct
-        treaty_rate, treaty_rule = treaty
-        if obligation.rate <= treaty_rate:
-            continue  # rate already at or below treaty entitlement
-        flags.append(_build_flag(obligation, payment, treaty_rate, treaty_rule))
+        flag = _check_obligation(obligation, payment_map, loader, reader, period)
+        if flag is not None:
+            flags.append(flag)
     return flags
+
+
+def _check_obligation(
+    obligation: ObligationResult,
+    payment_map: dict[str, OutboundPayment],
+    loader: RulePackLoader,
+    reader: GraphReader,
+    period: FiscalPeriod,
+) -> ConflictFlag | None:
+    """Return a ConflictFlag if this obligation is over-withheld, else None."""
+    if obligation.obligation_type is not ObligationType.WHT:
+        return None
+    if obligation.treaty_citation is not None:
+        return None  # treaty was already applied — nothing to flag
+    if not obligation.source_flow_ids:
+        return None
+    payment = payment_map.get(obligation.source_flow_ids[0])
+    if payment is None:
+        logger.warning(
+            "WHT obligation flow_id not in payment map",
+            extra={"flow_id": obligation.source_flow_ids[0]},
+        )
+        return None
+    treaty = get_treaty_rate(reader, loader, payment, period.end_date)
+    if treaty is None:
+        return None  # no treaty benefit exists — domestic rate is correct
+    treaty_rate, treaty_rule = treaty
+    if obligation.rate <= treaty_rate:
+        return None  # rate already at or below treaty entitlement
+    return _build_flag(obligation, payment, treaty_rate, treaty_rule)
 
 
 def _build_flag(
