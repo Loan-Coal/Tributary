@@ -1,12 +1,19 @@
-# Makefile
-ingest:
-	python -m seed.seed
+.PHONY: test test-engine ingest run-golden demo check-layers
 
 test:
-	pytest tests/ -v
+	pytest tests/ --cov=src/tributary --cov-report=term-missing -q
+
+test-engine:
+	pytest tests/ -k "engine" --cov=src/tributary/engine --cov-report=term-missing -q
+
+ingest:
+	python -m tributary.ingestion.cli
 
 run-golden:
-	python -m pipeline.run_golden
+	python -m tributary.engine.cli run_golden
 
-neo4j-up:
-    @echo "Start Neo4j Desktop manually, then press enter"
+demo:
+	python -m tributary.engine.cli demo
+
+check-layers:
+	python scripts/check_layers.py
