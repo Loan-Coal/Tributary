@@ -53,6 +53,22 @@ class Transaction(BaseModel):
     flow_type: Optional[str] = None  # None until AI sets it in Phase 4
 
 
+class FinancialLineItem(BaseModel):
+    """A single balance-sheet line item for one entity in one reporting period.
+
+    Balance-sheet data is not a transaction (it has no account/counterparty), so
+    it is modelled as its own node type linked to the reporting Entity.
+    """
+    id: str                        # f"fli_{entity_id}_{period}_{line_item_slug}"
+    entity_id: str
+    period: str                    # reporting date, e.g. "2025-03-31"
+    line_item: str                 # e.g. "Total Debt"
+    amount: float
+    currency: str                  # ISO 4217, e.g. "USD"
+    statement_type: str = "balance_sheet"
+    source: str                    # provenance, e.g. ticker "0992.HK"
+
+
 # ── Derived — written by the engine (Phase 3+), never by ingestion ──────────
 
 class Obligation(BaseModel):

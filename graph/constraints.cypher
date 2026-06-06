@@ -4,7 +4,9 @@ CREATE CONSTRAINT txn_id        IF NOT EXISTS FOR (t:Transaction)  REQUIRE t.id 
 CREATE CONSTRAINT cp_id         IF NOT EXISTS FOR (c:Counterparty) REQUIRE c.id IS UNIQUE;
 CREATE CONSTRAINT jur_id        IF NOT EXISTS FOR (j:Jurisdiction) REQUIRE j.id IS UNIQUE;
 CREATE CONSTRAINT obl_id        IF NOT EXISTS FOR (o:Obligation)   REQUIRE o.id IS UNIQUE;
+CREATE CONSTRAINT fli_id        IF NOT EXISTS FOR (f:FinancialLineItem) REQUIRE f.id IS UNIQUE;
 
 CREATE INDEX txn_date    IF NOT EXISTS FOR (t:Transaction) ON (t.date);
 CREATE INDEX txn_account IF NOT EXISTS FOR (t:Transaction) ON (t.account_id);
 CREATE INDEX entity_type IF NOT EXISTS FOR (e:Entity)      ON (e.type);
+CREATE INDEX fli_period  IF NOT EXISTS FOR (f:FinancialLineItem) ON (f.period);
