@@ -6,7 +6,11 @@ Public surface: protocol (AILayerProtocol + I/O models), models, protocols, clie
 """
 from __future__ import annotations
 
+from .adapter import AILayerAdapter
+
 __all__ = [
+    "AILayerAdapter",
+    "adapter",
     "protocol",
     "models",
     "protocols",
