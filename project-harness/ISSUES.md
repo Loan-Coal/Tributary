@@ -132,7 +132,8 @@ Rules:
 **Why deferred:** Surfaced by full-codebase audit; golden packs are complete.
 **To fix:** Add `if not rules: raise EngineError(f"no CIT rate rule for jurisdiction {jurisdiction}")` before the index. Route via /iterate.
 
-## ISSUE-015: adapter.py:139-142 — fake RuleCitation("adapter-placeholder") bypasses citation contract
+## [FIXED] ISSUE-015: adapter.py:139-142 — fake RuleCitation("adapter-placeholder") bypasses citation contract
+**Fixed:** 2026-06-07, in W6c.6 (adapter-placeholder removed; rationale_citation made Optional; _first_real_citation() helper; abstain path used when no real citation)
 **Found:** 2026-06-06, during /audit
 **Severity:** P1 (business — fake citation leaks into briefs)
 **Where:** `src/tributary/ai/adapter.py:139-142`
@@ -140,7 +141,8 @@ Rules:
 **Why deferred:** Surfaced by full-codebase audit; remediation is a separate gated step.
 **To fix:** For attribution claims without a real rule reference, set `abstain=True, needs_human_review=True` and omit the `rule_citations` list (or pass an empty list). Route via /iterate (unit test: adapter must not produce RuleCitation with rule_id containing "placeholder").
 
-## ISSUE-016: service.py:42 — Pydantic model mutated in-place
+## [FIXED] ISSUE-016: service.py:42 — Pydantic model mutated in-place
+**Fixed:** 2026-06-07, in W6c.7 (model_copy(update={...}) with warning log)
 **Found:** 2026-06-06, during /audit
 **Severity:** P1 (correctness — immutability violation, masks ID mismatch)
 **Where:** `src/tributary/ai/service.py:42`
@@ -148,7 +150,8 @@ Rules:
 **Why deferred:** Surfaced by full-codebase audit; remediation is a separate gated step.
 **To fix:** Either rebuild via `output.model_copy(update={"transaction_id": transaction_id})` and log a warning if IDs diverge, or add `frozen=True` to `AILayerOutput` and enforce the immutable pattern. Route via /iterate.
 
-## ISSUE-017: common/__init__.py — GroupReliefOpportunity and GroupReliefMechanism missing from re-exports
+## [FIXED] ISSUE-017: common/__init__.py — GroupReliefOpportunity and GroupReliefMechanism missing from re-exports
+**Fixed:** 2026-06-07, in W6c.8 (added to import block and __all__)
 **Found:** 2026-06-06, during /audit
 **Severity:** P1 (runtime ImportError for any caller using `from tributary.common import GroupReliefOpportunity`)
 **Where:** `src/tributary/common/__init__.py:18-51`
@@ -156,7 +159,8 @@ Rules:
 **Why deferred:** W6b.4 (engine module) hasn't been written yet, so no caller currently imports these from common — but the bug will manifest immediately when W6b.4 wires in.
 **To fix:** Add `GroupReliefOpportunity` and `GroupReliefMechanism` to the import block and `__all__` in `common/__init__.py`. Also update the package docstring. Route via refactor-cleaner.
 
-## ISSUE-018: ai/protocols.py — duplicate protocol module violates DEC-018
+## [FIXED] ISSUE-018: ai/protocols.py — duplicate protocol module violates DEC-018
+**Fixed:** 2026-06-07, in W6c.12 (ai/protocols.py deleted; protocols moved to common/protocols_ai.py)
 **Found:** 2026-06-06, during /audit
 **Severity:** P1 (architecture — DEC-018 violation, two divergent protocol hierarchies)
 **Where:** `src/tributary/ai/protocols.py`
@@ -164,7 +168,8 @@ Rules:
 **Why deferred:** Surfaced by full-codebase audit; remediation is a separate gated step.
 **To fix:** Delete `ai/protocols.py`. Update `ai/service.py` to import `GraphReader` and `RulePackLoader` from `tributary.common.protocols_graph` / `tributary.common.protocols_ai`. Route via refactor-cleaner.
 
-## ISSUE-019: Engine — 8 functions exceed the 40-line limit
+## [FIXED] ISSUE-019: Engine — 8 functions exceed the 40-line limit
+**Fixed:** 2026-06-07, in W6c.14 (helpers extracted from all 8 over-limit functions)
 **Found:** 2026-06-06, during /audit
 **Severity:** P2 (CLAUDE.md hard limit breach)
 **Where:** `engine/cit_engine.py:38,90`, `engine/conflict.py:26`, `engine/deadlines.py:21`, `engine/entity_run.py:56`, `engine/pe.py:50`, `engine/trade_tax_engine.py:25`, `engine/wht_engine.py:159`, `engine/wht_exposure.py:34,78` — 10 functions total across 6 files
@@ -172,7 +177,8 @@ Rules:
 **Why deferred:** Functions are correct; extraction is mechanical refactoring.
 **To fix:** Extract clearly-named helper functions (e.g. `_apply_pe_deduction`, `_compute_residence_tax`, `_parse_deadline_rule`). Route via /simplify per file.
 
-## ISSUE-020: common/logging.py:4 — unresolved merge conflict marker in module docstring
+## [FIXED] ISSUE-020: common/logging.py:4 — unresolved merge conflict marker in module docstring
+**Fixed:** 2026-06-07, in W6c.24 (<<<<<<< HEAD line removed from docstring)
 **Found:** 2026-06-06, during /audit
 **Severity:** P2 (malformed docstring; not a SyntaxError since it is inside a string)
 **Where:** `src/tributary/common/logging.py:4`
@@ -180,7 +186,8 @@ Rules:
 **Why deferred:** Surfaced during /audit; no runtime impact confirmed.
 **To fix:** Remove the `<<<<<<< HEAD` line from the docstring. Route via refactor-cleaner.
 
-## ISSUE-021: loss_ledger.py:115 — limitation_rule_id always None, audit trail lost
+## [FIXED] ISSUE-021: loss_ledger.py:115 — limitation_rule_id always None, audit trail lost
+**Fixed:** 2026-06-07, in W6c.15 (rule.id passed to _allocate_fifo when limited=True)
 **Found:** 2026-06-06, during /audit
 **Severity:** P2 (audit trail gap)
 **Where:** `src/tributary/engine/loss_ledger.py:115`

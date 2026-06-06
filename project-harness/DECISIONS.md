@@ -240,3 +240,13 @@ of high cohesion / low coupling. The module-level docstring notes this.
   2. Separate `engine/wht_exposure.py` for WHT over-withholding checks, keeping `conflict.py` for PE double-tax only.
 **Decision:** Option 2. `engine/wht_exposure.py` scans each WHT `ObligationResult`, compares the applied rate against the treaty-reduced rate, and emits a `ConflictFlag(conflict_type=WHT_OVER_WITHHELD)` when the applied rate exceeds entitlement.
 **Why:** SRP — each module has one job. WHT exposure may exist without any PE; PE conflict may exist without WHT. Independent modules can be tested independently.
+
+## DEC-022: JurisdictionClaim.rationale_citation is Optional to support the abstain path
+
+**Date:** 2026-06-06
+**Context:** W6c.6 audit finding: `ai/adapter.py` was fabricating a `RuleCitation(rule_id="adapter-placeholder")` on every `JurisdictionClaim`, even when the AI produced no real rule reference. CLAUDE.md requires every AI recommendation to cite a real rule or emit `needs_human_review=True` — a synthetic placeholder violates this contract and leaks into briefs.
+**Options considered:**
+  1. Keep `rationale_citation: RuleCitation` required — adapter must always supply one.
+  2. Make `rationale_citation: RuleCitation | None = None` — adapter omits it when AI returned no real reference; sets `abstain=True` on the parent `FlowAttribution` instead.
+**Decision:** Option 2. A missing citation is preferable to a fabricated one. A `None` citation paired with `abstain=True, abstain_reason="No rule citation"` is honest and triggers the human-review path in the brief assembler. The previous hardcoded string would have appeared in production briefs as a citation, which is both incorrect and misleading.
+**Why:** Defensibility principle: every flag cites a real rule or declares uncertainty. A fabricated citation is worse than no citation.
