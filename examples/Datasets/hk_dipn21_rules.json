@@ -1,0 +1,144 @@
+[
+  {
+    "id": "HK_DIPN_21_TRADING_GENERAL",
+    "jurisdiction": "HK",
+    "type": "source_rule",
+    "parameters": {
+      "applies_to": "CROSS_BORDER_TRADING",
+      "apportionment_allowed": false
+    },
+    "source_citation": "Inland Revenue Department DIPN 21 (Revised), Paragraph 18-24 - Trading Profits",
+    "as_of_date": "2012-07-01",
+    "summary": "Profits from trading are determined by examining all relevant operations, including solicitation of orders, negotiation, conclusion, trade financing, shipment, and performance of the contracts. If both purchase and sale contracts are effected outside HK, no part of the profits is taxable. Apportionment does not arise for trading profits."
+  },
+  {
+    "id": "HK_DIPN_21_BUYING_OFFICE",
+    "jurisdiction": "HK",
+    "type": "source_rule",
+    "parameters": {
+      "applies_to": "PROCUREMENT_OPERATIONS",
+      "exemption_threshold": 0
+    },
+    "source_citation": "Inland Revenue Department DIPN 21 (Revised), Paragraph 29 - Buying Office",
+    "as_of_date": "2012-07-01",
+    "summary": "A branch acting solely as a buying office confined to purchasing goods or collecting information in HK, without involvement in their sale, is not liable to HK profits tax."
+  },
+  {
+    "id": "HK_DIPN_21_REINVOICING_CENTRE",
+    "jurisdiction": "HK",
+    "type": "source_rule",
+    "parameters": {
+      "applies_to": "INTERCOMPANY_SERVICES",
+      "requires_transfer_pricing_check": true
+    },
+    "source_citation": "Inland Revenue Department DIPN 21 (Revised), Paragraph 27-28 - Re-invoicing Centre",
+    "as_of_date": "2012-07-01",
+    "summary": "Income of a re-invoicing centre derived from services rendered in HK, without taking commercial risks (product, inventory, credit), is fully taxable service income based on the cost-plus mark-up."
+  },
+  {
+    "id": "HK_DIPN_21_CONTRACT_PROCESSING",
+    "jurisdiction": "HK",
+    "type": "source_rule",
+    "parameters": {
+      "applies_to": "OUTSOURCED_MANUFACTURING",
+      "apportionment_allowed": true,
+      "default_apportionment_ratio": 0.5
+    },
+    "source_citation": "Inland Revenue Department DIPN 21 (Revised), Paragraph 33-34 - Contract Processing",
+    "as_of_date": "2012-07-01",
+    "summary": "For contract processing in Mainland China where the HK company supplies raw materials/machinery without consideration and retains legal title, an apportionment of profits on a 50:50 basis is usually accepted."
+  },
+  {
+    "id": "HK_DIPN_21_IMPORT_PROCESSING",
+    "jurisdiction": "HK",
+    "type": "source_rule",
+    "parameters": {
+      "applies_to": "RELATED_PARTY_TRADING",
+      "apportionment_allowed": false
+    },
+    "source_citation": "Inland Revenue Department DIPN 21 (Revised), Paragraph 39-42 - Import Processing",
+    "as_of_date": "2012-07-01",
+    "summary": "In import processing where legal title to raw materials passes to a Foreign Investment Enterprise (FIE) and finished goods are bought back, profits accrue from trading transactions and are fully chargeable to HK tax without apportionment."
+  },
+  {
+    "id": "HK_DIPN_21_SERVICES",
+    "jurisdiction": "HK",
+    "type": "source_rule",
+    "parameters": {
+      "applies_to": "SERVICES_INCOME",
+      "apportionment_allowed": true
+    },
+    "source_citation": "Inland Revenue Department DIPN 21 (Revised), Paragraph 45(e) & 46 - Other Profits & Apportionment",
+    "as_of_date": "2012-07-01",
+    "summary": "The locality of service fee income is the place where the services are performed which give rise to the fees. An apportionment is appropriate if services are performed partly in HK and partly outside.[cite: 1]"
+  },
+  {
+    "id": "HK_DIPN_21_GROUP_SERVICES",
+    "jurisdiction": "HK",
+    "type": "source_rule",
+    "parameters": {
+      "applies_to": "INTRA_GROUP_SERVICES",
+      "foreign_tax_deductible": true
+    },
+    "source_citation": "Inland Revenue Department DIPN 21 (Revised), Paragraph 51-52 - Group Service Companies",
+    "as_of_date": "2012-07-01",
+    "summary": "Support services (e.g., marketing, training) rendered to group members substantially in HK at an agreed mark-up are wholly assessable. The HK company may deduct foreign withholding tax paid from the service fee charged.[cite: 1]"
+  },
+  {
+    "id": "HK_DIPN_21_COMMISSION",
+    "jurisdiction": "HK",
+    "type": "source_rule",
+    "parameters": {
+      "applies_to": "COMMISSION_INCOME",
+      "apportionment_allowed": false
+    },
+    "source_citation": "Inland Revenue Department DIPN 21 (Revised), Paragraph 48 - Sale or Purchase Commission",
+    "as_of_date": "2012-07-01",
+    "summary": "The activity giving rise to commission is arranging the business to be transacted between principals. The source is the place where the activities of the commission agent are performed.[cite: 1]"
+  },
+  {
+    "id": "HK_DIPN_21_REAL_ESTATE",
+    "jurisdiction": "HK",
+    "type": "source_rule",
+    "parameters": {
+      "applies_to": "RENTAL_OR_CAPITAL_GAINS"
+    },
+    "source_citation": "Inland Revenue Department DIPN 21 (Revised), Paragraph 45(a) & (b) - Other Profits",
+    "as_of_date": "2012-07-01",
+    "summary": "Rental income or profits from the sale of real estate are sourced at the location of the property.[cite: 1]"
+  },
+  {
+    "id": "HK_DIPN_21_LISTED_SECURITIES",
+    "jurisdiction": "HK",
+    "type": "source_rule",
+    "parameters": {
+      "applies_to": "CAPITAL_MARKETS_LISTED"
+    },
+    "source_citation": "Inland Revenue Department DIPN 21 (Revised), Paragraph 45(c) - Other Profits",
+    "as_of_date": "2012-07-01",
+    "summary": "Profits from the purchase and sale of listed shares and other listed securities are sourced at the location of the stock exchange where they are traded.[cite: 1]"
+  },
+  {
+    "id": "HK_DIPN_21_UNLISTED_SECURITIES",
+    "jurisdiction": "HK",
+    "type": "source_rule",
+    "parameters": {
+      "applies_to": "CAPITAL_MARKETS_UNLISTED"
+    },
+    "source_citation": "Inland Revenue Department DIPN 21 (Revised), Paragraph 45(d) - Other Profits",
+    "as_of_date": "2012-07-01",
+    "summary": "Profits from the purchase and sale of unlisted shares and securities are determined by the place where the contracts of purchase and sale are effected.[cite: 1]"
+  },
+  {
+    "id": "HK_DIPN_21_FINANCIAL_INSTITUTIONS_LOANS",
+    "jurisdiction": "HK",
+    "type": "source_rule",
+    "parameters": {
+      "applies_to": "INTEREST_INCOME_FI",
+      "offshore_funding_exemption": true
+    },
+    "source_citation": "Inland Revenue Department DIPN 21 (Revised), Paragraph 53-54 - Financial Institutions",
+    "as_of_date": "2012-07-01",
+    "summary": "For financial institutions, offshore loans initiated, negotiated, approved, documented, and funded outside HK are 100% non-taxable. Offshore loans initiated offshore but funded by the HK institution are 50% taxable.[cite: 1]"
+  }
+]

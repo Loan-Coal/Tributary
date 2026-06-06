@@ -1,0 +1,142 @@
+[
+  {
+    "id": "RATE_HK_CIT_STANDARD",
+    "jurisdiction": "HK",
+    "type": "rate",
+    "parameters": {
+      "tax_type": "CORPORATE_INCOME_TAX",
+      "base_rate": 0.165,
+      "two_tiered_rate": 0.0825,
+      "tier_threshold": 2000000 
+    },
+    "source_citation": "OECD Tax Database: Table II.1 - Statutory corporate income tax rate (Hong Kong, China)",
+    "as_of_date": "2023-01-01"
+  },
+  {
+    "id": "RATE_SG_CIT_STANDARD",
+    "jurisdiction": "SG",
+    "type": "rate",
+    "parameters": {
+      "tax_type": "CORPORATE_INCOME_TAX",
+      "base_rate": 0.17,
+      "partial_exemption_available": true
+    },
+    "source_citation": "OECD Tax Database: Table II.1 - Statutory corporate income tax rate (Singapore)",
+    "as_of_date": "2023-01-01"
+  },
+  {
+    "id": "RATE_US_CIT_COMBINED",
+    "jurisdiction": "US",
+    "type": "rate",
+    "parameters": {
+      "tax_type": "CORPORATE_INCOME_TAX",
+      "base_rate": 0.2577, 
+      "federal_component": 0.21,
+      "state_average_component": 0.0477
+    },
+    "source_citation": "OECD Tax Database: Table II.1 - Statutory corporate income tax rate (United States, combined federal and sub-central)",
+    "as_of_date": "2023-01-01"
+  },
+  {
+    "id": "RATE_GB_CIT_STANDARD",
+    "jurisdiction": "GB",
+    "type": "rate",
+    "parameters": {
+      "tax_type": "CORPORATE_INCOME_TAX",
+      "base_rate": 0.25,
+      "small_profits_rate": 0.19,
+      "small_profits_threshold": 50000
+    },
+    "source_citation": "OECD Tax Database: Table II.1 - Statutory corporate income tax rate (United Kingdom - Post April 2023 hike)",
+    "as_of_date": "2023-04-01"
+  },
+  {
+    "id": "RATE_IE_CIT_DUAL",
+    "jurisdiction": "IE",
+    "type": "rate",
+    "parameters": {
+      "tax_type": "CORPORATE_INCOME_TAX",
+      "base_rate": 0.125,
+      "non_trading_rate": 0.25
+    },
+    "source_citation": "OECD Tax Database: Table II.1 - Statutory corporate income tax rate (Ireland - Trading vs Non-Trading)",
+    "as_of_date": "2023-01-01"
+  },
+  {
+    "id": "RATE_DE_CIT_COMBINED",
+    "jurisdiction": "DE",
+    "type": "rate",
+    "parameters": {
+      "tax_type": "CORPORATE_INCOME_TAX",
+      "base_rate": 0.2994,
+      "corporate_tax_component": 0.15,
+      "solidarity_surcharge": 0.00825,
+      "trade_tax_average": 0.14115
+    },
+    "source_citation": "OECD Tax Database: Table II.1 - Statutory corporate income tax rate (Germany, includes Trade Tax / Gewerbesteuer)",
+    "as_of_date": "2023-01-01"
+  },
+  {
+    "id": "RATE_CH_CIT_AVERAGE",
+    "jurisdiction": "CH",
+    "type": "rate",
+    "parameters": {
+      "tax_type": "CORPORATE_INCOME_TAX",
+      "base_rate": 0.1135,
+      "canton_variance_exists": true
+    },
+    "source_citation": "OECD Tax Database: Table II.1 - Statutory corporate income tax rate (Switzerland, central plus sub-central average)",
+    "as_of_date": "2023-01-01"
+  },
+  {
+    "id": "RATE_CN_CIT_STANDARD",
+    "jurisdiction": "CN",
+    "type": "rate",
+    "parameters": {
+      "tax_type": "CORPORATE_INCOME_TAX",
+      "base_rate": 0.25,
+      "high_tech_enterprise_rate": 0.15,
+      "withholding_tax_rate": 0.10
+    },
+    "source_citation": "OECD Tax Database: Table II.1 - Statutory corporate income tax rate (China)",
+    "as_of_date": "2023-01-01"
+  },
+  {
+    "id": "RATE_JP_CIT_COMBINED",
+    "jurisdiction": "JP",
+    "type": "rate",
+    "parameters": {
+      "tax_type": "CORPORATE_INCOME_TAX",
+      "base_rate": 0.2974,
+      "national_component": 0.232,
+      "local_taxes_included": true
+    },
+    "source_citation": "OECD Tax Database: Table II.1 - Statutory corporate income tax rate (Japan, combined national and local)",
+    "as_of_date": "2023-01-01"
+  },
+  {
+    "id": "RATE_AU_CIT_STANDARD",
+    "jurisdiction": "AU",
+    "type": "rate",
+    "parameters": {
+      "tax_type": "CORPORATE_INCOME_TAX",
+      "base_rate": 0.30,
+      "base_rate_entity_sme": 0.25
+    },
+    "source_citation": "OECD Tax Database: Table II.1 - Statutory corporate income tax rate (Australia)",
+    "as_of_date": "2023-01-01"
+  },
+  {
+    "id": "RATE_AE_CIT_NEW",
+    "jurisdiction": "AE",
+    "type": "rate",
+    "parameters": {
+      "tax_type": "CORPORATE_INCOME_TAX",
+      "base_rate": 0.09,
+      "free_zone_qualifying_rate": 0.0,
+      "tier_threshold_aed": 375000
+    },
+    "source_citation": "UAE Ministry of Finance / OECD: Federal Decree-Law No. 47 of 2022 on the Taxation of Corporations and Businesses",
+    "as_of_date": "2023-06-01"
+  }
+]

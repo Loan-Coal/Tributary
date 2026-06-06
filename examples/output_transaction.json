@@ -1,0 +1,23 @@
+{
+  "transaction_id": "txn-1000",
+  "flow_classification": "REVENUE",
+  "candidate_jurisdictions": [
+    "US",
+    "SG"
+  ],
+  "retrieved_rules": [
+    {
+      "rule_id": "TR-001",
+      "source_citation": "Tax Act §12",
+      "as_of_date": "2026-01-01",
+      "confidence": 0.9,
+      "reasoning": "The transaction appears to meet revenue recognition criteria under the provided rules."
+    }
+  ],
+  "evidence_requests": [
+    "Confirm whether the counterparty is a related party and whether contractual terms support revenue recognition."
+  ],
+  "narrative_template": "Revenue is recognized for {{engine:amount}} under the applicable service contract. Use {{engine:invoice_date}} for date-based revenue recognition.",
+  "needs_human_review": false,
+  "abstain": false
+}

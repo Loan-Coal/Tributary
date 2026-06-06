@@ -1,0 +1,31 @@
+{
+  "transaction_id": "txn-1000",
+  "flow_classification": "REVENUE",
+  "candidate_jurisdictions": [
+    "US",
+    "HK"
+  ],
+  "retrieved_rules": [
+    {
+      "rule_id": "TR-001",
+      "source_citation": "Revenue Code §5",
+      "as_of_date": "2026-01-01",
+      "confidence": 0.8,
+      "reasoning": "The transaction involves cross-border software development services where control is expected to transfer, triggering revenue recognition."
+    },
+    {
+      "rule_id": "TR-002",
+      "source_citation": "TP Guidance 2026",
+      "as_of_date": "2026-02-01",
+      "confidence": 0.7,
+      "reasoning": "Given that the transaction is with an overseas related party, related-party documentation and transfer pricing guidelines must be considered."
+    }
+  ],
+  "evidence_requests": [
+    "Provide related-party agreements",
+    "Document the transfer of control over the software development services"
+  ],
+  "narrative_template": "{{engine:amount}} of revenue from {{engine:service_type}} services to an overseas related party should be recognized under {{engine:as_of_date}}.",
+  "needs_human_review": true,
+  "abstain": false
+}
