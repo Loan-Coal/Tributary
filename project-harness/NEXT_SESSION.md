@@ -1,30 +1,30 @@
 # Session Handoff
 
 **Branch:** `conflict-detection`
-**Last completed:** W6c.4 — conflict_id collision fix; regression test + golden test updated; 219 tests green
-**Test status:** 219 passed, 6 skipped — `make test` green
-**Status:** Wave 6c active. W6c.1–W6c.4 ticked. Next: W6c.5 (runner unguarded [0] index).
+**Last completed:** W6c.5 — runner._cit_rule() guarded; EngineError on missing CIT rule; 220 tests green
+**Test status:** 220 passed, 6 skipped — `make test` green
+**Status:** Wave 6c active. W6c.1–W6c.5 ticked. Next: W6c.6 (fabricated adapter-placeholder citation).
 
 ---
 
 ## Immediate next tasks (in order)
 
-### 1. Wave 6c — W6c.5: unguarded [0] index in runner (~10 min)
-Files:
-- `src/tributary/engine/runner.py` (edit — the `_cit_rule()` method, line ~210)
-- `tests/unit/test_engine_units.py` (add — missing CIT rule raises EngineError, not IndexError)
-
-Fix: `if not rules: raise EngineError(f"no CIT rate rule for jurisdiction {jurisdiction}")`
-
-### 2. Wave 6c — W6c.6: fabricated adapter-placeholder citation (~20 min)
+### 1. Wave 6c — W6c.6: fabricated adapter-placeholder citation (~20 min)
 Files:
 - `src/tributary/ai/adapter.py` (edit — `_to_attribution()`, lines ~139-142)
 - `tests/unit/test_ai_adapter.py` (add — no RuleCitation with "placeholder" in rule_id)
 
-### 3. Wave 6c — W6c.7: service.py in-place Pydantic mutation (~10 min)
+Fix: replace `RuleCitation(rule_id="adapter-placeholder", ...)` with `abstain=True, needs_human_review=True`
+and empty `rule_citations=[]`; no synthetic citation should ever enter a brief.
+
+### 2. Wave 6c — W6c.7: service.py in-place Pydantic mutation (~10 min)
 Files:
 - `src/tributary/ai/service.py` (edit — line ~42, replace in-place mutation with model_copy)
-- `tests/unit/test_ai_service.py` (add — mismatched transaction ID logs warning, not silent overwrite)
+- related test file (add — mismatched transaction ID raises AILayerError or logs warning)
+
+### 3. Wave 6c — W6c.8: common/__init__.py missing GroupRelief exports (~5 min)
+Files:
+- `src/tributary/common/__init__.py` (edit — add GroupReliefOpportunity + GroupReliefMechanism to imports and __all__)
 
 ---
 
@@ -37,8 +37,6 @@ Files:
 - **W6c P1 priority:** fabricated `adapter-placeholder` citations (W6c.6) and `rules/db.py` layer violation (W6c.9) are the highest-impact remaining fixes.
 - **W6c.9 (rules/db.py move) is risky** — it deletes a file and touches all its callers. Do not attempt in a long context; start it fresh.
 - **W6b entry gate updated:** Wave 6b remaining tasks (W6b.4+W6b.5+W6b.7) require Wave 6c complete first.
-- **GroupReliefMechanism** enum: GROUP_RELIEF | ORGANSCHAFT | INTEGRATION_FISCALE | TRANSFER_PRICING_NOTE
-- **EntityBase** — check `engine/aggregator.py` for `net_income_hkd` field name before coding W6b.4.
 - **conflict_id format (updated):** `f"PE-{pe.entity_id}-{pe.residence_jurisdiction}-{conflict_year}"` (e.g. `PE-MERID-DE-DE-2025`)
 
 ---
@@ -50,7 +48,7 @@ Files:
 - [x] W6c.2 — EU_MEMBER_JURISDICTIONS out of engine/
 - [x] W6c.3 — Zinsschranke negative EBITDA clamp
 - [x] W6c.4 — conflict_id collision (include entity_id)
-- [ ] W6c.5 — runner.py unguarded [0] index
+- [x] W6c.5 — runner.py unguarded [0] index
 - [ ] W6c.6 — adapter.py fabricated adapter-placeholder citation
 - [ ] W6c.7 — service.py in-place Pydantic mutation
 - [ ] W6c.8 — common/__init__.py missing GroupRelief exports

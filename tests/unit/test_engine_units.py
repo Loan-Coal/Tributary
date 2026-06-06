@@ -681,3 +681,50 @@ class TestWhtTreatyRateMissing:
         )
         with pytest.raises(RulePackError, match="treaty_rate"):
             get_treaty_rate(reader, _StubLoaderWithBadTreaty(), payment, date(2025, 12, 31))
+
+
+# ===========================================================================
+# runner.py — W6c.5: missing CIT rule raises EngineError, not IndexError
+# ===========================================================================
+
+from unittest.mock import MagicMock
+
+from tributary.common.errors import EngineError
+from tributary.engine.runner import EngineRunner
+
+
+class _StubLoaderNoCit:
+    """Loader that returns an empty list for every get_rules call."""
+
+    def get_rules(self, jur: str, cat: RuleCategory) -> list[Rule]:
+        return []
+
+    def get_treaty_rules(self, a: str, b: str) -> list[Rule]:
+        return []
+
+    def get_rule(self, jur: str, rule_id: str) -> Rule:
+        raise KeyError(rule_id)
+
+    def get_fiscal_calendar(self, jur: str):  # type: ignore[return]
+        raise KeyError(jur)
+
+
+class TestRunnerMissingCitRule:
+    @pytest.fixture
+    def runner(self):
+        return EngineRunner(
+            reader=MagicMock(),
+            writer=MagicMock(),
+            ai=MagicMock(),
+            loader=_StubLoaderNoCit(),
+            reference_year=2025,
+        )
+
+    def test_engine_error_not_index_error_when_cit_rule_absent(self, runner):
+        """EngineError (not IndexError) when _cit_rule() finds no CIT rule for a jurisdiction.
+
+        Before the fix, get_rules()[0] raises bare IndexError.
+        After the fix, the engine raises typed EngineError with a descriptive message.
+        """
+        with pytest.raises(EngineError, match="CIT"):
+            runner._cit_rule("XX")

@@ -123,7 +123,8 @@ Rules:
 **Why deferred:** Surfaced by full-codebase audit; golden scenario has only one PE.
 **To fix:** Include `entity_id` and `residence_jurisdiction` in the key: `f"PE-{pe.entity_id}-{residence_jurisdiction}-{year}"`. Add regression test with two simultaneous PE triggers. Route via /iterate.
 
-## ISSUE-014: runner.py:210 — unguarded [0] index on get_rules() raises IndexError
+## [FIXED] ISSUE-014: runner.py:210 — unguarded [0] index on get_rules() raises IndexError
+**Fixed:** 2026-06-06, W6c.5 — guarded with `if not rules: raise EngineError(...)`; regression test added; 220 tests green
 **Found:** 2026-06-06, during /audit
 **Severity:** P1 (correctness — unhandled exception breaks entire run)
 **Where:** `src/tributary/engine/runner.py:210`

@@ -206,8 +206,15 @@ class EngineRunner:
         return None
 
     def _cit_rule(self, jurisdiction: JurisdictionCode) -> Rule:
-        """Return the CIT rate rule for a jurisdiction."""
-        return self._loader.get_rules(jurisdiction, RuleCategory.CIT_RATE)[0]
+        """Return the CIT rate rule for a jurisdiction.
+
+        Raises:
+            EngineError: When the rule pack contains no CIT rate rule for the jurisdiction.
+        """
+        rules = self._loader.get_rules(jurisdiction, RuleCategory.CIT_RATE)
+        if not rules:
+            raise EngineError(f"no CIT rate rule for jurisdiction {jurisdiction}")
+        return rules[0]
 
     def _elimination_rule(self, jur_a: JurisdictionCode, jur_b: JurisdictionCode) -> Rule:
         """Return the treaty elimination rule between two jurisdictions."""
