@@ -1,0 +1,12 @@
+[
+  {
+    "loss_id": "LOSS-DE-2024",
+    "entity_id": "MERID-DE",
+    "jurisdiction": "DE",
+    "loss_period_start": "2024-01-01",
+    "loss_period_end": "2024-12-31",
+    "original_loss_hkd": "1600000.00",
+    "remaining_loss_hkd": "1600000.00",
+    "created_at": "2025-03-31"
+  }
+]
