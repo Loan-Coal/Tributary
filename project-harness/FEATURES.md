@@ -61,7 +61,7 @@ Legend: ✅ implemented + tested · 🟡 implemented, no dedicated test · ⬜ n
 | Loss carryforward ledger (FIFO, Mindestbesteuerung cap) | ✅ `engine/loss_ledger.py` |
 | PE trigger detection + profit attribution | ✅ `engine/pe.py` |
 | PE double-tax conflict flag + treaty pointer lookup | ✅ `engine/conflict.py` |
-| WHT exposure flag (over-withholding vs treaty entitlement) | ⬜ W6.4 |
+| WHT exposure flag (over-withholding vs treaty entitlement) | ✅ `engine/wht_exposure.py` |
 | Group profit redistribution opportunity detection | ⬜ Wave 6b |
 | All engine output carries rule id, as_of_date, source_citation | ✅ enforced on all `ObligationResult` |
 | Full `EngineRunner` orchestrator (6-phase pipeline) | ✅ `engine/runner.py` |

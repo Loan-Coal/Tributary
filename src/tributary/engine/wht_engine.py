@@ -69,13 +69,22 @@ def _holding_qualifies(
     return False
 
 
-def _treaty_rate(
+def get_treaty_rate(
     reader: GraphReader,
     loader: RulePackLoader,
     payment: OutboundPayment,
     as_of: date,
 ) -> tuple[Decimal, Rule] | None:
-    """Return the applicable treaty/directive rate and rule, or None if no benefit applies."""
+    """Return the applicable treaty/directive rate and rule, or None if no benefit applies.
+
+    Args:
+        reader: Graph reader for ownership lookups.
+        loader: Rule-pack loader for treaty rules.
+        payment: The outbound payment to evaluate.
+        as_of: Date on which holding conditions are tested.
+    Returns:
+        (treaty_rate, rule) if a treaty benefit applies; None otherwise.
+    """
     category = _TREATY_CATEGORY.get(payment.activity)
     if category is None:
         return None
@@ -128,7 +137,7 @@ def compute_wht(
         )
     domestic = domestic_rules[0]
     domestic_rate = domestic.parameters.domestic_rate or Decimal("0")
-    treaty = _treaty_rate(reader, loader, payment, period.end_date)
+    treaty = get_treaty_rate(reader, loader, payment, period.end_date)
     applicable_rate = treaty[0] if treaty is not None else domestic_rate
     treaty_citation = _citation(treaty[1]) if treaty is not None else None
     gross = round_hkd(payment.gross_hkd * domestic_rate)

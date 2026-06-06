@@ -24,9 +24,8 @@ _Maintained by `/wave-parallel`. State that survives between sessions so a fresh
 run needn't rediscover it. Add a line when a task completes and unblocks something
 later; delete consumed lines; keep it under ~15 lines._
 
-- **Waves 1, 3, 4a, 4b COMPLETE**: Engine produces golden figures; 179 tests green.
-- **Wave 5 ~85% complete**: `AILayerAdapter` wired; `FakeClaudeClient` + `QwenLocalClient` ready; `ClaudeClient` migrated to `messages.create()` API (ISSUE-008 fixed); W5.7 integration test not yet written.
-- **Wave 6 engine-side built**: `pe.py` + `conflict.py` detect PE Triangle and emit `ConflictFlag`. W6.4 (WHT exposure flag) + W6.7 (golden-value integration test) still pending.
+- **Waves 1, 3, 4a, 4b, 5 COMPLETE**: Engine produces golden figures; all AI layer files wired; 197 tests green.
+- **Wave 6 nearly complete**: PE Triangle, WHT exposure scanner all built. W6.7 (PE Triangle golden integration test) still pending — last open item before Wave 7.
 - **Wave 6b NEW**: Group profit redistribution detection — see Wave 6b section below. DEC-020 records the architectural decision.
 - **Models split**: `common/models.py` re-exports from `models_entity.py`, `models_engine.py`, `models_ai.py`. See DEC-012.
 - **EXPECTED.md canonical figures**: HK HKD 445,500; DE CIT HKD 47,673; DE Trade Tax HKD 42,175; FR CIT HKD 1,030,938. PE Triangle — exemption method, residual double-tax = 0.
@@ -221,13 +220,13 @@ later; delete consumed lines; keep it under ~15 lines._
 **Exit gate:** `make run-golden` produces correct engine-computed obligations driven by real AI attributions; AI attributions for golden scenario match `attributions_stub.json` (used as ground truth).
 
 ### Tasks
-- [ ] **W5.1** — `ai/classifier.py`: classify flow nature via Claude structured output
-- [ ] **W5.2** — `ai/attributor.py`: attribute candidate jurisdictions per flow; grounded to graph context + rule packs
-- [ ] **W5.3** — `ai/retriever.py`: retrieve applicable rules from packs; cite rule_id + as_of_date; abstain if insufficient
-- [ ] **W5.4** — `prompts/classify_flow.yaml`, `prompts/attribute_jurisdiction.yaml`, `prompts/retrieve_rules.yaml`
-- [ ] **W5.5** — `ai/mock_adapter.py`: mock Claude adapter returning `attributions_stub.json` values for unit tests
-- [ ] **W5.6** — swap: `EngineRunner` receives real `AILayer` implementation; attribution stub retired to test-only
-- [ ] **W5.7** — integration test: AI + engine pipeline on golden scenario matches `EXPECTED.md`
+- [x] **W5.1** — `ai/classifier.py`: classify flow nature via Claude structured output
+- [x] **W5.2** — `ai/attributor.py`: attribute candidate jurisdictions per flow; grounded to graph context + rule packs
+- [x] **W5.3** — `ai/retriever.py`: retrieve applicable rules from packs; cite rule_id + as_of_date; abstain if insufficient
+- [x] **W5.4** — `prompts/classify_flow.yaml`, `prompts/attribute_jurisdiction.yaml`, `prompts/retrieve_rules.yaml`
+- [x] **W5.5** — `ai/mock_adapter.py`: mock Claude adapter returning `attributions_stub.json` values for unit tests
+- [x] **W5.6** — swap: `EngineRunner` receives real `AILayer` implementation; attribution stub retired to test-only
+- [x] **W5.7** — integration test: AI + engine pipeline on golden scenario matches `EXPECTED.md`
 
 ---
 
@@ -243,7 +242,7 @@ later; delete consumed lines; keep it under ~15 lines._
 - [x] **W6.1** — `engine/conflict.py`: scan `EngineRunResult.obligations` for flows where `source_flow_ids` overlap across jurisdictions → double-tax candidate
 - [x] **W6.2** — full PE attribution computation: aggregate presence_days from graph; if above PE threshold: compute attribution percentage; split attributed income from parent jurisdiction's CIT base (`engine/pe.py`)
 - [x] **W6.3** — double-tax flag: same attributed income appearing in two `ObligationResult` records → `ConflictFlag`
-- [ ] **W6.4** — WHT exposure flag: check WHT obligations against treaty entitlement; flag over-withheld cases (`engine/wht_exposure.py` — new module)
+- [x] **W6.4** — WHT exposure flag: check WHT obligations against treaty entitlement; flag over-withheld cases (`engine/wht_exposure.py` — new module)
 - [x] **W6.5** — `ConflictFlag` model in `common/models.py`; `EngineRunResult.conflicts` field populated
 - [x] **W6.6** — treaty pointer lookup: conflict detector reads treaty pack for relevant DTA article + elimination method
 - [ ] **W6.7** — integration test: PE Triangle fires; exemption method applied; residual double-tax = 0; conflict report matches `EXPECTED.md`
@@ -338,3 +337,4 @@ later; delete consumed lines; keep it under ~15 lines._
 | 2 | 2026-06-06 | planning | Engine plan refined; API contracts written; planted conflict designed; wave roadmap authored | API_ENGINE_AI.md, API_ENGINE_GRAPH.md, DECISIONS.md updated, ROADMAP.md rewritten; ready for Wave 1 |
 | 3 | 2026-06-06 | 0–1 | Technical audit, architecture fixes, full engine implementation | 137 tests green, layer check clean, engine produces golden figures |
 | 4 | 2026-06-06 | 5 | AI layer v1 merge integration — AILayerAdapter, adapter tests, engine hardening | 179 tests green; Wave 5 ~80%; Wave 6 engine-side built; Wave 6b scoped |
+| 5 | 2026-06-06 | 5+6 | Ticked Wave 5 complete; W6.4 WHT exposure scanner — wht_exposure.py + 14 tests | 197 tests green; Wave 5 done; Wave 6 open: W6.7 only |

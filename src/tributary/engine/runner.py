@@ -23,6 +23,7 @@ from tributary.common.models import (
     GraphReader,
     GraphWriter,
     JurisdictionCode,
+    ObligationType,
 )
 from tributary.engine.aggregator import EntityBase, aggregate_entity
 from tributary.engine.conflict import build_pe_conflict
@@ -30,6 +31,7 @@ from tributary.engine.entity_run import EntityArtifacts, build_entity_result
 from tributary.engine.flow_context import FlowJudgement, judge_flows
 from tributary.engine.pe import PeAttribution, detect_pe
 from tributary.engine.periods import compute_period
+from tributary.engine.wht_exposure import scan_wht_exposure
 from tributary.rules.models import Rule, RuleCategory, RulePackLoader
 
 _BASE_CURRENCY = "HKD"
@@ -134,7 +136,7 @@ class EngineRunner:
             )
             for e in entities
         }
-        conflicts_by_entity = self._build_conflicts(entities, pe_attrs, artifacts)
+        conflicts_by_entity = self._build_conflicts(entities, pe_attrs, artifacts, bases)
         return [self._to_run_result(artifacts[e.entity_id], conflicts_by_entity.get(e.entity_id, [])) for e in entities]
 
     def _build_conflicts(
@@ -142,8 +144,9 @@ class EngineRunner:
         entities: list[EntityRecord],
         pe_attrs: list[PeAttribution],
         artifacts: dict[str, EntityArtifacts],
+        bases: dict[str, EntityBase],
     ) -> dict[str, list[ConflictFlag]]:
-        """Phase 4: build a ConflictFlag per PE and attach its threshold to the residence entity."""
+        """Phase 4: build PE conflict flags and WHT exposure flags per entity."""
         conflicts: dict[str, list[ConflictFlag]] = defaultdict(list)
         for pe in pe_attrs:
             artifacts[pe.entity_id].threshold_checks.append(pe.threshold)
@@ -158,6 +161,15 @@ class EngineRunner:
                     self._year,
                 )
             )
+        for entity in entities:
+            base = bases[entity.entity_id]
+            art = artifacts[entity.entity_id]
+            wht_obs = [o for o in art.obligations if o.obligation_type is ObligationType.WHT]
+            if wht_obs and base.outbound_payments:
+                wht_flags = scan_wht_exposure(
+                    wht_obs, base.outbound_payments, self._loader, self._reader, base.period
+                )
+                conflicts[entity.entity_id].extend(wht_flags)
         return conflicts
 
     def _to_run_result(self, art: EntityArtifacts, conflicts: list[ConflictFlag]) -> EngineRunResult:
