@@ -37,6 +37,8 @@ from .models_engine import (
     ConflictType,
     DeadlineResult,
     EngineRunResult,
+    GroupReliefMechanism,
+    GroupReliefOpportunity,
     LossCarryforwardRecord,
     ObligationResult,
     ReliefMechanism,
@@ -68,6 +70,7 @@ __all__ = [
     "EntityType",
     "ConflictType",
     "ReliefMechanism",
+    "GroupReliefMechanism",
     # Entity / structure
     "JurisdictionCode",
     "EntityRecord",
@@ -89,6 +92,7 @@ __all__ = [
     "DeadlineResult",
     "LossCarryforwardRecord",
     "ConflictFlag",
+    "GroupReliefOpportunity",
     "EngineRunResult",
     # Boundary protocols
     "GraphReader",

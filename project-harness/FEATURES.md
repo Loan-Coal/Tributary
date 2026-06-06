@@ -62,7 +62,7 @@ Legend: ✅ implemented + tested · 🟡 implemented, no dedicated test · ⬜ n
 | PE trigger detection + profit attribution | ✅ `engine/pe.py` |
 | PE double-tax conflict flag + treaty pointer lookup | ✅ `engine/conflict.py` |
 | WHT exposure flag (over-withholding vs treaty entitlement) | ✅ `engine/wht_exposure.py` |
-| Group profit redistribution opportunity detection | ⬜ Wave 6b |
+| Group profit redistribution opportunity detection | 🟡 data contract done (`GroupReliefOpportunity` model, `GROUP_RELIEF` rule category); engine scanner W6b.4 pending |
 | All engine output carries rule id, as_of_date, source_citation | ✅ enforced on all `ObligationResult` |
 | Full `EngineRunner` orchestrator (6-phase pipeline) | ✅ `engine/runner.py` |
 
@@ -107,7 +107,7 @@ Legend: ✅ implemented + tested · 🟡 implemented, no dedicated test · ⬜ n
 | Golden multinational mock dataset (Meridian Group, 3 jurisdictions, T001–T009) | ✅ `data/golden/` |
 | Planted cross-border conflict — PE Triangle (MERID-DE in France 185 days) | ✅ modeled + engine fires |
 | Hand-computed expected values in `data/golden/EXPECTED.md` | ✅ HK + DE + FR + PE Triangle |
-| 200 passing tests (6 skipped — Neo4j integration); PE Triangle conflict integration test | ✅ `make test` green |
+| 208 passing tests (6 skipped — Neo4j integration); PE Triangle + WHT exposure + W6b model tests | ✅ `make test` green |
 | Cached AI outputs for golden dataset (offline-safe demo) | ⬜ Wave 8 |
 | `make demo` reproducible without live Claude API | ⬜ Wave 8 |
 | Brief UI showing as_of_dates, citations, confidence, conflict highlight | ⬜ Wave 8 |

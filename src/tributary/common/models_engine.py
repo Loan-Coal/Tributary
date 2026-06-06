@@ -39,6 +39,15 @@ class ReliefMechanism(str, Enum):
     EXEMPTION = "exemption"
     CREDIT = "credit"
 
+
+class GroupReliefMechanism(str, Enum):
+    """Mechanism by which group-level profit redistribution can occur (W6b)."""
+
+    GROUP_RELIEF = "group_relief"
+    ORGANSCHAFT = "organschaft"
+    INTEGRATION_FISCALE = "integration_fiscale"
+    TRANSFER_PRICING_NOTE = "transfer_pricing_note"
+
 # ---------------------------------------------------------------------------
 # Shared citation model (used by engine and AI layers)
 # ---------------------------------------------------------------------------
@@ -162,6 +171,29 @@ class ConflictFlag(BaseModel):
     needs_review: bool
 
 
+class GroupReliefOpportunity(BaseModel):
+    """A detected opportunity to redistribute pre-tax profit across group members (W6b).
+
+    The engine flags the opportunity and cites the applicable rule; it never recommends
+    a transfer amount (DEC-002, DEC-020). The professional reviews and quantifies.
+    ``needs_review`` is always True — sign-off is mandatory before acting.
+    """
+
+    opportunity_id: str
+    income_entity_id: str
+    loss_entity_id: str
+    income_jurisdiction: JurisdictionCode
+    loss_jurisdiction: JurisdictionCode
+    available_income_hkd: Decimal
+    unused_loss_hkd: Decimal
+    relief_mechanism: GroupReliefMechanism
+    applicable_rule_id: str
+    as_of_date: date
+    source_citation: str
+    conditions_summary: str
+    needs_review: bool = True
+
+
 class EngineRunResult(BaseModel):
     """Top-level result of one engine run for an entity and fiscal period."""
 
@@ -174,4 +206,5 @@ class EngineRunResult(BaseModel):
     deadlines: list[DeadlineResult]
     loss_carryforward_applied: list[LossCarryforwardRecord]
     conflicts: list[ConflictFlag]
+    group_relief_opportunities: list[GroupReliefOpportunity] = []
     has_unresolved_items: bool

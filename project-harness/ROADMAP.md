@@ -25,8 +25,8 @@ run needn't rediscover it. Add a line when a task completes and unblocks somethi
 later; delete consumed lines; keep it under ~15 lines._
 
 - **Waves 1, 3, 4a, 4b, 5 COMPLETE**: Engine produces golden figures; all AI layer files wired; 197 tests green.
-- **Waves 1, 3, 4a, 4b, 5, 6 COMPLETE**: All engine passes golden; PE Triangle fires + verified; WHT exposure scanner built; 200 tests green. Wave 6b is next.
-- **Wave 6b NEW**: Group profit redistribution detection — see Wave 6b section below. DEC-020 records the architectural decision.
+- **Waves 1, 3, 4a, 4b, 5, 6 COMPLETE**: All engine passes golden; PE Triangle fires + verified; WHT exposure scanner built; 200 tests green.
+- **Wave 6b data contract done** (W6b.1, W6b.2, W6b.3, W6b.6): `GroupReliefOpportunity` model + `GroupReliefMechanism` enum in `models_engine.py`; `EngineRunResult.group_relief_opportunities` field; `GROUP_RELIEF` in `RuleCategory`; golden packs verified absent. 208 tests green. W6b.4+W6b.5+W6b.7 (engine module + wiring + tests) next.
 - **Models split**: `common/models.py` re-exports from `models_entity.py`, `models_engine.py`, `models_ai.py`. See DEC-012.
 - **EXPECTED.md canonical figures**: HK HKD 445,500; DE CIT HKD 47,673; DE Trade Tax HKD 42,175; FR CIT HKD 1,030,938. PE Triangle — exemption method, residual double-tax = 0.
 - **Wave 2**: graph colleague primary (W2.1–W2.3, W2.6). Engine owner reviews W2.4 + W2.5 when PRs ready.
@@ -258,22 +258,22 @@ later; delete consumed lines; keep it under ~15 lines._
 **Exit gate:** For each entity pair (A has income, B has unused losses) in a jurisdiction with a `GROUP_RELIEF` rule, one `GroupReliefOpportunity` is emitted per eligible pair. For the golden scenario (HK/DE/FR — no bilateral group relief available), no opportunities are emitted; this is itself a verifiable test result.
 
 ### Tasks
-- [ ] **W6b.1** — `common/models_engine.py`: add `GroupReliefOpportunity` model:
+- [x] **W6b.1** — `common/models_engine.py`: add `GroupReliefOpportunity` model:
   - `opportunity_id`, `income_entity_id`, `loss_entity_id`
   - `income_jurisdiction`, `loss_jurisdiction`
   - `available_income_hkd`, `unused_loss_hkd` (engine-computed amounts, not AI estimates)
   - `relief_mechanism` (Literal: `"group_relief"` | `"organschaft"` | `"integration_fiscale"` | `"transfer_pricing_note"`)
   - `applicable_rule_id`, `as_of_date`, `source_citation`, `conditions_summary`
   - `needs_review: bool = True` (always — professional sign-off required)
-- [ ] **W6b.2** — extend `EngineRunResult` with `group_relief_opportunities: list[GroupReliefOpportunity] = []`
-- [ ] **W6b.3** — `rules/models.py`: add `GROUP_RELIEF` to `RuleCategory` enum
+- [x] **W6b.2** — extend `EngineRunResult` with `group_relief_opportunities: list[GroupReliefOpportunity] = []`
+- [x] **W6b.3** — `rules/models.py`: add `GROUP_RELIEF` to `RuleCategory` enum
 - [ ] **W6b.4** — `engine/group_relief.py`: cross-entity scanner
   - Accepts all `EntityBase` objects from the runner's aggregation phase
   - For each ordered pair (A, B) where A has `net_income_hkd > 0` and B has unused losses in a related jurisdiction: check if `GROUP_RELIEF` rule exists for the pair's jurisdictions
   - If rule found: emit `GroupReliefOpportunity` citing the rule; set `available_income_hkd = A.net_income_hkd`, `unused_loss_hkd = B.total_unused_losses_hkd`
   - If no rule: no flag (correct — group relief is not universally available)
 - [ ] **W6b.5** — wire into `engine/runner.py` after `_assemble_results`: call `scan_group_relief(bases, entities, loader)` and attach results to each affected `EngineRunResult`
-- [ ] **W6b.6** — rule pack updates: add `GROUP_RELIEF` rules to any applicable jurisdiction packs. For golden scenario (HK, DE, FR): correctly have no bilateral group relief rule between these three — zero opportunities emitted for MERID group is the expected result
+- [x] **W6b.6** — rule pack updates: add `GROUP_RELIEF` rules to any applicable jurisdiction packs. For golden scenario (HK, DE, FR): correctly have no bilateral group relief rule between these three — zero opportunities emitted for MERID group is the expected result
 - [ ] **W6b.7** — unit tests:
   - Two entities (income + loss) in a jurisdiction pair with a `GROUP_RELIEF` rule → `GroupReliefOpportunity` emitted with correct fields
   - Same pair in jurisdictions without the rule → no opportunity (correct negative case)

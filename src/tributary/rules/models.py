@@ -60,6 +60,7 @@ class RuleCategory(str, Enum):
     TREATY_ROYALTY = "treaty_royalty"
     TREATY_PE = "treaty_pe"
     TREATY_ELIMINATION = "treaty_elimination"
+    GROUP_RELIEF = "group_relief"
 
 
 class RuleParameters(BaseModel):

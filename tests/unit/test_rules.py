@@ -148,3 +148,27 @@ class TestLoaderRealPacks:
         """Requesting an unknown rule id raises RulePackError."""
         with pytest.raises(RulePackError):
             loader.get_rule("HK", "NOPE")
+
+
+# ---------------------------------------------------------------------------
+# GROUP_RELIEF rule category (Wave 6b — W6b.3)
+# ---------------------------------------------------------------------------
+
+class TestGroupReliefCategory:
+    """Tests for the GROUP_RELIEF enum member (W6b.3)."""
+
+    def test_group_relief_enum_member_exists(self) -> None:
+        """RuleCategory.GROUP_RELIEF exists with the correct string value."""
+        assert RuleCategory.GROUP_RELIEF.value == "group_relief"
+
+    def test_group_relief_absent_in_golden_packs(self, loader: JSONRulePackLoader) -> None:
+        """Golden packs (HK, DE, FR) correctly return empty list for GROUP_RELIEF.
+
+        HK/DE/FR have no bilateral group relief arrangement — zero opportunities is the
+        expected and verifiable result for the Meridian golden scenario.
+        """
+        for jurisdiction in ("HK", "DE", "FR"):
+            rules = loader.get_rules(jurisdiction, RuleCategory.GROUP_RELIEF)
+            assert rules == [], (
+                f"Expected no GROUP_RELIEF rules for {jurisdiction}; got {rules}"
+            )
