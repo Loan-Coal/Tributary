@@ -9,20 +9,28 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from transformers import AutoModelForCausalLM, AutoTokenizer
-import torch
-
+from tributary.ai.models import AILayerOutput
 from tributary.common.errors import AIClientError
 from tributary.common.logging import get_logger
-from tributary.ai.models import AILayerOutput
 
 logger = get_logger(__name__)
+
+try:
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+    _TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    _TRANSFORMERS_AVAILABLE = False
 
 
 class QwenLocalClient:
     def __init__(self, model_name: str = "Qwen/Qwen3-30B-A3B-Instruct-2507") -> None:
+        if not _TRANSFORMERS_AVAILABLE:
+            raise ImportError(
+                "QwenLocalClient requires 'transformers' and 'torch'. "
+                "Install them or use ClaudeClient instead."
+            )
         self.model_name = model_name
         try:
             self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
@@ -78,7 +86,7 @@ class QwenLocalClient:
             end = content.rfind("}")
             if start == -1 or end == -1 or start >= end:
                 logger.error("Failed to parse JSON from Qwen content", extra={"content": content})
-                raise AIClientError("Qwen returned non-JSON output")
+                raise AIClientError("Qwen returned non-JSON output") from None
             try:
                 return json.loads(content[start : end + 1])
             except json.JSONDecodeError as exc:
@@ -89,7 +97,7 @@ class QwenLocalClient:
                 )
                 raise AIClientError("Qwen returned invalid structured JSON") from exc
 
-    def _normalize_payload(self, payload: Any) -> Dict[str, Any]:
+    def _normalize_payload(self, payload: Any) -> dict[str, Any]:
         if not isinstance(payload, dict):
             raise AIClientError("Qwen returned unexpected payload format")
 
@@ -119,15 +127,15 @@ class QwenLocalClient:
                     return category
         return "UNCLASSIFIED"
 
-    def _normalize_jurisdictions(self, value: Any) -> List[str]:
+    def _normalize_jurisdictions(self, value: Any) -> list[str]:
         if isinstance(value, list):
             return [str(item) for item in value if item is not None]
         if isinstance(value, str):
             return [value]
         return []
 
-    def _normalize_rules(self, rules: Any) -> List[Dict[str, Any]]:
-        result: List[Dict[str, Any]] = []
+    def _normalize_rules(self, rules: Any) -> list[dict[str, Any]]:
+        result: list[dict[str, Any]] = []
         if not isinstance(rules, list):
             return result
         for rule in rules:
@@ -144,8 +152,8 @@ class QwenLocalClient:
             )
         return result
 
-    def _normalize_evidence_requests(self, requests: Any) -> List[str]:
-        output: List[str] = []
+    def _normalize_evidence_requests(self, requests: Any) -> list[str]:
+        output: list[str] = []
         if isinstance(requests, list):
             for item in requests:
                 if isinstance(item, str):

@@ -12,6 +12,7 @@ from __future__ import annotations
 from datetime import date
 
 from tributary.ai.models import AILayerOutput, RuleSummary, TransactionContext
+from tributary.ai.models import RuleCitation as _AiRuleCitation
 from tributary.ai.service import AILayerService
 from tributary.common.errors import AILayerError
 from tributary.common.logging import get_logger
@@ -27,9 +28,13 @@ from tributary.common.models import (
     RuleCitation,
     RuleRetrievalResult,
 )
+from tributary.common.protocols_ai import LLMClientProtocol
 from tributary.rules.models import RuleCategory, RulePackLoader
 
 logger = get_logger(__name__)
+
+# Rule type used when the AI output does not specify a rule type (abstain path)
+_UNKNOWN_RULE_TYPE = "unknown"
 
 # Normalise AILayerOutput.flow_classification (uppercase) → FlowNature (lowercase enum)
 _NATURE_MAP: dict[str, FlowNature] = {
@@ -104,7 +109,15 @@ def _confidence(output: AILayerOutput) -> ConfidenceLevel:
 def _map_citation(
     raw: object, fallback_jurisdiction: JurisdictionCode
 ) -> RuleCitation:
-    """Convert an ai.models.RuleCitation to the canonical RuleCitation."""
+    """Convert an ai.models.RuleCitation to the canonical RuleCitation.
+
+    Raises:
+        AILayerError: If raw is not an ai.models.RuleCitation instance.
+    """
+    if not isinstance(raw, _AiRuleCitation):
+        raise AILayerError(
+            f"Expected ai.models.RuleCitation in retrieved_rules, got {type(raw).__name__}"
+        )
     return RuleCitation(
         rule_id=raw.rule_id,
         jurisdiction=fallback_jurisdiction,
@@ -131,15 +144,15 @@ def _to_classification(
 def _to_attribution(
     flow_id: str, output: AILayerOutput, fallback_jur: JurisdictionCode
 ) -> FlowAttribution:
-    """Map AILayerOutput → FlowAttribution."""
+    """Map AILayerOutput → FlowAttribution.
+
+    rationale_citation is None when the AI returned no real rule reference — this triggers
+    the human-review path in the brief assembler rather than emitting a fabricated citation
+    (DEC-022).
+    """
     claims: list[JurisdictionClaim] = []
     confidence = _confidence(output)
-    citation = RuleCitation(
-        rule_id="adapter-placeholder",
-        jurisdiction=fallback_jur,
-        as_of_date=date.today(),
-        source_citation="Derived from AI output; confirm against rule pack.",
-    )
+    real_citation = _first_real_citation(output, fallback_jur)
     for jur_str in output.candidate_jurisdictions:
         if not isinstance(jur_str, str) or len(jur_str) != 2:
             logger.warning("Invalid jurisdiction code from AI output", extra={"code": jur_str})
@@ -149,15 +162,30 @@ def _to_attribution(
             jurisdiction=jur,
             confidence=confidence,
             claim_basis="AI jurisdiction attribution",
-            rationale_citation=citation,
+            rationale_citation=real_citation,
         ))
+    no_citation = real_citation is None
     return FlowAttribution(
         flow_id=flow_id,
         primary_jurisdiction=claims[0].jurisdiction if claims else None,
         claims=claims,
-        abstain=output.abstain,
-        abstain_reason="AI abstained" if output.abstain else None,
+        abstain=output.abstain or no_citation,
+        abstain_reason=(
+            "AI abstained" if output.abstain
+            else "No rule citation available; requires human review" if no_citation
+            else None
+        ),
     )
+
+
+def _first_real_citation(
+    output: AILayerOutput, fallback_jur: JurisdictionCode
+) -> RuleCitation | None:
+    """Return the first mapped citation from retrieved_rules, or None if none exist."""
+    for raw in output.retrieved_rules:
+        if isinstance(raw, _AiRuleCitation):
+            return _map_citation(raw, fallback_jur)
+    return None
 
 
 def _to_rule_retrieval(
@@ -171,7 +199,7 @@ def _to_rule_retrieval(
         rules.append(ApplicableRule(
             rule_id=raw.rule_id,
             jurisdiction=jurisdiction,
-            rule_type="unknown",
+            rule_type=_UNKNOWN_RULE_TYPE,
             as_of_date=date.fromisoformat(raw.as_of_date),
             source_citation=raw.source_citation,
             relevance_note=getattr(raw, "reasoning", None),
@@ -194,7 +222,7 @@ class AILayerAdapter:
     called only once per flow regardless of how many protocol methods are invoked.
     """
 
-    def __init__(self, llm_client: object, rule_loader: RulePackLoader) -> None:
+    def __init__(self, llm_client: LLMClientProtocol, rule_loader: RulePackLoader) -> None:
         self._llm_client = llm_client
         self._rule_loader = rule_loader
         self._cache: dict[str, AILayerOutput] = {}

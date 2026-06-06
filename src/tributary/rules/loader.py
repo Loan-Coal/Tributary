@@ -9,8 +9,9 @@ Used by: engine (injected as RulePackLoader), rule-pack tests
 """
 from __future__ import annotations
 
-import json
 from pathlib import Path
+
+from pydantic import ValidationError
 
 from tributary.common.errors import RulePackError
 from tributary.common.logging import get_logger
@@ -56,7 +57,7 @@ class JSONRulePackLoader:
             raise RulePackError(f"Rule pack not found for jurisdiction {jurisdiction}: {path}")
         try:
             pack = RulePack.model_validate_json(path.read_text(encoding="utf-8"))
-        except Exception as exc:
+        except (ValueError, ValidationError) as exc:
             raise RulePackError(f"Invalid rule pack {path}: {exc}") from exc
         self._packs[jurisdiction] = pack
         return pack
@@ -71,7 +72,7 @@ class JSONRulePackLoader:
             return None
         try:
             treaty = TreatyPack.model_validate_json(path.read_text(encoding="utf-8"))
-        except Exception as exc:
+        except (ValueError, ValidationError) as exc:
             raise RulePackError(f"Invalid treaty pack {path}: {exc}") from exc
         self._treaties[key] = treaty
         return treaty

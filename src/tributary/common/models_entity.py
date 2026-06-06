@@ -9,10 +9,10 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 from typing import Annotated
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 # ---------------------------------------------------------------------------
 # Scalar type alias
@@ -27,7 +27,7 @@ JurisdictionCode = Annotated[str, Field(pattern=r"^[A-Z]{2}$")]
 # ---------------------------------------------------------------------------
 
 
-class ConfidenceLevel(str, Enum):
+class ConfidenceLevel(StrEnum):
     """AI confidence level for classification and attribution outputs."""
 
     HIGH = "HIGH"
@@ -36,7 +36,7 @@ class ConfidenceLevel(str, Enum):
     ABSTAIN = "ABSTAIN"
 
 
-class FlowNature(str, Enum):
+class FlowNature(StrEnum):
     """Semantic nature of a transaction flow as classified by the AI layer.
 
     This is the AI's *classification output* vocabulary. The raw GL hint that
@@ -56,7 +56,7 @@ class FlowNature(str, Enum):
     OTHER = "other"
 
 
-class ActivityType(str, Enum):
+class ActivityType(StrEnum):
     """Raw activity hint carried by a transaction from the GL/bank export.
 
     This is the deterministic engine's *dispatch* vocabulary — the engine routes
@@ -75,7 +75,7 @@ class ActivityType(str, Enum):
     OTHER = "other"
 
 
-class PresenceActivity(str, Enum):
+class PresenceActivity(StrEnum):
     """Kind of activity an entity's employees/agents perform while present."""
 
     SERVICE_DELIVERY = "service_delivery"
@@ -84,7 +84,7 @@ class PresenceActivity(str, Enum):
     CONSTRUCTION = "construction"
 
 
-class ObligationType(str, Enum):
+class ObligationType(StrEnum):
     """Type of tax obligation computed by the deterministic engine."""
 
     CIT = "cit"
@@ -94,7 +94,7 @@ class ObligationType(str, Enum):
     STAMP_DUTY = "stamp_duty"
 
 
-class EntityType(str, Enum):
+class EntityType(StrEnum):
     """Legal form of a Tributary entity node."""
 
     HOLDCO = "holdco"
@@ -221,3 +221,15 @@ class FiscalCalendar(BaseModel):
     jurisdiction: JurisdictionCode
     period_start_month: Annotated[int, Field(ge=1, le=12)]
     period_start_day: Annotated[int, Field(ge=1, le=31)]
+
+    @model_validator(mode="after")
+    def _validate_day_in_month(self) -> FiscalCalendar:
+        """Reject impossible dates like Feb 31 before any period logic runs."""
+        try:
+            date(2000, self.period_start_month, self.period_start_day)
+        except ValueError as exc:
+            raise ValueError(
+                f"Invalid fiscal calendar start: month={self.period_start_month} "
+                f"day={self.period_start_day} — {exc}"
+            ) from exc
+        return self

@@ -24,13 +24,14 @@ _Maintained by `/wave-parallel`. State that survives between sessions so a fresh
 run needn't rediscover it. Add a line when a task completes and unblocks something
 later; delete consumed lines; keep it under ~15 lines._
 
-- **Wave 1 COMPLETE**: All 6 tasks done. Seed script written — run `docker-compose up -d && make ingest` to meet the exit gate, then verify in Neo4j Browser.
+- **Waves 1, 3, 4a, 4b, 5, 6 COMPLETE**: All engine passes golden; PE Triangle fires + verified; WHT exposure scanner built; 208 tests green.
+- **Wave 6b data contract done** (W6b.1–W6b.3, W6b.6): `GroupReliefOpportunity` + `GroupReliefMechanism` in `models_engine.py`; `GROUP_RELIEF` in `RuleCategory`; golden packs verified absent. W6b.4+W6b.5+W6b.7 (engine module + wiring + tests) remain — blocked behind W6c P1s.
+- **Audit complete** (2026-06-06, REVIEW.md): 13 P1s, 17 P2s, 12 P3 nits found. Most critical: fabricated `adapter-placeholder` citations (W6c.6), `rules/db.py` layer violation (W6c.9). **Wave 6c must complete before Wave 7 starts.**
+- **W6c.1–W6c.5 done**: WHT silent-zero; EU_MEMBER_JURISDICTIONS moved; Zinsschranke clamp; conflict_id; runner CIT guard; 220 tests green. Next: W6c.6 (adapter-placeholder fabricated citation).
 - **Models split**: `common/models.py` re-exports from `models_entity.py`, `models_engine.py`, `models_ai.py`. See DEC-012.
-- **EXPECTED.md canonical figures**: HK Profits Tax HKD 445,500; DE CIT HKD 47,673; DE Trade Tax HKD 42,175; FR CIT HKD 1,030,938. PE Triangle treaty credit HKD 162,007. T006 interest deduction included in DE base.
-- **Wave 2**: graph colleague primary (W2.1–W2.3, W2.6). Engine owner reviews W2.4 (`GraphReader`) and W2.5 (`GraphWriter`) when PRs ready.
-- **Gates**: `make test` must be green before marking a wave's exit gate met. `make test-engine` for engine-only waves (4a, 4b, 6).
-- **Collaborator handoffs**: Wave 2 (graph colleague), Wave 5 (AI colleague), Wave 7 (both). Do not dispatch collaborator-owned tasks; flag as blocked in `/wave-parallel`.
-- **Next ISSUE id**: ISSUE-008. **Next DEC id**: DEC-015.
+- **EXPECTED.md canonical figures**: HK HKD 445,500; DE CIT HKD 47,673; DE Trade Tax HKD 42,175; FR CIT HKD 1,030,938. PE Triangle — exemption method, residual double-tax = 0.
+- **Wave 2**: graph colleague primary (W2.1–W2.3, W2.6). Engine owner reviews W2.4 + W2.5 when PRs ready.
+- **Next ISSUE id**: ISSUE-027. **Next DEC id**: DEC-021.
 
 ---
 
@@ -220,13 +221,13 @@ later; delete consumed lines; keep it under ~15 lines._
 **Exit gate:** `make run-golden` produces correct engine-computed obligations driven by real AI attributions; AI attributions for golden scenario match `attributions_stub.json` (used as ground truth).
 
 ### Tasks
-- [ ] **W5.1** — `ai/classifier.py`: classify flow nature via Claude structured output
-- [ ] **W5.2** — `ai/attributor.py`: attribute candidate jurisdictions per flow; grounded to graph context + rule packs
-- [ ] **W5.3** — `ai/retriever.py`: retrieve applicable rules from packs; cite rule_id + as_of_date; abstain if insufficient
-- [ ] **W5.4** — `prompts/classify_flow.yaml`, `prompts/attribute_jurisdiction.yaml`, `prompts/retrieve_rules.yaml`
-- [ ] **W5.5** — `ai/mock_adapter.py`: mock Claude adapter returning `attributions_stub.json` values for unit tests
-- [ ] **W5.6** — swap: `EngineRunner` receives real `AILayer` implementation; attribution stub retired to test-only
-- [ ] **W5.7** — integration test: AI + engine pipeline on golden scenario matches `EXPECTED.md`
+- [x] **W5.1** — `ai/classifier.py`: classify flow nature via Claude structured output
+- [x] **W5.2** — `ai/attributor.py`: attribute candidate jurisdictions per flow; grounded to graph context + rule packs
+- [x] **W5.3** — `ai/retriever.py`: retrieve applicable rules from packs; cite rule_id + as_of_date; abstain if insufficient
+- [x] **W5.4** — `prompts/classify_flow.yaml`, `prompts/attribute_jurisdiction.yaml`, `prompts/retrieve_rules.yaml`
+- [x] **W5.5** — `ai/mock_adapter.py`: mock Claude adapter returning `attributions_stub.json` values for unit tests
+- [x] **W5.6** — swap: `EngineRunner` receives real `AILayer` implementation; attribution stub retired to test-only
+- [x] **W5.7** — integration test: AI + engine pipeline on golden scenario matches `EXPECTED.md`
 
 ---
 
@@ -239,13 +240,94 @@ later; delete consumed lines; keep it under ~15 lines._
 **Exit gate:** PE Triangle conflict detected, explained, treaty pointer correct, credit amount matches `EXPECTED.md`.
 
 ### Tasks
-- [ ] **W6.1** — `engine/conflict.py`: scan `EngineRunResult.obligations` for flows where `source_flow_ids` overlap across jurisdictions → double-tax candidate
-- [ ] **W6.2** — full PE attribution computation: aggregate presence_days from graph; if above PE threshold: compute attribution percentage; split attributed income from parent jurisdiction's CIT base
-- [ ] **W6.3** — double-tax flag: same attributed income appearing in two `ObligationResult` records → `ConflictFlag`
-- [ ] **W6.4** — WHT exposure flag: check WHT obligations against treaty entitlement; flag over-withheld cases
-- [ ] **W6.5** — `ConflictFlag` model in `common/models.py`; `EngineRunResult.conflicts` field populated
-- [ ] **W6.6** — treaty pointer lookup: conflict detector reads treaty pack for relevant DTA article + elimination method
-- [ ] **W6.7** — unit tests: PE Triangle fires; treaty credit computed correctly; conflict report matches `EXPECTED.md`
+- [x] **W6.1** — `engine/conflict.py`: scan `EngineRunResult.obligations` for flows where `source_flow_ids` overlap across jurisdictions → double-tax candidate
+- [x] **W6.2** — full PE attribution computation: aggregate presence_days from graph; if above PE threshold: compute attribution percentage; split attributed income from parent jurisdiction's CIT base (`engine/pe.py`)
+- [x] **W6.3** — double-tax flag: same attributed income appearing in two `ObligationResult` records → `ConflictFlag`
+- [x] **W6.4** — WHT exposure flag: check WHT obligations against treaty entitlement; flag over-withheld cases (`engine/wht_exposure.py` — new module)
+- [x] **W6.5** — `ConflictFlag` model in `common/models.py`; `EngineRunResult.conflicts` field populated
+- [x] **W6.6** — treaty pointer lookup: conflict detector reads treaty pack for relevant DTA article + elimination method
+- [x] **W6.7** — integration test: PE Triangle fires; exemption method applied; residual double-tax = 0; conflict report matches `EXPECTED.md`
+
+---
+
+## Wave 6c — Audit Remediation
+
+**Owner:** engine owner
+**Deliverable:** All P1 and P2 findings from the 2026-06-06 audit resolved; coverage back to ≥80%; system structurally clean for Wave 6b completion and Wave 7 to layer on top of.
+
+**Entry:** Wave 6b.1–6b.3, 6b.6 complete; REVIEW.md audit done
+**Exit gate:** `make check-layers` PASS; `ruff check src/` 0 hits; `make test` ≥80% coverage; no fabricated citations anywhere in the code path; all P1 issues closed in ISSUES.md.
+
+### 6c-P1a — Business integrity (use `/iterate --unit <id>` — regression tests first)
+
+- [x] **W6c.1** — `engine/wht_engine.py:98`: replace `treaty_rate or Decimal("0")` with explicit `if rule.parameters.treaty_rate is None: raise RulePackError(...)`; regression test: malformed treaty pack raises `RulePackError`, not silently applies 0% WHT
+- [x] **W6c.2** — `engine/wht_engine.py:32-35`: move `EU_MEMBER_JURISDICTIONS` frozenset out of `engine/` into `common/` reference data (e.g. `common/jurisdictions.py`); engine imports the constant from there; regression test: no jurisdiction literals in `engine/wht_engine.py`
+- [x] **W6c.3** — `engine/thresholds.py:40-41`: clamp `ebitda_proxy = max(ebitda_proxy, Decimal("0"))` before computing Zinsschranke cap; regression test: loss-making entity with interest expense does not false-positive the Zinsschranke flag
+- [x] **W6c.4** — `engine/conflict.py:56`: include `entity_id` (or `residence_jurisdiction`) in the `conflict_id` f-string to prevent collision when multiple entities trigger PE in the same year; regression test: two entities in same year receive distinct conflict IDs
+- [x] **W6c.5** — `engine/runner.py:210`: add `if not rules: raise EngineError(f"No CIT rule found for ...")` guard before `[0]` index; regression test: engine raises `EngineError`, not bare `IndexError`, when a CIT rule is absent from a pack
+- [x] **W6c.6** — `ai/adapter.py:139-142`: replace fabricated `RuleCitation(rule_id="adapter-placeholder", source_citation="Derived from AI output...")` with `abstain=True, needs_human_review=True` and no synthetic citation; regression test: no `attribution` result carries `"adapter-placeholder"` in any code path
+- [x] **W6c.7** — `ai/service.py:42`: replace in-place `output.transaction_id = transaction_id` mutation with `output = output.model_copy(update={"transaction_id": transaction_id})`
+- [x] **W6c.8** — `common/__init__.py`: add `GroupReliefOpportunity` and `GroupReliefMechanism` to the `from .models import (...)` block and to `__all__`
+
+### 6c-P1b — Architecture violations (use `refactor-cleaner` / `/simplify`)
+
+- [x] **W6c.9** — `rules/db.py` — moved to `ai/retrieval_db.py`; `make check-layers` passes
+- [x] **W6c.10** — `ai/retrieval_db.py`: typed Pydantic `Rule` input and `RuleSearchResult` output
+- [x] **W6c.11** — `ai/retrieval_db.py`: replaced all `except sqlite3.OperationalError: pass` with `logger.warning(...)` + fallback
+- [x] **W6c.12** — `ai/protocols.py` deleted; protocols moved to `common/protocols_ai.py`
+- [x] **W6c.13** — `ai/adapter.py`: added `isinstance(raw, _AiRuleCitation)` guard in `_map_citation()`
+
+### 6c-P2 — Quality (should fix before Wave 7)
+
+- [x] **W6c.14** — Engine functions over 40 lines — helpers extracted (cit_engine, conflict, deadlines, entity_run, pe, trade_tax_engine, wht_engine, wht_exposure)
+- [x] **W6c.15** — `engine/loss_ledger.py`: pass `loss_rule.id if limited else None` as `limitation_rule_id`
+- [x] **W6c.16** — PE multi-entity limitation documented as ISSUE-022; code change deferred
+- [x] **W6c.17** — `ai/qwen_client.py`: torch import wrapped in `try/except ImportError`
+- [x] **W6c.18** — `ai/client.py`: `temperature=self.temperature` passed in `messages.create()`
+- [x] **W6c.19** — `LLMClientProtocol` defined in `common/protocols_ai.py`; `llm_client` fields typed
+- [x] **W6c.20** — `ai/models.py`: `TransactionContext` changed to `extra="forbid"`
+- [x] **W6c.21** — `ai/rag_retriever.py`: five-field module docstring added
+- [x] **W6c.22** — `ai/adapter.py`: `rule_type="unknown"` replaced with `_UNKNOWN_RULE_TYPE` constant
+- [x] **W6c.23** — `rules/loader.py`: narrowed to `except (ValueError, ValidationError)`
+- [x] **W6c.24** — `common/logging.py`: merge conflict marker removed
+- [x] **W6c.25** — `common/models_entity.py`: `FiscalCalendar` day/month cross-field validator added
+- [x] **W6c.26** — `common/errors.py`: `PromptLoaderError` now inherits `TributaryError`
+- [x] **W6c.27** — `ConfigurationError(TributaryError)` added; `config/settings.py` raises it
+- [x] **W6c.28** — `EngineError` import hoisted to module level in `cit_engine.py` and `deadlines.py`
+- [x] **W6c.29** — `ruff check src/` → 0 hits (all auto-fixable + B904, SIM102, PLC0415, UP042 fixed)
+- [x] **W6c.30** — Test coverage: 80% achieved (194 unit tests, 245 total)
+
+---
+
+## Wave 6b — Group profit redistribution detection
+
+**Owner:** engine owner
+**Deliverable:** Engine detects opportunities to redistribute pre-tax profit within the group to offset losses in another member entity, where a jurisdiction-level group-relief rule exists. Emits `GroupReliefOpportunity` flags citing the applicable statute. The AI uses these in the brief narrative (Wave 7). The engine never recommends an amount — it flags the opportunity and leaves quantification to the professional (DEC-002, DEC-020).
+
+**Entry:** Wave 6c complete; Wave 4b complete; rule packs in place
+**Exit gate:** For each entity pair (A has income, B has unused losses) in a jurisdiction with a `GROUP_RELIEF` rule, one `GroupReliefOpportunity` is emitted per eligible pair. For the golden scenario (HK/DE/FR — no bilateral group relief available), no opportunities are emitted; this is itself a verifiable test result.
+
+### Tasks
+- [x] **W6b.1** — `common/models_engine.py`: add `GroupReliefOpportunity` model:
+  - `opportunity_id`, `income_entity_id`, `loss_entity_id`
+  - `income_jurisdiction`, `loss_jurisdiction`
+  - `available_income_hkd`, `unused_loss_hkd` (engine-computed amounts, not AI estimates)
+  - `relief_mechanism` (Literal: `"group_relief"` | `"organschaft"` | `"integration_fiscale"` | `"transfer_pricing_note"`)
+  - `applicable_rule_id`, `as_of_date`, `source_citation`, `conditions_summary`
+  - `needs_review: bool = True` (always — professional sign-off required)
+- [x] **W6b.2** — extend `EngineRunResult` with `group_relief_opportunities: list[GroupReliefOpportunity] = []`
+- [x] **W6b.3** — `rules/models.py`: add `GROUP_RELIEF` to `RuleCategory` enum
+- [ ] **W6b.4** — `engine/group_relief.py`: cross-entity scanner
+  - Accepts all `EntityBase` objects from the runner's aggregation phase
+  - For each ordered pair (A, B) where A has `net_income_hkd > 0` and B has unused losses in a related jurisdiction: check if `GROUP_RELIEF` rule exists for the pair's jurisdictions
+  - If rule found: emit `GroupReliefOpportunity` citing the rule; set `available_income_hkd = A.net_income_hkd`, `unused_loss_hkd = B.total_unused_losses_hkd`
+  - If no rule: no flag (correct — group relief is not universally available)
+- [ ] **W6b.5** — wire into `engine/runner.py` after `_assemble_results`: call `scan_group_relief(bases, entities, loader)` and attach results to each affected `EngineRunResult`
+- [x] **W6b.6** — rule pack updates: add `GROUP_RELIEF` rules to any applicable jurisdiction packs. For golden scenario (HK, DE, FR): correctly have no bilateral group relief rule between these three — zero opportunities emitted for MERID group is the expected result
+- [ ] **W6b.7** — unit tests:
+  - Two entities (income + loss) in a jurisdiction pair with a `GROUP_RELIEF` rule → `GroupReliefOpportunity` emitted with correct fields
+  - Same pair in jurisdictions without the rule → no opportunity (correct negative case)
+  - Golden scenario produces zero opportunities (regression guard)
 
 ---
 
@@ -304,3 +386,6 @@ later; delete consumed lines; keep it under ~15 lines._
 | 1 | 2026-06-06 | setup | Copied + updated harness from NPCSystem | Harness ready, no code yet |
 | 2 | 2026-06-06 | planning | Engine plan refined; API contracts written; planted conflict designed; wave roadmap authored | API_ENGINE_AI.md, API_ENGINE_GRAPH.md, DECISIONS.md updated, ROADMAP.md rewritten; ready for Wave 1 |
 | 3 | 2026-06-06 | 0–1 | Technical audit, architecture fixes, full engine implementation | 137 tests green, layer check clean, engine produces golden figures |
+| 4 | 2026-06-06 | 5 | AI layer v1 merge integration — AILayerAdapter, adapter tests, engine hardening | 179 tests green; Wave 5 ~80%; Wave 6 engine-side built; Wave 6b scoped |
+| 5 | 2026-06-06 | 5+6 | Ticked Wave 5 complete; W6.4 WHT exposure scanner — wht_exposure.py + 14 tests | 197 tests green; Wave 5 done; Wave 6 open: W6.7 only |
+| 6 | 2026-06-06 | 6b+audit | W6b.1–W6b.3, W6b.6 done (GroupReliefOpportunity model, GROUP_RELIEF rule category); full codebase audit — 13 P1s, 17 P2s, 12 nits logged in REVIEW.md | 208 tests green; Wave 6c (remediation) written and queued before Wave 7 |

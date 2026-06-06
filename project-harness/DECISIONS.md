@@ -219,3 +219,34 @@ of high cohesion / low coupling. The module-level docstring notes this.
 **Context:** JurisdictionCode values are two-letter ISO country codes validated by regex `^[A-Z]{2}$`. An enum would require enumerating every jurisdiction upfront; new countries would require a code change.
 **Decision:** `JurisdictionCode = Annotated[str, Field(pattern=r"^[A-Z]{2}$")]`. Tests use string literals ("HK", "DE", "FR") not enum dot-access.
 **Why:** Open-closed: adding Singapore or US requires only a new rule-pack JSON, not a code change. The regex validator catches malformed codes at Pydantic validation time.
+
+## DEC-020: Group profit redistribution is engine-detected, not AI-recommended
+
+**Date:** 2026-06-06
+**Context:** Some jurisdictions allow a profitable entity to transfer taxable profit (or a deduction) to a related entity with unused losses, reducing the group's aggregate tax burden. Examples: UK group relief, German Organschaft, French intégration fiscale. The question is where this detection belongs.
+**Options considered:**
+  1. AI detects the opportunity in narrative — violates DEC-002 (AI emits no figures). The AI would need to reference amounts to make the recommendation useful.
+  2. Engine detects the pattern (income entity A + loss entity B + GROUP_RELIEF rule for the jurisdiction pair) and emits a `GroupReliefOpportunity` flag with engine-computed amounts. AI uses the flag in brief narrative without restating figures.
+  3. Brief assembler detects post-engine — too late; the runner needs group-level visibility to combine per-entity bases.
+**Decision:** Option 2. The engine cross-entity scanner runs after per-entity aggregation, receives all `EntityBase` objects, and checks income/loss pairs against `GROUP_RELIEF` rules. A `GroupReliefOpportunity` is emitted per eligible pair. The engine never recommends a restructuring amount — it surfaces the existence of the opportunity and the applicable statute. Professional judgment and transfer-pricing compliance remain with the practitioner.
+**Why:** Consistent with DEC-002 (engine owns all figures) and the project's defensibility principle: every flag cites a specific rule id + as_of_date + source_citation. "You should consider group relief" is a rule-grounded flag, not an AI hallucination.
+
+## DEC-021: WHT exposure flag is a separate module from PE conflict detection
+
+**Date:** 2026-06-06
+**Context:** Wave 6 requires two distinct cross-border checks: (a) PE double-tax conflict and (b) WHT exposure (withholding applied at a rate higher than treaty entitlement, or without checking a Directive exemption).
+**Options considered:**
+  1. Combine into `conflict.py` — the PE logic and WHT logic share no code; mixed-purpose module violates SRP.
+  2. Separate `engine/wht_exposure.py` for WHT over-withholding checks, keeping `conflict.py` for PE double-tax only.
+**Decision:** Option 2. `engine/wht_exposure.py` scans each WHT `ObligationResult`, compares the applied rate against the treaty-reduced rate, and emits a `ConflictFlag(conflict_type=WHT_OVER_WITHHELD)` when the applied rate exceeds entitlement.
+**Why:** SRP — each module has one job. WHT exposure may exist without any PE; PE conflict may exist without WHT. Independent modules can be tested independently.
+
+## DEC-022: JurisdictionClaim.rationale_citation is Optional to support the abstain path
+
+**Date:** 2026-06-06
+**Context:** W6c.6 audit finding: `ai/adapter.py` was fabricating a `RuleCitation(rule_id="adapter-placeholder")` on every `JurisdictionClaim`, even when the AI produced no real rule reference. CLAUDE.md requires every AI recommendation to cite a real rule or emit `needs_human_review=True` — a synthetic placeholder violates this contract and leaks into briefs.
+**Options considered:**
+  1. Keep `rationale_citation: RuleCitation` required — adapter must always supply one.
+  2. Make `rationale_citation: RuleCitation | None = None` — adapter omits it when AI returned no real reference; sets `abstain=True` on the parent `FlowAttribution` instead.
+**Decision:** Option 2. A missing citation is preferable to a fabricated one. A `None` citation paired with `abstain=True, abstain_reason="No rule citation"` is honest and triggers the human-review path in the brief assembler. The previous hardcoded string would have appeared in production briefs as a citation, which is both incorrect and misleading.
+**Why:** Defensibility principle: every flag cites a real rule or declares uncertainty. A fabricated citation is worse than no citation.

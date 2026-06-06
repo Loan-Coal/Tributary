@@ -43,17 +43,12 @@ def build_pe_conflict(
     Returns:
         The populated ConflictFlag.
     """
-    pe_rate = effective_rate(pe_cit_rule.parameters.rate or Decimal("0"), pe_cit_rule.parameters.surcharge_rate)
-    res_rate = effective_rate(
-        residence_cit_rule.parameters.rate or Decimal("0"), residence_cit_rule.parameters.surcharge_rate
-    )
-    pe_tax = round_hkd(pe.attributed_income_hkd * pe_rate)
-    residence_tax = round_hkd(pe.attributed_income_hkd * res_rate)
+    pe_tax, residence_tax = _compute_taxes(pe, pe_cit_rule, residence_cit_rule)
     mechanism = ReliefMechanism(elimination_rule.parameters.relief_mechanism or "exemption")
     relieved, residual = _resolve(mechanism, pe_tax, residence_tax)
     unrelieved_under_credit = max(pe_tax - residence_tax, Decimal("0"))
     return ConflictFlag(
-        conflict_id=f"PE-TRIANGLE-{conflict_year}",
+        conflict_id=f"PE-{pe.entity_id}-{pe.residence_jurisdiction}-{conflict_year}",
         conflict_type=ConflictType.SERVICE_PE_DOUBLE_TAX,
         trigger_flow_ids=pe.trigger_presence_ids,
         entities=[pe.entity_id, pe_entity_id],
@@ -75,6 +70,19 @@ def build_pe_conflict(
         ),
         needs_review=True,
     )
+
+
+def _compute_taxes(
+    pe: PeAttribution,
+    pe_cit_rule: Rule,
+    residence_cit_rule: Rule,
+) -> tuple[Decimal, Decimal]:
+    """Return (pe_tax, residence_tax) on the PE-attributed income."""
+    pe_rate = effective_rate(pe_cit_rule.parameters.rate or Decimal("0"), pe_cit_rule.parameters.surcharge_rate)
+    res_rate = effective_rate(
+        residence_cit_rule.parameters.rate or Decimal("0"), residence_cit_rule.parameters.surcharge_rate
+    )
+    return round_hkd(pe.attributed_income_hkd * pe_rate), round_hkd(pe.attributed_income_hkd * res_rate)
 
 
 def _resolve(

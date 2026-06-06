@@ -10,6 +10,32 @@ Used by: graph, engine, ai, brief, ingestion, api — all layers
 """
 from __future__ import annotations
 
+# AI protocol input/output models (DEC-010)
+from .models_ai import (
+    ApplicableRule,
+    FlowAttribution,
+    FlowClassification,
+    FlowContext,
+    JurisdictionClaim,
+    RuleRetrievalResult,
+)
+
+# Engine output models
+from .models_engine import (
+    ComputationStep,
+    ConflictFlag,
+    ConflictType,
+    DeadlineResult,
+    EngineRunResult,
+    GroupReliefMechanism,
+    GroupReliefOpportunity,
+    LossCarryforwardRecord,
+    ObligationResult,
+    ReliefMechanism,
+    RuleCitation,
+    ThresholdResult,
+)
+
 # Entity, structure, period, and enum models
 from .models_entity import (
     AccountRecord,
@@ -29,34 +55,10 @@ from .models_entity import (
     PriorPeriodLoss,
     TransactionRecord,
 )
-
-# Engine output models
-from .models_engine import (
-    ComputationStep,
-    ConflictFlag,
-    ConflictType,
-    DeadlineResult,
-    EngineRunResult,
-    LossCarryforwardRecord,
-    ObligationResult,
-    ReliefMechanism,
-    RuleCitation,
-    ThresholdResult,
-)
-
-# AI protocol input/output models (DEC-010)
-from .models_ai import (
-    ApplicableRule,
-    FlowAttribution,
-    FlowClassification,
-    FlowContext,
-    JurisdictionClaim,
-    RuleRetrievalResult,
-)
+from .protocols_ai import AILayerProtocol
 
 # Boundary protocols (DEC-018) — defined in common so engine can depend on them
 from .protocols_graph import GraphReader, GraphWriter
-from .protocols_ai import AILayerProtocol
 
 __all__ = [
     # Enums
@@ -68,6 +70,7 @@ __all__ = [
     "EntityType",
     "ConflictType",
     "ReliefMechanism",
+    "GroupReliefMechanism",
     # Entity / structure
     "JurisdictionCode",
     "EntityRecord",
@@ -89,6 +92,7 @@ __all__ = [
     "DeadlineResult",
     "LossCarryforwardRecord",
     "ConflictFlag",
+    "GroupReliefOpportunity",
     "EngineRunResult",
     # Boundary protocols
     "GraphReader",

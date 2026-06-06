@@ -14,7 +14,8 @@ import uuid
 from datetime import date
 from decimal import Decimal
 
-from tributary.common.errors import EngineError
+from tributary.common.errors import EngineError, RulePackError
+from tributary.common.jurisdictions import EU_MEMBER_JURISDICTIONS
 from tributary.common.models import (
     ActivityType,
     ComputationStep,
@@ -27,12 +28,6 @@ from tributary.common.models import (
 from tributary.engine.aggregator import OutboundPayment
 from tributary.engine.money import round_hkd
 from tributary.rules.models import Rule, RuleCategory, RulePackLoader
-
-# EU member states — reference data (would live in a reference table in production).
-EU_MEMBER_JURISDICTIONS: frozenset[str] = frozenset({
-    "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU",
-    "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
-})
 
 _DOMESTIC_CATEGORY: dict[ActivityType, RuleCategory] = {
     ActivityType.DIVIDEND: RuleCategory.WHT_DIVIDEND,
@@ -63,19 +58,31 @@ def _holding_qualifies(
     candidates = reader.get_entity_ownership(payee_id) + reader.get_entity_ownership(payer_id)
     for edge in candidates:
         pair = {edge.owner_entity_id, edge.owned_entity_id}
-        if pair == {payer_id, payee_id} and edge.ownership_pct >= min_pct:
-            if _months_between(edge.effective_from, as_of) >= min_months:
-                return True
+        if (
+            pair == {payer_id, payee_id}
+            and edge.ownership_pct >= min_pct
+            and _months_between(edge.effective_from, as_of) >= min_months
+        ):
+            return True
     return False
 
 
-def _treaty_rate(
+def get_treaty_rate(
     reader: GraphReader,
     loader: RulePackLoader,
     payment: OutboundPayment,
     as_of: date,
 ) -> tuple[Decimal, Rule] | None:
-    """Return the applicable treaty/directive rate and rule, or None if no benefit applies."""
+    """Return the applicable treaty/directive rate and rule, or None if no benefit applies.
+
+    Args:
+        reader: Graph reader for ownership lookups.
+        loader: Rule-pack loader for treaty rules.
+        payment: The outbound payment to evaluate.
+        as_of: Date on which holding conditions are tested.
+    Returns:
+        (treaty_rate, rule) if a treaty benefit applies; None otherwise.
+    """
     category = _TREATY_CATEGORY.get(payment.activity)
     if category is None:
         return None
@@ -86,7 +93,11 @@ def _treaty_rate(
             continue
         if not _holding_qualifies(reader, payment.payer_entity_id, payment.payee_entity_id, rule, as_of):
             continue
-        return rule.parameters.treaty_rate or Decimal("0"), rule
+        if rule.parameters.treaty_rate is None:
+            raise RulePackError(
+                f"Treaty rule {rule.id!r} is missing required 'treaty_rate' parameter"
+            )
+        return rule.parameters.treaty_rate, rule
     return None
 
 
@@ -128,7 +139,7 @@ def compute_wht(
         )
     domestic = domestic_rules[0]
     domestic_rate = domestic.parameters.domestic_rate or Decimal("0")
-    treaty = _treaty_rate(reader, loader, payment, period.end_date)
+    treaty = get_treaty_rate(reader, loader, payment, period.end_date)
     applicable_rate = treaty[0] if treaty is not None else domestic_rate
     treaty_citation = _citation(treaty[1]) if treaty is not None else None
     gross = round_hkd(payment.gross_hkd * domestic_rate)
@@ -147,18 +158,15 @@ def _citation(rule: Rule) -> RuleCitation:
     )
 
 
-def _build_obligation(
+def _build_trace_steps(
     payment: OutboundPayment,
-    period: FiscalPeriod,
     domestic: Rule,
-    applicable_rate: Decimal,
     gross: Decimal,
     net: Decimal,
     treaty_citation: RuleCitation | None,
-    needs_review: bool,
-) -> ObligationResult:
-    """Assemble the WHT ObligationResult with a two-step (domestic → treaty) trace."""
-    trace = [
+) -> list[ComputationStep]:
+    """Build the two-step audit trace (domestic rate → treaty relief)."""
+    return [
         ComputationStep(
             step_name="apply_domestic_rate",
             input_value_hkd=payment.gross_hkd,
@@ -176,6 +184,20 @@ def _build_obligation(
             note="WHT after treaty / directive relief",
         ),
     ]
+
+
+def _build_obligation(
+    payment: OutboundPayment,
+    period: FiscalPeriod,
+    domestic: Rule,
+    applicable_rate: Decimal,
+    gross: Decimal,
+    net: Decimal,
+    treaty_citation: RuleCitation | None,
+    needs_review: bool,
+) -> ObligationResult:
+    """Assemble the WHT ObligationResult with a two-step (domestic → treaty) trace."""
+    trace = _build_trace_steps(payment, domestic, gross, net, treaty_citation)
     return ObligationResult(
         obligation_id=str(uuid.uuid4()),
         entity_id=payment.payer_entity_id,

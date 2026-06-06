@@ -140,6 +140,26 @@ class TestLossLedgerMindestbesteuerung:
         assert result.post_loss_base_hkd == Decimal("200000")
         assert result.records[0].remaining_loss_hkd == Decimal("0")
 
+    def test_capped_record_carries_limitation_rule_id(self, de_rule):
+        """When the Mindestbesteuerung cap is applied, each LossCarryforwardRecord must
+        carry the limiting rule's id (not None)."""
+        # Base > de_minimis → cap kicks in → limitation_applied=True
+        loss = _loss("E1", "DE", Decimal("10000000"))
+        result = apply_loss_offset(Decimal("10000000"), [loss], de_rule, "DE")
+        assert result.limitation_applied is True
+        for record in result.records:
+            assert record.limitation_rule_id == de_rule.id, (
+                f"Expected limitation_rule_id={de_rule.id!r}, got {record.limitation_rule_id!r}"
+            )
+
+    def test_uncapped_record_limitation_rule_id_is_none(self, de_rule):
+        """When no cap is applied, limitation_rule_id must be None."""
+        loss = _loss("E1", "DE", Decimal("1000000"))
+        result = apply_loss_offset(Decimal("1901250"), [loss], de_rule, "DE")
+        assert result.limitation_applied is False
+        for record in result.records:
+            assert record.limitation_rule_id is None
+
 
 # ===========================================================================
 # thresholds.py
@@ -210,6 +230,46 @@ class TestZinsschranke:
         # EBITDA proxy = 1,000,000 - 0 (non-interest deductible = 0) = 1,000,000; cap = 300,000
         result = zinsschranke_check(base, barrier_rule)
         assert result.breached is True
+
+    def test_loss_making_no_interest_not_breached(self, barrier_rule):
+        """W6c.3 regression (ISSUE-012): loss-making entity with zero interest must not be flagged.
+
+        Before the EBITDA clamp, negative EBITDA yielded a negative cap, causing
+        `0 > negative_cap` to evaluate True — a false-positive Zinsschranke flag.
+        """
+        base = _base(
+            jur="DE",
+            third_party=Decimal("200000"),
+            ic_taxable=Decimal("0"),
+            deductible=Decimal("900000"),  # large losses, but NO interest component
+            interest=Decimal("0"),
+        )
+        # Unclamped EBITDA proxy = 200,000 - 900,000 = -700,000; cap = -210,000
+        # Bug: 0 > -210,000 → True (false positive)
+        # Fixed: clamp to 0; cap = 0; 0 > 0 → False
+        result = zinsschranke_check(base, barrier_rule)
+        assert result.breached is False
+        assert result.threshold_value_hkd >= Decimal("0")
+
+    def test_loss_making_with_interest_cap_non_negative(self, barrier_rule):
+        """W6c.3 regression (ISSUE-012): negative EBITDA must produce a non-negative cap.
+
+        When EBITDA is negative, the 30%-cap must be clamped to 0 — not negative.
+        A negative threshold_value_hkd is numerically incoherent.
+        """
+        base = _base(
+            jur="DE",
+            third_party=Decimal("500000"),
+            ic_taxable=Decimal("0"),
+            deductible=Decimal("2000000"),  # includes interest below
+            interest=Decimal("300000"),
+        )
+        # non_interest_deductible = 2,000,000 - 300,000 = 1,700,000
+        # EBITDA proxy = 500,000 - 1,700,000 = -1,200,000 (negative)
+        # Without clamp: cap = 0.30 × -1,200,000 = -360,000 (wrong)
+        # With clamp: cap = 0.30 × 0 = 0 (correct — no interest deductible when EBITDA ≤ 0)
+        result = zinsschranke_check(base, barrier_rule)
+        assert result.threshold_value_hkd >= Decimal("0")
 
 
 class TestPeDaysCheck:
@@ -359,7 +419,7 @@ class TestBuildPeConflict:
     def test_conflict_figures_match_expected(self, pe_attr, rules):
         de_cit, fr_cit, elim = rules
         conflict = build_pe_conflict(pe_attr, de_cit, fr_cit, elim, "MERID-FR", 2025)
-        assert conflict.conflict_id == "PE-TRIANGLE-2025"
+        assert conflict.conflict_id == "PE-MERID-DE-DE-2025"
         assert conflict.attributed_base_hkd == Decimal("1023750")
         assert conflict.pe_tax_hkd == Decimal("255938")
         assert conflict.residence_tax_before_relief_hkd == Decimal("162008")
@@ -370,6 +430,38 @@ class TestBuildPeConflict:
         de_cit, fr_cit, elim = rules
         conflict = build_pe_conflict(pe_attr, de_cit, fr_cit, elim, "MERID-FR", 2025)
         assert conflict.conflict_type == ConflictType.SERVICE_PE_DOUBLE_TAX
+
+    def test_two_entities_same_year_produce_distinct_ids(self, rules):
+        """Two distinct entities triggering PE in the same year must get different conflict IDs."""
+        de_cit, fr_cit, elim = rules
+
+        def _make_pe(entity_id: str, residence: str) -> PeAttribution:
+            t = ThresholdResult(
+                entity_id=entity_id,
+                jurisdiction="FR",
+                rule_id="DEFR-DTA-PE",
+                threshold_name="service_pe_days",
+                threshold_value_hkd=Decimal("183"),
+                actual_value_hkd=Decimal("185"),
+                breached=True,
+                as_of_date=date(2017, 1, 1),
+                source_citation="DE-FR DTA Art.5",
+            )
+            return PeAttribution(
+                entity_id=entity_id,
+                residence_jurisdiction=residence,
+                pe_jurisdiction="FR",
+                total_days=185,
+                attribution_pct=Decimal("0.35"),
+                attributed_income_hkd=Decimal("1023750"),
+                threshold=t,
+                treaty_pe_rule_id="DEFR-DTA-PE",
+                trigger_presence_ids=[f"PRES-{entity_id}-FR-2025"],
+            )
+
+        conflict_de = build_pe_conflict(_make_pe("MERID-DE", "DE"), de_cit, fr_cit, elim, "MERID-FR", 2025)
+        conflict_hk = build_pe_conflict(_make_pe("MERID-HK", "HK"), de_cit, fr_cit, elim, "MERID-FR", 2025)
+        assert conflict_de.conflict_id != conflict_hk.conflict_id
 
 
 # ===========================================================================
@@ -550,3 +642,109 @@ class TestWhtMissingDomesticRule:
         payment = _payment("T-WHT-FAIL", ActivityType.REVENUE)
         with pytest.raises(EngineError):
             compute_wht(reader, loader_without_wht, payment, period, needs_review=False)
+
+
+# ===========================================================================
+# wht_engine.py — W6c.1: treaty_rate=None must raise RulePackError, not apply 0%
+# ===========================================================================
+
+from tributary.common.errors import RulePackError
+from tributary.engine.wht_engine import get_treaty_rate
+from tributary.rules.models import Rule, RuleCategory, RuleType, RuleParameters
+
+
+def _malformed_treaty_rule() -> Rule:
+    """A treaty rule with treaty_rate=None (simulates a malformed/incomplete pack)."""
+    return Rule(
+        id="BAD-TREATY-NO-RATE",
+        jurisdiction="DE",
+        type=RuleType.TREATY,
+        category=RuleCategory.TREATY_DIVIDEND,
+        parameters=RuleParameters(treaty_rate=None, min_holding_pct=None, requires_eu=None),
+        as_of_date=date(2024, 1, 1),
+        source_citation="Malformed treaty pack — for regression test only",
+    )
+
+
+class _StubLoaderWithBadTreaty:
+    """Loader that returns a single treaty rule with treaty_rate=None."""
+
+    def get_treaty_rules(self, a: str, b: str) -> list[Rule]:
+        return [_malformed_treaty_rule()]
+
+    def get_rules(self, jur: str, cat: RuleCategory) -> list[Rule]:
+        return []
+
+    def get_rule(self, jur: str, rule_id: str) -> Rule:
+        raise KeyError(rule_id)
+
+    def get_fiscal_calendar(self, jur: str):  # type: ignore[return]
+        raise KeyError(jur)
+
+
+class TestWhtTreatyRateMissing:
+    def test_none_treaty_rate_raises_rule_pack_error(self):
+        """RulePackError raised when a treaty rule has treaty_rate=None (W6c.1).
+
+        Before the fix, ``treaty_rate or Decimal("0")`` silently applies 0% WHT.
+        After the fix, the engine fails fast with a typed error.
+        """
+        reader = FakeGraphReader()
+        payment = OutboundPayment(
+            flow_id="T-BAD-TREATY",
+            activity=ActivityType.DIVIDEND,
+            gross_hkd=Decimal("100000"),
+            payer_entity_id="MERID-DE",
+            payee_entity_id="MERID-HK",
+            payer_jurisdiction="DE",
+            payee_jurisdiction="HK",
+        )
+        with pytest.raises(RulePackError, match="treaty_rate"):
+            get_treaty_rate(reader, _StubLoaderWithBadTreaty(), payment, date(2025, 12, 31))
+
+
+# ===========================================================================
+# runner.py — W6c.5: missing CIT rule raises EngineError, not IndexError
+# ===========================================================================
+
+from unittest.mock import MagicMock
+
+from tributary.common.errors import EngineError
+from tributary.engine.runner import EngineRunner
+
+
+class _StubLoaderNoCit:
+    """Loader that returns an empty list for every get_rules call."""
+
+    def get_rules(self, jur: str, cat: RuleCategory) -> list[Rule]:
+        return []
+
+    def get_treaty_rules(self, a: str, b: str) -> list[Rule]:
+        return []
+
+    def get_rule(self, jur: str, rule_id: str) -> Rule:
+        raise KeyError(rule_id)
+
+    def get_fiscal_calendar(self, jur: str):  # type: ignore[return]
+        raise KeyError(jur)
+
+
+class TestRunnerMissingCitRule:
+    @pytest.fixture
+    def runner(self):
+        return EngineRunner(
+            reader=MagicMock(),
+            writer=MagicMock(),
+            ai=MagicMock(),
+            loader=_StubLoaderNoCit(),
+            reference_year=2025,
+        )
+
+    def test_engine_error_not_index_error_when_cit_rule_absent(self, runner):
+        """EngineError (not IndexError) when _cit_rule() finds no CIT rule for a jurisdiction.
+
+        Before the fix, get_rules()[0] raises bare IndexError.
+        After the fix, the engine raises typed EngineError with a descriptive message.
+        """
+        with pytest.raises(EngineError, match="CIT"):
+            runner._cit_rule("XX")

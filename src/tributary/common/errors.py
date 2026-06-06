@@ -62,7 +62,7 @@ class AILayerServiceError(AILayerError):
     """Raised when the AI layer service encounters an unrecoverable error."""
 
 
-class PromptLoaderError(AILayerError):
+class PromptLoaderError(TributaryError):
     """Raised when a prompt YAML file cannot be loaded or validated."""
 
 
@@ -77,6 +77,15 @@ class EngineError(TributaryError):
 
 class RulePackError(TributaryError):
     """Raised on rule pack loading or validation error (missing fields, bad JSON, etc.)."""
+
+
+# ---------------------------------------------------------------------------
+# Configuration errors
+# ---------------------------------------------------------------------------
+
+
+class ConfigurationError(TributaryError):
+    """Raised when required configuration or environment variables are missing or invalid."""
 
 
 # ---------------------------------------------------------------------------

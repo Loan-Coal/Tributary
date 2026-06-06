@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
+from tributary.common.errors import EngineError
 from tributary.common.models import (
     DeadlineResult,
     FiscalPeriod,
@@ -40,16 +41,8 @@ def compute_deadline(
         The DeadlineResult.
     """
     if rule.parameters.filing_month is None:
-        from tributary.common.errors import EngineError
         raise EngineError(f"Deadline rule {rule.id} is missing filing_month")
-    filing_month = rule.parameters.filing_month
-    filing_day = rule.parameters.filing_day or 1
-    end = period.end_date
-    same_year = (filing_month, filing_day) > (end.month, end.day)
-    year = end.year if same_year else end.year + 1
-    filing_deadline = date(year, filing_month, filing_day)
-    offset = rule.parameters.payment_offset_days or 0
-    payment_deadline = filing_deadline + timedelta(days=offset)
+    filing_deadline, payment_deadline = _calculate_deadline_dates(rule, period.end_date)
     return DeadlineResult(
         entity_id=entity_id,
         jurisdiction=period.jurisdiction,
@@ -61,3 +54,14 @@ def compute_deadline(
         source_citation=rule.source_citation,
         fiscal_period=period,
     )
+
+
+def _calculate_deadline_dates(rule: Rule, end: date) -> tuple[date, date]:
+    """Compute (filing_deadline, payment_deadline) from the deadline rule and period end."""
+    filing_month = rule.parameters.filing_month
+    filing_day = rule.parameters.filing_day or 1
+    same_year = (filing_month, filing_day) > (end.month, end.day)
+    year = end.year if same_year else end.year + 1
+    filing_deadline = date(year, filing_month, filing_day)
+    offset = rule.parameters.payment_offset_days or 0
+    return filing_deadline, filing_deadline + timedelta(days=offset)
