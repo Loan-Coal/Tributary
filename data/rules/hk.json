@@ -1,0 +1,51 @@
+{
+  "jurisdiction": "HK",
+  "fiscal_calendar": { "jurisdiction": "HK", "period_start_month": 4, "period_start_day": 1 },
+  "rules": [
+    {
+      "id": "HK-CIT-RATE",
+      "jurisdiction": "HK",
+      "type": "rate",
+      "category": "cit_rate",
+      "parameters": { "rate": "0.165" },
+      "as_of_date": "2023-04-01",
+      "source_citation": "HK IRO Cap.112 s.14 (Profits Tax, corporations)"
+    },
+    {
+      "id": "HK-DIVIDEND-EXEMPT",
+      "jurisdiction": "HK",
+      "type": "exemption",
+      "category": "income_exemption",
+      "parameters": { "exempt_fraction": "1.0", "applies_to_activity": "dividend" },
+      "as_of_date": "2023-04-01",
+      "source_citation": "HK IRO Cap.112 s.14 (territorial — foreign-source dividend not taxable)"
+    },
+    {
+      "id": "HK-INTEREST-EXEMPT",
+      "jurisdiction": "HK",
+      "type": "exemption",
+      "category": "income_exemption",
+      "parameters": { "exempt_fraction": "1.0", "applies_to_activity": "interest" },
+      "as_of_date": "2023-04-01",
+      "source_citation": "HK IRO Cap.112 s.15(1)(f) (interest — non money-lending business)"
+    },
+    {
+      "id": "HK-LOSS-RELIEF",
+      "jurisdiction": "HK",
+      "type": "loss_relief",
+      "category": "loss_relief",
+      "parameters": { "cap_fraction": "1.0", "de_minimis_hkd": "0", "unlimited": true },
+      "as_of_date": "2023-04-01",
+      "source_citation": "HK IRO Cap.112 s.19C (unlimited loss carryforward, no cap)"
+    },
+    {
+      "id": "HK-CIT-DEADLINE",
+      "jurisdiction": "HK",
+      "type": "deadline",
+      "category": "cit_deadline",
+      "parameters": { "filing_month": 4, "filing_day": 30, "payment_offset_days": 0 },
+      "as_of_date": "2023-04-01",
+      "source_citation": "HK IRO Cap.112 s.51 (Profits Tax return)"
+    }
+  ]
+}

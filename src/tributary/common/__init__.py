@@ -1,8 +1,132 @@
 """
 Package: tributary.common
 Layer: common
-Purpose: Shared utilities and domain errors for Tributary.
-Public surface: errors, logging
+Purpose: Zero-dependency shared utilities, data models, and exception hierarchy used by all layers.
+Public surface: EntityRecord, TransactionRecord, PresenceRecord, PriorPeriodLoss, OwnershipRecord,
+    CounterpartyRecord, AccountRecord, FiscalPeriod, FiscalCalendar, RuleCitation, ObligationResult,
+    ThresholdResult, DeadlineResult, LossCarryforwardRecord, EngineRunResult, ComputationStep,
+    ConflictFlag, ConflictType, ReliefMechanism, ActivityType, PresenceActivity,
+    FlowContext, FlowClassification, FlowAttribution, JurisdictionClaim, RuleRetrievalResult,
+    ApplicableRule, ConfidenceLevel, FlowNature, ObligationType, EntityType, JurisdictionCode,
+    TributaryError, GraphError, EntityNotFoundError, CounterpartyNotFoundError, GraphWriteError,
+    AILayerError, AIModelCallError, AIValidationError, AIContractViolationError,
+    EngineError, RulePackError, IngestionError,
+    get_logger
 """
+from __future__ import annotations
 
-__all__ = ["errors", "logging"]
+from .models import (
+    AccountRecord,
+    ActivityType,
+    ApplicableRule,
+    ComputationStep,
+    ConfidenceLevel,
+    ConflictFlag,
+    ConflictType,
+    CounterpartyRecord,
+    DeadlineResult,
+    EngineRunResult,
+    EntityRecord,
+    EntityType,
+    FiscalCalendar,
+    FiscalPeriod,
+    FlowAttribution,
+    FlowClassification,
+    FlowContext,
+    FlowNature,
+    JurisdictionClaim,
+    JurisdictionCode,
+    LossCarryforwardRecord,
+    ObligationResult,
+    ObligationType,
+    OwnershipRecord,
+    PresenceActivity,
+    PresenceRecord,
+    PriorPeriodLoss,
+    ReliefMechanism,
+    RuleCitation,
+    RuleRetrievalResult,
+    ThresholdResult,
+    TransactionRecord,
+)
+from .protocols_graph import GraphReader, GraphWriter
+from .protocols_ai import AILayerProtocol
+from .errors import (
+    AIContractViolationError,
+    AILayerError,
+    AIModelCallError,
+    AIValidationError,
+    CounterpartyNotFoundError,
+    EngineError,
+    EntityNotFoundError,
+    GraphError,
+    GraphWriteError,
+    IngestionError,
+    RulePackError,
+    TributaryError,
+)
+from .logging import get_logger
+from .errors import (
+    AIClientError,
+    AILayerServiceError,
+    PromptLoaderError,
+)
+
+__all__ = [
+    # Models
+    "AccountRecord",
+    "ActivityType",
+    "ApplicableRule",
+    "ComputationStep",
+    "ConfidenceLevel",
+    "ConflictFlag",
+    "ConflictType",
+    "CounterpartyRecord",
+    "DeadlineResult",
+    "EngineRunResult",
+    "EntityRecord",
+    "EntityType",
+    "FiscalCalendar",
+    "FiscalPeriod",
+    "FlowAttribution",
+    "FlowClassification",
+    "FlowContext",
+    "FlowNature",
+    "JurisdictionClaim",
+    "JurisdictionCode",
+    "LossCarryforwardRecord",
+    "ObligationResult",
+    "ObligationType",
+    "OwnershipRecord",
+    "PresenceActivity",
+    "PresenceRecord",
+    "PriorPeriodLoss",
+    "ReliefMechanism",
+    "RuleCitation",
+    "RuleRetrievalResult",
+    "ThresholdResult",
+    "TransactionRecord",
+    # Boundary protocols
+    "GraphReader",
+    "GraphWriter",
+    "AILayerProtocol",
+    # Errors
+    "AIContractViolationError",
+    "AILayerError",
+    "AIModelCallError",
+    "AIValidationError",
+    "CounterpartyNotFoundError",
+    "EngineError",
+    "EntityNotFoundError",
+    "GraphError",
+    "GraphWriteError",
+    "IngestionError",
+    "RulePackError",
+    "TributaryError",
+    # Logging
+    "get_logger",
+    # AI layer service errors (from AI colleague's layer)
+    "AIClientError",
+    "AILayerServiceError",
+    "PromptLoaderError",
+]

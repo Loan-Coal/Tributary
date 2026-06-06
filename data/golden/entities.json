@@ -1,0 +1,26 @@
+[
+  {
+    "entity_id": "MERID-HK",
+    "name": "Meridian Holdings Ltd",
+    "entity_type": "holdco",
+    "incorporation_jurisdiction": "HK",
+    "resident_jurisdiction": "HK",
+    "is_group_member": true
+  },
+  {
+    "entity_id": "MERID-DE",
+    "name": "Meridian Operations GmbH",
+    "entity_type": "subsidiary",
+    "incorporation_jurisdiction": "DE",
+    "resident_jurisdiction": "DE",
+    "is_group_member": true
+  },
+  {
+    "entity_id": "MERID-FR",
+    "name": "Meridian Distribution SAS",
+    "entity_type": "subsidiary",
+    "incorporation_jurisdiction": "FR",
+    "resident_jurisdiction": "FR",
+    "is_group_member": true
+  }
+]
