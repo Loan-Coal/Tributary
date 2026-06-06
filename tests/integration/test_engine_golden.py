@@ -17,6 +17,7 @@ import pytest
 from tests.support.fakes import CollectingGraphWriter, FakeGraphReader
 from tributary.common.models import (
     ConflictFlag,
+    ConflictType,
     EngineRunResult,
     ObligationType,
     ReliefMechanism,
@@ -299,6 +300,34 @@ class TestPeTriangleConflict:
 # ---------------------------------------------------------------------------
 # Writer persistence assertions
 # ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# WHT Exposure Regression Guard  (W6.4 regression + W6.7 cross-check)
+# ---------------------------------------------------------------------------
+
+class TestWhtExposureRegressionGuard:
+    def test_no_wht_over_withheld_flags_golden(self, engine_results):
+        """Golden scenario: all WHT is treaty-compliant — zero over-withheld flags."""
+        for result in engine_results:
+            over_withheld = [
+                c for c in result.conflicts
+                if c.conflict_type == ConflictType.WHT_OVER_WITHHELD
+            ]
+            assert over_withheld == [], (
+                f"Unexpected WHT_OVER_WITHHELD flag on {result.entity_id}: {over_withheld}"
+            )
+
+    def test_conflict_count_de(self, by_entity):
+        """MERID-DE has exactly one conflict: the PE Triangle — no WHT exposure."""
+        de = by_entity["MERID-DE"]
+        assert len(de.conflicts) == 1
+        assert de.conflicts[0].conflict_type == ConflictType.SERVICE_PE_DOUBLE_TAX
+
+    def test_no_conflicts_hk_or_fr(self, by_entity):
+        """MERID-HK and MERID-FR have no conflict flags in the golden scenario."""
+        assert by_entity["MERID-HK"].conflicts == []
+        assert by_entity["MERID-FR"].conflicts == []
+
 
 class TestWriterPersistence:
     @pytest.fixture(scope="class")

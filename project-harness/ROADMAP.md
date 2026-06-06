@@ -25,7 +25,7 @@ run needn't rediscover it. Add a line when a task completes and unblocks somethi
 later; delete consumed lines; keep it under ~15 lines._
 
 - **Waves 1, 3, 4a, 4b, 5 COMPLETE**: Engine produces golden figures; all AI layer files wired; 197 tests green.
-- **Wave 6 nearly complete**: PE Triangle, WHT exposure scanner all built. W6.7 (PE Triangle golden integration test) still pending — last open item before Wave 7.
+- **Waves 1, 3, 4a, 4b, 5, 6 COMPLETE**: All engine passes golden; PE Triangle fires + verified; WHT exposure scanner built; 200 tests green. Wave 6b is next.
 - **Wave 6b NEW**: Group profit redistribution detection — see Wave 6b section below. DEC-020 records the architectural decision.
 - **Models split**: `common/models.py` re-exports from `models_entity.py`, `models_engine.py`, `models_ai.py`. See DEC-012.
 - **EXPECTED.md canonical figures**: HK HKD 445,500; DE CIT HKD 47,673; DE Trade Tax HKD 42,175; FR CIT HKD 1,030,938. PE Triangle — exemption method, residual double-tax = 0.
@@ -245,7 +245,7 @@ later; delete consumed lines; keep it under ~15 lines._
 - [x] **W6.4** — WHT exposure flag: check WHT obligations against treaty entitlement; flag over-withheld cases (`engine/wht_exposure.py` — new module)
 - [x] **W6.5** — `ConflictFlag` model in `common/models.py`; `EngineRunResult.conflicts` field populated
 - [x] **W6.6** — treaty pointer lookup: conflict detector reads treaty pack for relevant DTA article + elimination method
-- [ ] **W6.7** — integration test: PE Triangle fires; exemption method applied; residual double-tax = 0; conflict report matches `EXPECTED.md`
+- [x] **W6.7** — integration test: PE Triangle fires; exemption method applied; residual double-tax = 0; conflict report matches `EXPECTED.md`
 
 ---
 
