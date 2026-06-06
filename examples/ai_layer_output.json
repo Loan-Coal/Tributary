@@ -1,0 +1,1580 @@
+{
+  "metadata": {
+    "source_file": "/mnt/disk2/zeyu/Hackathon/Tributary/data/processed/transactions.csv",
+    "rule_pack": "/mnt/disk2/zeyu/Hackathon/Tributary/examples/Datasets/hk_dipn21_rules.json",
+    "rule_pack_as_of": "2012-07-01",
+    "backend": "deterministic",
+    "total_transactions": 340,
+    "unique_groups": 34,
+    "groups_needing_review": 34,
+    "groups_with_conflict": 0,
+    "note": "Monetary amounts ignored by design. Output is regulation matching, confidence, and conflict judgment only; numeric values stay as engine placeholders for the deterministic engine downstream."
+  },
+  "classifications": [
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "5126_L02_HKG",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_5126_L02_HKG_2014_240",
+        "tx_oecd_HKG_5126_L02_HKG_2015_243",
+        "tx_oecd_HKG_5126_L02_HKG_2016_245",
+        "tx_oecd_HKG_5126_L02_HKG_2017_247",
+        "tx_oecd_HKG_5126_L02_HKG_2018_249",
+        "tx_oecd_HKG_5126_L02_HKG_2019_251",
+        "tx_oecd_HKG_5126_L02_HKG_2020_252",
+        "tx_oecd_HKG_5126_L02_HKG_2021_254",
+        "tx_oecd_HKG_5126_L02_HKG_2022_257",
+        "tx_oecd_HKG_5126_L02_HKG_2023_259"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "5126_L01_HKG",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_5126_L01_HKG_2014_241",
+        "tx_oecd_HKG_5126_L01_HKG_2015_242",
+        "tx_oecd_HKG_5126_L01_HKG_2016_244",
+        "tx_oecd_HKG_5126_L01_HKG_2017_246",
+        "tx_oecd_HKG_5126_L01_HKG_2018_248",
+        "tx_oecd_HKG_5126_L01_HKG_2019_250",
+        "tx_oecd_HKG_5126_L01_HKG_2020_253",
+        "tx_oecd_HKG_5126_L01_HKG_2021_255",
+        "tx_oecd_HKG_5126_L01_HKG_2022_256",
+        "tx_oecd_HKG_5126_L01_HKG_2023_258"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Non-tax revenue",
+        "gl_code": "NTR_C_L02_HKG",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_NTR_C_L02_HKG_2014_260",
+        "tx_oecd_HKG_NTR_C_L02_HKG_2015_265",
+        "tx_oecd_HKG_NTR_C_L02_HKG_2016_268",
+        "tx_oecd_HKG_NTR_C_L02_HKG_2017_271",
+        "tx_oecd_HKG_NTR_C_L02_HKG_2018_274",
+        "tx_oecd_HKG_NTR_C_L02_HKG_2019_277",
+        "tx_oecd_HKG_NTR_C_L02_HKG_2020_280",
+        "tx_oecd_HKG_NTR_C_L02_HKG_2021_281",
+        "tx_oecd_HKG_NTR_C_L02_HKG_2022_286",
+        "tx_oecd_HKG_NTR_C_L02_HKG_2023_287"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Non-tax revenue",
+        "gl_code": "NTR_C_L03_HKG",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_NTR_C_L03_HKG_2014_261",
+        "tx_oecd_HKG_NTR_C_L03_HKG_2015_263",
+        "tx_oecd_HKG_NTR_C_L03_HKG_2016_266",
+        "tx_oecd_HKG_NTR_C_L03_HKG_2017_269",
+        "tx_oecd_HKG_NTR_C_L03_HKG_2018_272",
+        "tx_oecd_HKG_NTR_C_L03_HKG_2019_275",
+        "tx_oecd_HKG_NTR_C_L03_HKG_2020_278",
+        "tx_oecd_HKG_NTR_C_L03_HKG_2021_283",
+        "tx_oecd_HKG_NTR_C_L03_HKG_2022_285",
+        "tx_oecd_HKG_NTR_C_L03_HKG_2023_289"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Non-tax revenue",
+        "gl_code": "NTR_C_L01_HKG",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_NTR_C_L01_HKG_2014_262",
+        "tx_oecd_HKG_NTR_C_L01_HKG_2015_264",
+        "tx_oecd_HKG_NTR_C_L01_HKG_2016_267",
+        "tx_oecd_HKG_NTR_C_L01_HKG_2017_270",
+        "tx_oecd_HKG_NTR_C_L01_HKG_2018_273",
+        "tx_oecd_HKG_NTR_C_L01_HKG_2019_276",
+        "tx_oecd_HKG_NTR_C_L01_HKG_2020_279",
+        "tx_oecd_HKG_NTR_C_L01_HKG_2021_282",
+        "tx_oecd_HKG_NTR_C_L01_HKG_2022_284",
+        "tx_oecd_HKG_NTR_C_L01_HKG_2023_288"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax and non-tax revenue",
+        "gl_code": "TOTAL",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_TOTAL_2014_290",
+        "tx_oecd_HKG_TOTAL_2015_291",
+        "tx_oecd_HKG_TOTAL_2016_292",
+        "tx_oecd_HKG_TOTAL_2017_293",
+        "tx_oecd_HKG_TOTAL_2018_294",
+        "tx_oecd_HKG_TOTAL_2019_295",
+        "tx_oecd_HKG_TOTAL_2020_296",
+        "tx_oecd_HKG_TOTAL_2021_297",
+        "tx_oecd_HKG_TOTAL_2022_298",
+        "tx_oecd_HKG_TOTAL_2023_299"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Non-tax revenue",
+        "gl_code": "NTR_D",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_NTR_D_2014_300",
+        "tx_oecd_HKG_NTR_D_2015_309",
+        "tx_oecd_HKG_NTR_D_2016_317",
+        "tx_oecd_HKG_NTR_D_2017_323",
+        "tx_oecd_HKG_NTR_D_2018_331",
+        "tx_oecd_HKG_NTR_D_2019_337",
+        "tx_oecd_HKG_NTR_D_2020_343",
+        "tx_oecd_HKG_NTR_D_2021_351",
+        "tx_oecd_HKG_NTR_D_2022_359",
+        "tx_oecd_HKG_NTR_D_2023_367"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Non-tax revenue",
+        "gl_code": "NTR_C",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_NTR_C_2014_301",
+        "tx_oecd_HKG_NTR_C_2015_310",
+        "tx_oecd_HKG_NTR_C_2016_318",
+        "tx_oecd_HKG_NTR_C_2017_324",
+        "tx_oecd_HKG_NTR_C_2018_332",
+        "tx_oecd_HKG_NTR_C_2019_338",
+        "tx_oecd_HKG_NTR_C_2020_342",
+        "tx_oecd_HKG_NTR_C_2021_350",
+        "tx_oecd_HKG_NTR_C_2022_358",
+        "tx_oecd_HKG_NTR_C_2023_366"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Non-tax revenue",
+        "gl_code": "NTR_BB",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_NTR_BB_2014_302",
+        "tx_oecd_HKG_NTR_BB_2015_311",
+        "tx_oecd_HKG_NTR_BB_2016_319",
+        "tx_oecd_HKG_NTR_BB_2017_325",
+        "tx_oecd_HKG_NTR_BB_2018_333",
+        "tx_oecd_HKG_NTR_BB_2019_339",
+        "tx_oecd_HKG_NTR_BB_2020_347",
+        "tx_oecd_HKG_NTR_BB_2021_352",
+        "tx_oecd_HKG_NTR_BB_2022_360",
+        "tx_oecd_HKG_NTR_BB_2023_368"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Non-tax revenue",
+        "gl_code": "NTR_E",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_NTR_E_2014_303",
+        "tx_oecd_HKG_NTR_E_2015_312",
+        "tx_oecd_HKG_NTR_E_2016_320",
+        "tx_oecd_HKG_NTR_E_2017_326",
+        "tx_oecd_HKG_NTR_E_2018_334",
+        "tx_oecd_HKG_NTR_E_2019_340",
+        "tx_oecd_HKG_NTR_E_2020_346",
+        "tx_oecd_HKG_NTR_E_2021_353",
+        "tx_oecd_HKG_NTR_E_2022_361",
+        "tx_oecd_HKG_NTR_E_2023_369"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Non-tax revenue",
+        "gl_code": "NTR_BA",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_NTR_BA_2014_304",
+        "tx_oecd_HKG_NTR_BA_2015_313",
+        "tx_oecd_HKG_NTR_BA_2016_316",
+        "tx_oecd_HKG_NTR_BA_2017_327",
+        "tx_oecd_HKG_NTR_BA_2018_330",
+        "tx_oecd_HKG_NTR_BA_2019_341",
+        "tx_oecd_HKG_NTR_BA_2020_348",
+        "tx_oecd_HKG_NTR_BA_2021_349",
+        "tx_oecd_HKG_NTR_BA_2022_362",
+        "tx_oecd_HKG_NTR_BA_2023_365"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Non-tax revenue",
+        "gl_code": "TOTALNONTAX",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_TOTALNONTAX_2014_305",
+        "tx_oecd_HKG_TOTALNONTAX_2015_307",
+        "tx_oecd_HKG_TOTALNONTAX_2016_314",
+        "tx_oecd_HKG_TOTALNONTAX_2017_321",
+        "tx_oecd_HKG_TOTALNONTAX_2018_328",
+        "tx_oecd_HKG_TOTALNONTAX_2019_335",
+        "tx_oecd_HKG_TOTALNONTAX_2020_344",
+        "tx_oecd_HKG_TOTALNONTAX_2021_355",
+        "tx_oecd_HKG_TOTALNONTAX_2022_356",
+        "tx_oecd_HKG_TOTALNONTAX_2023_363"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Non-tax revenue",
+        "gl_code": "NTR_B",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_NTR_B_2014_306",
+        "tx_oecd_HKG_NTR_B_2015_308",
+        "tx_oecd_HKG_NTR_B_2016_315",
+        "tx_oecd_HKG_NTR_B_2017_322",
+        "tx_oecd_HKG_NTR_B_2018_329",
+        "tx_oecd_HKG_NTR_B_2019_336",
+        "tx_oecd_HKG_NTR_B_2020_345",
+        "tx_oecd_HKG_NTR_B_2021_354",
+        "tx_oecd_HKG_NTR_B_2022_357",
+        "tx_oecd_HKG_NTR_B_2023_364"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "4000",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_4000_2014_370",
+        "tx_oecd_HKG_4000_2015_405",
+        "tx_oecd_HKG_4000_2016_426",
+        "tx_oecd_HKG_4000_2017_447",
+        "tx_oecd_HKG_4000_2018_468",
+        "tx_oecd_HKG_4000_2019_489",
+        "tx_oecd_HKG_4000_2020_505",
+        "tx_oecd_HKG_4000_2021_523",
+        "tx_oecd_HKG_4000_2022_558",
+        "tx_oecd_HKG_4000_2023_579"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "1100",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_1100_2014_371",
+        "tx_oecd_HKG_1100_2015_408",
+        "tx_oecd_HKG_1100_2016_427",
+        "tx_oecd_HKG_1100_2017_450",
+        "tx_oecd_HKG_1100_2018_469",
+        "tx_oecd_HKG_1100_2019_492",
+        "tx_oecd_HKG_1100_2020_506",
+        "tx_oecd_HKG_1100_2021_521",
+        "tx_oecd_HKG_1100_2022_556",
+        "tx_oecd_HKG_1100_2023_576"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "4400",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_4400_2014_372",
+        "tx_oecd_HKG_4400_2015_407",
+        "tx_oecd_HKG_4400_2016_429",
+        "tx_oecd_HKG_4400_2017_448",
+        "tx_oecd_HKG_4400_2018_471",
+        "tx_oecd_HKG_4400_2019_490",
+        "tx_oecd_HKG_4400_2020_508",
+        "tx_oecd_HKG_4400_2021_520",
+        "tx_oecd_HKG_4400_2022_557",
+        "tx_oecd_HKG_4400_2023_578"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "1110",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_1110_2014_373",
+        "tx_oecd_HKG_1110_2015_406",
+        "tx_oecd_HKG_1110_2016_428",
+        "tx_oecd_HKG_1110_2017_449",
+        "tx_oecd_HKG_1110_2018_470",
+        "tx_oecd_HKG_1110_2019_491",
+        "tx_oecd_HKG_1110_2020_507",
+        "tx_oecd_HKG_1110_2021_522",
+        "tx_oecd_HKG_1110_2022_555",
+        "tx_oecd_HKG_1110_2023_577"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "6100",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_6100_2014_374",
+        "tx_oecd_HKG_6100_2015_410",
+        "tx_oecd_HKG_6100_2016_430",
+        "tx_oecd_HKG_6100_2017_452",
+        "tx_oecd_HKG_6100_2018_472",
+        "tx_oecd_HKG_6100_2019_494",
+        "tx_oecd_HKG_6100_2020_509",
+        "tx_oecd_HKG_6100_2021_519",
+        "tx_oecd_HKG_6100_2022_553",
+        "tx_oecd_HKG_6100_2023_575"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "5200",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_5200_2014_375",
+        "tx_oecd_HKG_5200_2015_409",
+        "tx_oecd_HKG_5200_2016_431",
+        "tx_oecd_HKG_5200_2017_451",
+        "tx_oecd_HKG_5200_2018_473",
+        "tx_oecd_HKG_5200_2019_493",
+        "tx_oecd_HKG_5200_2020_510",
+        "tx_oecd_HKG_5200_2021_518",
+        "tx_oecd_HKG_5200_2022_554",
+        "tx_oecd_HKG_5200_2023_574"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "5121",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_5121_2014_376",
+        "tx_oecd_HKG_5121_2015_411",
+        "tx_oecd_HKG_5121_2016_432",
+        "tx_oecd_HKG_5121_2017_453",
+        "tx_oecd_HKG_5121_2018_474",
+        "tx_oecd_HKG_5121_2019_495",
+        "tx_oecd_HKG_5121_2020_516",
+        "tx_oecd_HKG_5121_2021_517",
+        "tx_oecd_HKG_5121_2022_552",
+        "tx_oecd_HKG_5121_2023_573"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "5100",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_5100_2014_377",
+        "tx_oecd_HKG_5100_2015_391",
+        "tx_oecd_HKG_5100_2016_418",
+        "tx_oecd_HKG_5100_2017_433",
+        "tx_oecd_HKG_5100_2018_460",
+        "tx_oecd_HKG_5100_2019_475",
+        "tx_oecd_HKG_5100_2020_501",
+        "tx_oecd_HKG_5100_2021_531",
+        "tx_oecd_HKG_5100_2022_539",
+        "tx_oecd_HKG_5100_2023_565"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "5220",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_5220_2014_378",
+        "tx_oecd_HKG_5220_2015_392",
+        "tx_oecd_HKG_5220_2016_419",
+        "tx_oecd_HKG_5220_2017_434",
+        "tx_oecd_HKG_5220_2018_461",
+        "tx_oecd_HKG_5220_2019_476",
+        "tx_oecd_HKG_5220_2020_502",
+        "tx_oecd_HKG_5220_2021_530",
+        "tx_oecd_HKG_5220_2022_538",
+        "tx_oecd_HKG_5220_2023_566"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "4100",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_4100_2014_379",
+        "tx_oecd_HKG_4100_2015_393",
+        "tx_oecd_HKG_4100_2016_420",
+        "tx_oecd_HKG_4100_2017_435",
+        "tx_oecd_HKG_4100_2018_462",
+        "tx_oecd_HKG_4100_2019_477",
+        "tx_oecd_HKG_4100_2020_496",
+        "tx_oecd_HKG_4100_2021_534",
+        "tx_oecd_HKG_4100_2022_540",
+        "tx_oecd_HKG_4100_2023_567"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "5120",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_5120_2014_380",
+        "tx_oecd_HKG_5120_2015_394",
+        "tx_oecd_HKG_5120_2016_422",
+        "tx_oecd_HKG_5120_2017_436",
+        "tx_oecd_HKG_5120_2018_464",
+        "tx_oecd_HKG_5120_2019_478",
+        "tx_oecd_HKG_5120_2020_498",
+        "tx_oecd_HKG_5120_2021_532",
+        "tx_oecd_HKG_5120_2022_541",
+        "tx_oecd_HKG_5120_2023_569"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "6000",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_6000_2014_381",
+        "tx_oecd_HKG_6000_2015_395",
+        "tx_oecd_HKG_6000_2016_421",
+        "tx_oecd_HKG_6000_2017_437",
+        "tx_oecd_HKG_6000_2018_463",
+        "tx_oecd_HKG_6000_2019_479",
+        "tx_oecd_HKG_6000_2020_497",
+        "tx_oecd_HKG_6000_2021_533",
+        "tx_oecd_HKG_6000_2022_542",
+        "tx_oecd_HKG_6000_2023_568"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "5000",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_5000_2014_382",
+        "tx_oecd_HKG_5000_2015_396",
+        "tx_oecd_HKG_5000_2016_423",
+        "tx_oecd_HKG_5000_2017_438",
+        "tx_oecd_HKG_5000_2018_465",
+        "tx_oecd_HKG_5000_2019_480",
+        "tx_oecd_HKG_5000_2020_500",
+        "tx_oecd_HKG_5000_2021_537",
+        "tx_oecd_HKG_5000_2022_545",
+        "tx_oecd_HKG_5000_2023_571"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "1200",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_1200_2014_383",
+        "tx_oecd_HKG_1200_2015_397",
+        "tx_oecd_HKG_1200_2016_424",
+        "tx_oecd_HKG_1200_2017_439",
+        "tx_oecd_HKG_1200_2018_466",
+        "tx_oecd_HKG_1200_2019_481",
+        "tx_oecd_HKG_1200_2020_499",
+        "tx_oecd_HKG_1200_2021_536",
+        "tx_oecd_HKG_1200_2022_544",
+        "tx_oecd_HKG_1200_2023_570"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "6200",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_6200_2014_384",
+        "tx_oecd_HKG_6200_2015_398",
+        "tx_oecd_HKG_6200_2016_425",
+        "tx_oecd_HKG_6200_2017_440",
+        "tx_oecd_HKG_6200_2018_467",
+        "tx_oecd_HKG_6200_2019_482",
+        "tx_oecd_HKG_6200_2020_513",
+        "tx_oecd_HKG_6200_2021_535",
+        "tx_oecd_HKG_6200_2022_543",
+        "tx_oecd_HKG_6200_2023_572"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "1210",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_1210_2014_385",
+        "tx_oecd_HKG_1210_2015_399",
+        "tx_oecd_HKG_1210_2016_412",
+        "tx_oecd_HKG_1210_2017_441",
+        "tx_oecd_HKG_1210_2018_454",
+        "tx_oecd_HKG_1210_2019_483",
+        "tx_oecd_HKG_1210_2020_504",
+        "tx_oecd_HKG_1210_2021_524",
+        "tx_oecd_HKG_1210_2022_547",
+        "tx_oecd_HKG_1210_2023_559"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "1000",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_1000_2014_386",
+        "tx_oecd_HKG_1000_2015_400",
+        "tx_oecd_HKG_1000_2016_413",
+        "tx_oecd_HKG_1000_2017_442",
+        "tx_oecd_HKG_1000_2018_455",
+        "tx_oecd_HKG_1000_2019_484",
+        "tx_oecd_HKG_1000_2020_503",
+        "tx_oecd_HKG_1000_2021_525",
+        "tx_oecd_HKG_1000_2022_546",
+        "tx_oecd_HKG_1000_2023_560"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "4310",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_4310_2014_387",
+        "tx_oecd_HKG_4310_2015_403",
+        "tx_oecd_HKG_4310_2016_414",
+        "tx_oecd_HKG_4310_2017_445",
+        "tx_oecd_HKG_4310_2018_456",
+        "tx_oecd_HKG_4310_2019_488",
+        "tx_oecd_HKG_4310_2020_514",
+        "tx_oecd_HKG_4310_2021_528",
+        "tx_oecd_HKG_4310_2022_548",
+        "tx_oecd_HKG_4310_2023_563"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "5126",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_5126_2014_388",
+        "tx_oecd_HKG_5126_2015_402",
+        "tx_oecd_HKG_5126_2016_415",
+        "tx_oecd_HKG_5126_2017_443",
+        "tx_oecd_HKG_5126_2018_458",
+        "tx_oecd_HKG_5126_2019_485",
+        "tx_oecd_HKG_5126_2020_511",
+        "tx_oecd_HKG_5126_2021_526",
+        "tx_oecd_HKG_5126_2022_550",
+        "tx_oecd_HKG_5126_2023_561"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "4300",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_4300_2014_389",
+        "tx_oecd_HKG_4300_2015_401",
+        "tx_oecd_HKG_4300_2016_416",
+        "tx_oecd_HKG_4300_2017_444",
+        "tx_oecd_HKG_4300_2018_457",
+        "tx_oecd_HKG_4300_2019_486",
+        "tx_oecd_HKG_4300_2020_512",
+        "tx_oecd_HKG_4300_2021_527",
+        "tx_oecd_HKG_4300_2022_549",
+        "tx_oecd_HKG_4300_2023_562"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    },
+    {
+      "signature": {
+        "description": "Tax revenue: Tax revenue",
+        "gl_code": "TOTALTAX",
+        "flow_direction": "inbound",
+        "record_type": "tax_revenue",
+        "jurisdictions": [
+          "HK"
+        ]
+      },
+      "transaction_ids": [
+        "tx_oecd_HKG_TOTALTAX_2014_390",
+        "tx_oecd_HKG_TOTALTAX_2015_404",
+        "tx_oecd_HKG_TOTALTAX_2016_417",
+        "tx_oecd_HKG_TOTALTAX_2017_446",
+        "tx_oecd_HKG_TOTALTAX_2018_459",
+        "tx_oecd_HKG_TOTALTAX_2019_487",
+        "tx_oecd_HKG_TOTALTAX_2020_515",
+        "tx_oecd_HKG_TOTALTAX_2021_529",
+        "tx_oecd_HKG_TOTALTAX_2022_551",
+        "tx_oecd_HKG_TOTALTAX_2023_564"
+      ],
+      "transaction_count": 10,
+      "date_range": {
+        "earliest": "2014-01-01",
+        "latest": "2023-01-01"
+      },
+      "flow_classification": "REVENUE",
+      "candidate_jurisdictions": [
+        "HK"
+      ],
+      "matched_rules": [],
+      "top_confidence": 0.0,
+      "conflict": {
+        "has_conflict": false,
+        "conflict_type": null,
+        "details": "",
+        "rule_ids": []
+      },
+      "abstain": true,
+      "needs_human_review": true,
+      "evidence_requests": [
+        "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying business activity (trading, services, commission, financing) and the place where the profit-generating operations are performed."
+      ],
+      "narrative_template": "Classification could not be grounded in a DIPN 21 source rule for this {{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+    }
+  ],
+  "conflicts_summary": []
+}

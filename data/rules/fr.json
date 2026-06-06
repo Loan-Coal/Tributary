@@ -1,0 +1,69 @@
+{
+  "jurisdiction": "FR",
+  "fiscal_calendar": { "jurisdiction": "FR", "period_start_month": 1, "period_start_day": 1 },
+  "rules": [
+    {
+      "id": "FR-CIT-RATE",
+      "jurisdiction": "FR",
+      "type": "rate",
+      "category": "cit_rate",
+      "parameters": { "rate": "0.25" },
+      "as_of_date": "2024-01-01",
+      "source_citation": "CGI Art.219 (standard CIT rate 25%)"
+    },
+    {
+      "id": "FR-WHT-MANAGEMENT-FEE",
+      "jurisdiction": "FR",
+      "type": "rate",
+      "category": "wht_management_fee",
+      "parameters": { "domestic_rate": "0.128" },
+      "as_of_date": "2024-01-01",
+      "source_citation": "CGI Art.182B (services paid to non-resident; 12.8%)"
+    },
+    {
+      "id": "FR-WHT-DIVIDEND",
+      "jurisdiction": "FR",
+      "type": "rate",
+      "category": "wht_dividend",
+      "parameters": { "domestic_rate": "0.128" },
+      "as_of_date": "2024-01-01",
+      "source_citation": "CGI Art.119bis (dividend withholding to non-resident)"
+    },
+    {
+      "id": "FR-VAT-THRESHOLD",
+      "jurisdiction": "FR",
+      "type": "threshold",
+      "category": "vat_threshold",
+      "parameters": { "threshold_hkd": "729300", "filing_frequency": "quarterly" },
+      "as_of_date": "2024-01-01",
+      "source_citation": "CGI Art.293B (franchise en base — goods threshold EUR 85,800 @ 8.50 = HKD 729,300)"
+    },
+    {
+      "id": "FR-VAT-FILING",
+      "jurisdiction": "FR",
+      "type": "deadline",
+      "category": "vat_filing",
+      "parameters": { "filing_frequency": "quarterly", "filing_month": 1, "filing_day": 31 },
+      "as_of_date": "2024-01-01",
+      "source_citation": "CGI Art.287 (VAT return filing)"
+    },
+    {
+      "id": "FR-LOSS-RELIEF",
+      "jurisdiction": "FR",
+      "type": "loss_relief",
+      "category": "loss_relief",
+      "parameters": { "cap_fraction": "0.50", "de_minimis_hkd": "8500000" },
+      "as_of_date": "2024-01-01",
+      "source_citation": "CGI Art.209-I (full offset to EUR 1M, then 50%)"
+    },
+    {
+      "id": "FR-CIT-DEADLINE",
+      "jurisdiction": "FR",
+      "type": "deadline",
+      "category": "cit_deadline",
+      "parameters": { "filing_month": 5, "filing_day": 31, "payment_offset_days": 0 },
+      "as_of_date": "2024-01-01",
+      "source_citation": "CGI Art.223 (CIT return filing deadline)"
+    }
+  ]
+}

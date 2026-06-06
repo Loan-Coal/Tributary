@@ -1,0 +1,52 @@
+{
+  "jurisdiction_a": "DE",
+  "jurisdiction_b": "FR",
+  "rules": [
+    {
+      "id": "DEFR-DTA-PE",
+      "jurisdiction": "DE",
+      "type": "treaty",
+      "category": "treaty_pe",
+      "parameters": { "day_count": 183, "period_months": 12, "attribution_pct": "0.35" },
+      "as_of_date": "2017-01-01",
+      "source_citation": "DE-FR DTA Art.5(3)(b) (OECD 2017 service PE; 35% attribution is a DEC-007 demo assumption, ISSUE-006)"
+    },
+    {
+      "id": "DEFR-DTA-DIVIDEND",
+      "jurisdiction": "FR",
+      "type": "treaty",
+      "category": "treaty_dividend",
+      "parameters": {
+        "treaty_rate": "0.0",
+        "requires_eu": true,
+        "min_holding_pct": "25",
+        "min_holding_months": 24
+      },
+      "as_of_date": "2011-11-30",
+      "source_citation": "EU Parent-Subsidiary Directive 2011/96/EU (0% if EU parent holds >=25% for >=2 years)"
+    },
+    {
+      "id": "DEFR-DTA-ROYALTY",
+      "jurisdiction": "DE",
+      "type": "treaty",
+      "category": "treaty_royalty",
+      "parameters": {
+        "treaty_rate": "0.0",
+        "requires_eu": true,
+        "min_holding_pct": "25",
+        "min_holding_months": 24
+      },
+      "as_of_date": "2003-06-03",
+      "source_citation": "EU Interest & Royalties Directive 2003/49/EC (0% intra-EU royalty)"
+    },
+    {
+      "id": "DEFR-DTA-ELIMINATION",
+      "jurisdiction": "DE",
+      "type": "treaty",
+      "category": "treaty_elimination",
+      "parameters": { "relief_mechanism": "exemption" },
+      "as_of_date": "2017-01-01",
+      "source_citation": "DE-FR DTA Art.23 (Germany exempts French PE business profits — Freistellungsmethode)"
+    }
+  ]
+}
