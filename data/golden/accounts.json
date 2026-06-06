@@ -1,0 +1,20 @@
+[
+  {
+    "account_id": "ACC-HK-001",
+    "entity_id": "MERID-HK",
+    "account_name": "Main HK Account",
+    "account_type": "general"
+  },
+  {
+    "account_id": "ACC-DE-001",
+    "entity_id": "MERID-DE",
+    "account_name": "Main DE Account",
+    "account_type": "general"
+  },
+  {
+    "account_id": "ACC-FR-001",
+    "entity_id": "MERID-FR",
+    "account_name": "Main FR Account",
+    "account_type": "general"
+  }
+]

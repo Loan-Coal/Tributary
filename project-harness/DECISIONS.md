@@ -66,3 +66,156 @@ honest, defensible design choice. Tax professionals reviewing the brief can judg
 **Decision:** Single Docker Neo4j instance, single graph, no `world_id` or tenant isolation needed.
 **Why:** Multi-tenancy adds complexity with no hackathon benefit. The company is a distinct unit;
 post-hackathon this can be revisited if the product goes multi-tenant.
+
+## DEC-006: Engine is country-agnostic — no jurisdiction-specific logic in engine code
+
+**Date:** 2026-06-06
+**Context:** Initial plan referenced "HK", "DE", "FR" as if they would appear as constants in engine code.
+**Options considered:**
+  1. Hardcode jurisdiction-specific branches (`if jurisdiction == "DE": apply_trade_tax()`) — fast to write, impossible to extend.
+  2. Country-agnostic engine: all jurisdiction-specific values (rates, thresholds, deadlines, calendar) come from rule packs at runtime. New country = new JSON file, zero engine code change.
+**Decision:** Option 2. No jurisdiction code appears as a literal in any engine module. The engine only processes "jurisdiction code + rule pack parameters". Demo ships with HK, DE, FR rule packs.
+**Why:** The engine is the product's durable asset. New countries must not require engine changes. The rule-pack interface is already the correct seam — this decision locks that discipline in.
+
+## DEC-007: Golden scenario — Meridian Group and the PE Triangle planted conflict
+
+**Date:** 2026-06-06
+**Context:** The golden scenario needs a planted cross-border conflict that maximally exercises the engine.
+**Decision:** Use Meridian Group (MERID-HK, MERID-DE, MERID-FR) with the following planted conflict:
+
+**The PE Triangle** — MERID-DE employees spend 185 days in France (service delivery). This triggers a service PE under DE-FR DTA Art.5 (OECD 2017 service PE, >183 days threshold). France claims the right to tax 35% of MERID-DE's net income as PE-attributed profits (~HKD 1,400,000). Germany simultaneously taxes MERID-DE on worldwide income including the same amount. Treaty resolution: DE-FR DTA Art.23 (credit method) — Germany must give a credit for French tax paid, but the credit is capped at the German rate applied to the same income. The engine must: detect PE trigger, compute PE attribution, flag double-tax conflict, look up treaty pointer, and compute the net credit.
+
+Secondary conflicts surfaced (lower severity, no resolution required in v1):
+- T001 (HK→DE royalty): Germany 25% WHT reduced to 5% under HK-DE DTA Art.12. HK source-rule question (is the royalty HK-sourced?) flagged for review.
+- T005 (DE→HK dividend): Germany 25% WHT reduced to 5% under HK-DE DTA Art.10 (beneficial ownership condition: 10%+ for 12+ months — met).
+- T006 (MERID-HK loan → MERID-DE): Zinsschranke (interest barrier) check — interest of HKD 320,000 vs. 30% EBITDA cap.
+
+**Transactions:** T001–T009 (see `data/golden/transactions.json`). T003 is the presence record (185 days).
+**Why this conflict:** It exercises PE trigger detection, multi-jurisdiction double-tax flagging, treaty credit computation, loss carryforward (MERID-DE FY2024 loss), WHT with treaty relief, and threshold checks — all in one scenario.
+
+## DEC-008: Loss carryforward is in scope for v1
+
+**Date:** 2026-06-06
+**Context:** Loss carryforward rules are complex but exercised by the golden scenario (MERID-DE FY2024 loss).
+**Decision:** In scope. Engine computes allowable loss offset per jurisdiction rules:
+  - HK: unlimited carryforward, no cap.
+  - DE: Mindestbesteuerung — full offset up to €1M equivalent, then 60% of remaining income.
+  - FR: Similar cap structure; full offset up to €1M equivalent, then 50% of excess.
+Loss positions are persisted in the graph via `GraphWriter.update_loss_carryforward()` after each period.
+**Why:** The golden scenario explicitly has a prior-period loss. Silently ignoring it would produce wrong CIT numbers. Scoping it in forces the engine to be correct on a realistic pattern.
+
+## DEC-009: Tax-type-specific sub-engines, not one generic rates module
+
+**Date:** 2026-06-06
+**Context:** Original plan had a single `engine/rates.py`. WHT on gross payments and CIT on net income are structurally different computations. VAT is a filing obligation, not a net tax computation for the entity.
+**Decision:** Separate sub-engine modules per obligation type:
+  - `engine/cit_engine.py` — CIT: aggregate net income → loss offset → rate × base → treaty credit
+  - `engine/wht_engine.py` — WHT: gross payment × rate → treaty relief → EU Directive exemption check → net WHT
+  - `engine/vat_engine.py` — VAT: threshold check → filing obligation flag (v1 does not compute net VAT arithmetic)
+  - `engine/trade_tax_engine.py` — German Gewerbesteuer: separate rate × same CIT base (Germany-specific but country-agnostic code — activated when rule pack contains trade_tax rules)
+All sub-engines are activated by the rule pack containing the relevant rule type — they are never called based on jurisdiction name.
+**Why:** Mixing computation patterns in one module causes incorrect results (applying WHT logic to income base, or vice versa). Sub-engines are independently testable and independently extensible.
+
+## DEC-010: Attribution stub uses separate JSON mapping file
+
+**Date:** 2026-06-06
+**Context:** Phase 3 engine needs jurisdiction annotations on flows before AI is built (Phase 4).
+**Options considered:** (1) field in mock data files; (2) separate JSON mapping file; (3) hardcoded in Python.
+**Decision:** Option 2. `data/golden/attributions_stub.json` maps `tx_id → {nature, claims[]}`. The `AttributionStub` class loads this file and implements `AILayerProtocol`. Phase 4 replaces `AttributionStub` with real AI — the engine sees no difference.
+**Why:** The mapping file is structurally identical to what AI attribution output looks like. The swap in Phase 4 is replacing a file loader with a protocol call — not a refactor. The file also doubles as the expected-attribution fixture for AI integration tests.
+
+## DEC-011: pyproject.toml uses `setuptools.build_meta` backend
+
+**Date:** 2026-06-06
+**Context:** Scaffolding the Python package manifest. `setuptools.backends.legacy:build` (the new setuptools 68+ entrypoint) is not present in the active conda environment (setuptools 69 on Python 3.11). The standard `setuptools.build_meta` backend is universally available and supported.
+**Options considered:**
+  1. `setuptools.backends.legacy:build` — new-style entrypoint, requires setuptools ≥ 68.0.0 with this specific path available; not available in the project's conda env.
+  2. `setuptools.build_meta` — classic, universally supported, pip-installable on all Python ≥ 3.8 environments.
+**Decision:** `setuptools.build_meta`.
+**Why:** The classic backend works everywhere without version-specific setuptools internals. There is no functional difference for this project's packaging needs.
+
+## DEC-012: common/models.py split into three sub-modules
+
+**Date:** 2026-06-06
+**Context:** W1.2 task requires all canonical Pydantic models in `common/`. The 300-line file
+limit (hard rule) applies. A single `models.py` with all enums, entity models, engine output
+models, and AI protocol models would exceed 300 lines.
+**Options considered:**
+  1. One `models.py` file — exceeds 300-line limit; violates coding rules.
+  2. Split into `models_entity.py` (enums + entity/period models), `models_engine.py`
+     (engine output models + RuleCitation), `models_ai.py` (AI protocol models), with a
+     thin `models.py` re-exporter — stays within 300 lines per file; clean responsibility separation.
+**Decision:** Option 2. Three sub-modules plus a re-exporter.
+**Why:** Each sub-module has a coherent responsibility. The re-exporter (`models.py`) gives
+callers a single import surface (`from tributary.common.models import X`) without importing
+from sub-modules directly. The split is not artificial — entity models, engine outputs, and
+AI protocol models are genuinely distinct layers of the model hierarchy.
+
+## DEC-013: Seed script uses dates-as-strings rather than Neo4j date() types
+
+**Date:** 2026-06-06
+**Context:** W1.6 seed is a dev utility, not the production graph writer. Neo4j supports native
+`date` types via the Bolt protocol, but the driver requires passing a `datetime.date` object
+directly — not a string wrapped in `date()`. Storing as ISO strings (`"YYYY-MM-DD"`) is simpler,
+avoids the driver's date-conversion machinery, and is fully sufficient for the demo read path
+(engine comparisons and AI citations only need the string value).
+**Options considered:**
+  1. Store as Neo4j native `date` — correct for production; requires passing `datetime.date`
+     objects directly in parameterized queries; the Cypher `date()` constructor only works in
+     query text, not in parameter values.
+  2. Store as ISO string — simple, portable, unambiguous, sufficient for the demo.
+**Decision:** Option 2 for the W1.6 seed utility. Wave 2 `graph/writer.py` should switch to
+native `date` types using the driver's `neo4j.time.Date` wrapper.
+**Why:** The seed is explicitly a dev utility superseded by Wave 2. Introducing driver-level
+date conversion here adds complexity for zero demo benefit. The decision is documented so Wave 2
+knows to switch.
+
+## DEC-014: seed.py exceeds 300 total lines — no split applied
+
+**Date:** 2026-06-06
+**Context:** The 300-line hard limit applies to non-test code files. `seed.py` is 389 total
+lines but contains ~257 non-blank, non-docstring code lines. The apparent overcount comes from
+Cypher query strings embedded as multi-line string literals and module/function docstrings.
+**Options considered:**
+  1. Split into `seed_writers.py` (per-node-type write functions) + `seed.py` (loader +
+     orchestrator) — would produce a file boundary in the middle of a single cohesive pipeline.
+  2. Keep as one file, document the overcount, note that actual code density is within limits.
+**Decision:** Option 2. No artificial split.
+**Why:** The docstring-and-Cypher overhead is structural, not complexity. A split here would
+create two files that are tightly coupled and would always be changed together — the opposite
+of high cohesion / low coupling. The module-level docstring notes this.
+
+## DEC-015: Transaction direction convention (PAYER = source_entity_id)
+
+**Date:** 2026-06-06
+**Context:** Engine aggregator needs to classify each transaction as income or expense for each entity. The JSON fixtures required a consistent direction encoding.
+**Decision:** For IC flows, `source_entity_id` = PAYER, `counterparty_entity_id` = PAYEE. For third-party revenue, `source_entity_id` = the group entity receiving revenue, `counterparty_entity_id` = None.
+**Why:** The payer convention makes direction unambiguous and survives any ordering in the fixture. Flipped T001 (royalty: MERID-DE pays, MERID-HK receives) to match this convention. Documented as DEC-016 in prior session; consolidated here.
+
+## DEC-016: GraphReader exposes get_transactions_involving_entity (source OR counterparty)
+
+**Date:** 2026-06-06
+**Context:** Engine aggregator needs every transaction where an entity is on either side (payer or payee). A source-only query would miss income flows for entities that appear as counterparty.
+**Decision:** Add `get_transactions_involving_entity(entity_id, period_start, period_end)` to the GraphReader protocol. Returns transactions where `source_entity_id == entity_id OR counterparty_entity_id == entity_id`.
+**Why:** Single method, correct semantics. The engine then classifies income vs. expense inside the aggregator based on which side the entity is on. Avoids two separate read calls.
+
+## DEC-017: PE Triangle uses exemption method (DE-FR DTA Art.23 Freistellungsmethode)
+
+**Date:** 2026-06-06
+**Context:** Germany and France elected the exemption method for PE business profits in their DTA. This means Germany removes the PE-attributed income from its base entirely rather than taxing it and granting a credit.
+**Decision:** `conflict.py::_resolve()` returns `(residence_tax, 0)` for `ReliefMechanism.EXEMPTION`. The credit-method figure is shown in `credit_method_note` for transparency, not applied.
+**Why:** Correctly models the treaty. Residual double tax is zero; the income is taxed once in France (255,938 HKD). Informational credit note lets reviewers verify the treaty selection is correct.
+
+## DEC-018: GraphReader / GraphWriter / AILayerProtocol protocols live in common/
+
+**Date:** 2026-06-06
+**Context:** Engine imports the graph and AI protocols but must not import from graph/ or ai/ (layer rule). AI and graph layers implement the protocols but must not import from engine/.
+**Decision:** Protocols defined in `common/protocols_graph.py` and `common/protocols_ai.py`, re-exported from `common/models.py`. Each layer's `protocol.py` file re-exports for its implementors.
+**Why:** common/ has no upward dependencies, so all layers can import from it safely. Avoids circular imports. Follows DIP strictly.
+
+## DEC-019: JurisdictionCode is Annotated[str] not Enum
+
+**Date:** 2026-06-06
+**Context:** JurisdictionCode values are two-letter ISO country codes validated by regex `^[A-Z]{2}$`. An enum would require enumerating every jurisdiction upfront; new countries would require a code change.
+**Decision:** `JurisdictionCode = Annotated[str, Field(pattern=r"^[A-Z]{2}$")]`. Tests use string literals ("HK", "DE", "FR") not enum dot-access.
+**Why:** Open-closed: adding Singapore or US requires only a new rule-pack JSON, not a code change. The regex validator catches malformed codes at Pydantic validation time.

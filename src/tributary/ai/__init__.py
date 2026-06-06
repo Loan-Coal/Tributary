@@ -1,8 +1,22 @@
 """
 Package: tributary.ai
 Layer: ai
-Purpose: AI layer package for grounded retrieval, classification, and narrative.
-Public surface: models, protocols, client, qwen_client, service, fake_client
+Purpose: Grounded AI layer — flow classification, jurisdiction attribution, rule retrieval, citation, and brief narrative. Emits no figures.
+Public surface: protocol (AILayerProtocol + I/O models), models, protocols, client, qwen_client, service, fake_client, rag_retriever
 """
+from __future__ import annotations
 
-__all__ = ["models", "protocols", "client", "qwen_client", "service", "fake_client"]
+from .adapter import AILayerAdapter
+
+__all__ = [
+    "AILayerAdapter",
+    "adapter",
+    "protocol",
+    "models",
+    "protocols",
+    "client",
+    "qwen_client",
+    "service",
+    "fake_client",
+    "rag_retriever",
+]

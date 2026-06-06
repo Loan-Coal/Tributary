@@ -1,0 +1,101 @@
+{
+  "jurisdiction": "DE",
+  "fiscal_calendar": { "jurisdiction": "DE", "period_start_month": 1, "period_start_day": 1 },
+  "rules": [
+    {
+      "id": "DE-CIT-RATE",
+      "jurisdiction": "DE",
+      "type": "rate",
+      "category": "cit_rate",
+      "parameters": { "rate": "0.15", "surcharge_rate": "0.055" },
+      "as_of_date": "2024-01-01",
+      "source_citation": "KStG §23 (15%) + SolZG §3 (5.5% solidarity surcharge); effective 15.825%"
+    },
+    {
+      "id": "DE-TRADE-TAX-RATE",
+      "jurisdiction": "DE",
+      "type": "rate",
+      "category": "trade_tax_rate",
+      "parameters": { "rate": "0.14" },
+      "as_of_date": "2024-01-01",
+      "source_citation": "GewStG §11 (Gewerbesteuer, average municipal multiplier ~400%)"
+    },
+    {
+      "id": "DE-PARTICIPATION-EXEMPTION",
+      "jurisdiction": "DE",
+      "type": "exemption",
+      "category": "participation_exemption",
+      "parameters": {
+        "exempt_fraction": "0.95",
+        "deemed_expense_fraction": "0.05",
+        "applies_to_activity": "dividend",
+        "min_holding_pct": "10"
+      },
+      "as_of_date": "2024-01-01",
+      "source_citation": "KStG §8b (95% participation exemption; 5% deemed non-deductible expense)"
+    },
+    {
+      "id": "DE-INTEREST-BARRIER",
+      "jurisdiction": "DE",
+      "type": "threshold",
+      "category": "interest_barrier",
+      "parameters": { "cap_fraction": "0.30", "de_minimis_hkd": "25500000" },
+      "as_of_date": "2024-01-01",
+      "source_citation": "EStG §4h (Zinsschranke — 30% tax-EBITDA cap; €3M de-minimis)"
+    },
+    {
+      "id": "DE-LOSS-RELIEF",
+      "jurisdiction": "DE",
+      "type": "loss_relief",
+      "category": "loss_relief",
+      "parameters": { "cap_fraction": "0.60", "de_minimis_hkd": "8500000" },
+      "as_of_date": "2024-01-01",
+      "source_citation": "KStG §10d (Mindestbesteuerung — full offset to €1M, then 60%)"
+    },
+    {
+      "id": "DE-WHT-DIVIDEND",
+      "jurisdiction": "DE",
+      "type": "rate",
+      "category": "wht_dividend",
+      "parameters": { "domestic_rate": "0.25" },
+      "as_of_date": "2024-01-01",
+      "source_citation": "EStG §43(1) (Kapitalertragsteuer on dividends)"
+    },
+    {
+      "id": "DE-WHT-INTEREST",
+      "jurisdiction": "DE",
+      "type": "rate",
+      "category": "wht_interest",
+      "parameters": { "domestic_rate": "0.25" },
+      "as_of_date": "2024-01-01",
+      "source_citation": "EStG §43(1) (Kapitalertragsteuer on interest)"
+    },
+    {
+      "id": "DE-WHT-ROYALTY",
+      "jurisdiction": "DE",
+      "type": "rate",
+      "category": "wht_royalty",
+      "parameters": { "domestic_rate": "0.15" },
+      "as_of_date": "2024-01-01",
+      "source_citation": "EStG §50a (royalty withholding)"
+    },
+    {
+      "id": "DE-CIT-DEADLINE",
+      "jurisdiction": "DE",
+      "type": "deadline",
+      "category": "cit_deadline",
+      "parameters": { "filing_month": 7, "filing_day": 31, "payment_offset_days": 0 },
+      "as_of_date": "2024-01-01",
+      "source_citation": "AO §149(2) (return due 7 months after year-end, unadvised)"
+    },
+    {
+      "id": "DE-TRADE-TAX-DEADLINE",
+      "jurisdiction": "DE",
+      "type": "deadline",
+      "category": "trade_tax_deadline",
+      "parameters": { "filing_month": 7, "filing_day": 31, "payment_offset_days": 0 },
+      "as_of_date": "2024-01-01",
+      "source_citation": "AO §149(2) (Gewerbesteuer return)"
+    }
+  ]
+}

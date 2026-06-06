@@ -1,0 +1,212 @@
+{
+  "flows": {
+    "T001": {
+      "nature": "royalty",
+      "confidence": "HIGH",
+      "rule_citations": [
+        {"rule_id": "HK-CIT-RATE", "jurisdiction": "HK", "as_of_date": "2023-04-01", "source_citation": "HK IRO Cap.112 s.14"}
+      ],
+      "abstain_reason": null,
+      "attribution": {
+        "primary_jurisdiction": "HK",
+        "abstain": false,
+        "abstain_reason": null,
+        "claims": [
+          {
+            "jurisdiction": "HK",
+            "confidence": "LOW",
+            "claim_basis": "source_country",
+            "rationale_citation": {"rule_id": "HK-CIT-RATE", "jurisdiction": "HK", "as_of_date": "2023-04-01", "source_citation": "HK IRO s.15(1)(b) — royalty source uncertain (IP used in DE); conservative inclusion"}
+          }
+        ]
+      },
+      "applicable_rules": {
+        "HK": [
+          {"rule_id": "HK-CIT-RATE", "jurisdiction": "HK", "rule_type": "rate", "as_of_date": "2023-04-01", "source_citation": "HK IRO Cap.112 s.14", "relevance_note": "Royalty income taxable at Profits Tax rate"}
+        ]
+      }
+    },
+    "T002": {
+      "nature": "royalty",
+      "confidence": "HIGH",
+      "rule_citations": [
+        {"rule_id": "FR-CIT-RATE", "jurisdiction": "FR", "as_of_date": "2024-01-01", "source_citation": "CGI Art.219"}
+      ],
+      "abstain_reason": null,
+      "attribution": {
+        "primary_jurisdiction": "FR",
+        "abstain": false,
+        "abstain_reason": null,
+        "claims": [
+          {
+            "jurisdiction": "FR",
+            "confidence": "HIGH",
+            "claim_basis": "residence",
+            "rationale_citation": {"rule_id": "FR-CIT-RATE", "jurisdiction": "FR", "as_of_date": "2024-01-01", "source_citation": "CGI Art.219 — royalty received by FR resident"}
+          }
+        ]
+      },
+      "applicable_rules": {
+        "FR": [
+          {"rule_id": "FR-CIT-RATE", "jurisdiction": "FR", "rule_type": "rate", "as_of_date": "2024-01-01", "source_citation": "CGI Art.219", "relevance_note": "Royalty income in FR CIT base"}
+        ]
+      }
+    },
+    "T004": {
+      "nature": "dividend",
+      "confidence": "HIGH",
+      "rule_citations": [
+        {"rule_id": "DE-PARTICIPATION-EXEMPTION", "jurisdiction": "DE", "as_of_date": "2024-01-01", "source_citation": "KStG §8b"}
+      ],
+      "abstain_reason": null,
+      "attribution": {
+        "primary_jurisdiction": "DE",
+        "abstain": false,
+        "abstain_reason": null,
+        "claims": [
+          {
+            "jurisdiction": "DE",
+            "confidence": "HIGH",
+            "claim_basis": "residence",
+            "rationale_citation": {"rule_id": "DE-PARTICIPATION-EXEMPTION", "jurisdiction": "DE", "as_of_date": "2024-01-01", "source_citation": "KStG §8b — 95% participation exemption"}
+          }
+        ]
+      },
+      "applicable_rules": {
+        "DE": [
+          {"rule_id": "DE-PARTICIPATION-EXEMPTION", "jurisdiction": "DE", "rule_type": "exemption", "as_of_date": "2024-01-01", "source_citation": "KStG §8b", "relevance_note": "5% of dividend taxable"}
+        ]
+      }
+    },
+    "T005": {
+      "nature": "dividend",
+      "confidence": "HIGH",
+      "rule_citations": [
+        {"rule_id": "HK-DIVIDEND-EXEMPT", "jurisdiction": "HK", "as_of_date": "2023-04-01", "source_citation": "HK IRO s.14 territorial"}
+      ],
+      "abstain_reason": null,
+      "attribution": {
+        "primary_jurisdiction": "HK",
+        "abstain": false,
+        "abstain_reason": null,
+        "claims": [
+          {
+            "jurisdiction": "HK",
+            "confidence": "HIGH",
+            "claim_basis": "residence",
+            "rationale_citation": {"rule_id": "HK-DIVIDEND-EXEMPT", "jurisdiction": "HK", "as_of_date": "2023-04-01", "source_citation": "HK IRO s.14 — foreign dividend not taxable"}
+          }
+        ]
+      },
+      "applicable_rules": {
+        "HK": [
+          {"rule_id": "HK-DIVIDEND-EXEMPT", "jurisdiction": "HK", "rule_type": "exemption", "as_of_date": "2023-04-01", "source_citation": "HK IRO s.14", "relevance_note": "Foreign-source dividend excluded"}
+        ]
+      }
+    },
+    "T006": {
+      "nature": "interest",
+      "confidence": "HIGH",
+      "rule_citations": [
+        {"rule_id": "HK-INTEREST-EXEMPT", "jurisdiction": "HK", "as_of_date": "2023-04-01", "source_citation": "HK IRO s.15(1)(f)"}
+      ],
+      "abstain_reason": null,
+      "attribution": {
+        "primary_jurisdiction": "HK",
+        "abstain": false,
+        "abstain_reason": null,
+        "claims": [
+          {
+            "jurisdiction": "HK",
+            "confidence": "HIGH",
+            "claim_basis": "residence",
+            "rationale_citation": {"rule_id": "HK-INTEREST-EXEMPT", "jurisdiction": "HK", "as_of_date": "2023-04-01", "source_citation": "HK IRO s.15(1)(f) — non money-lending"}
+          }
+        ]
+      },
+      "applicable_rules": {
+        "HK": [
+          {"rule_id": "HK-INTEREST-EXEMPT", "jurisdiction": "HK", "rule_type": "exemption", "as_of_date": "2023-04-01", "source_citation": "HK IRO s.15(1)(f)", "relevance_note": "Interest excluded from HK base"}
+        ]
+      }
+    },
+    "T007": {
+      "nature": "management_fee",
+      "confidence": "HIGH",
+      "rule_citations": [
+        {"rule_id": "HK-CIT-RATE", "jurisdiction": "HK", "as_of_date": "2023-04-01", "source_citation": "HK IRO Cap.112 s.14"}
+      ],
+      "abstain_reason": null,
+      "attribution": {
+        "primary_jurisdiction": "HK",
+        "abstain": false,
+        "abstain_reason": null,
+        "claims": [
+          {
+            "jurisdiction": "HK",
+            "confidence": "HIGH",
+            "claim_basis": "source_country",
+            "rationale_citation": {"rule_id": "HK-CIT-RATE", "jurisdiction": "HK", "as_of_date": "2023-04-01", "source_citation": "HK IRO s.14 — services performed in HK"}
+          }
+        ]
+      },
+      "applicable_rules": {
+        "HK": [
+          {"rule_id": "HK-CIT-RATE", "jurisdiction": "HK", "rule_type": "rate", "as_of_date": "2023-04-01", "source_citation": "HK IRO Cap.112 s.14", "relevance_note": "Management fee income taxable in HK"}
+        ]
+      }
+    },
+    "T008": {
+      "nature": "revenue",
+      "confidence": "HIGH",
+      "rule_citations": [
+        {"rule_id": "DE-CIT-RATE", "jurisdiction": "DE", "as_of_date": "2024-01-01", "source_citation": "KStG §23"}
+      ],
+      "abstain_reason": null,
+      "attribution": {
+        "primary_jurisdiction": "DE",
+        "abstain": false,
+        "abstain_reason": null,
+        "claims": [
+          {
+            "jurisdiction": "DE",
+            "confidence": "HIGH",
+            "claim_basis": "residence",
+            "rationale_citation": {"rule_id": "DE-CIT-RATE", "jurisdiction": "DE", "as_of_date": "2024-01-01", "source_citation": "KStG §23 — DE-source third-party revenue"}
+          }
+        ]
+      },
+      "applicable_rules": {
+        "DE": [
+          {"rule_id": "DE-CIT-RATE", "jurisdiction": "DE", "rule_type": "rate", "as_of_date": "2024-01-01", "source_citation": "KStG §23", "relevance_note": "Third-party revenue in DE CIT base"}
+        ]
+      }
+    },
+    "T009": {
+      "nature": "revenue",
+      "confidence": "HIGH",
+      "rule_citations": [
+        {"rule_id": "FR-CIT-RATE", "jurisdiction": "FR", "as_of_date": "2024-01-01", "source_citation": "CGI Art.219"}
+      ],
+      "abstain_reason": null,
+      "attribution": {
+        "primary_jurisdiction": "FR",
+        "abstain": false,
+        "abstain_reason": null,
+        "claims": [
+          {
+            "jurisdiction": "FR",
+            "confidence": "HIGH",
+            "claim_basis": "residence",
+            "rationale_citation": {"rule_id": "FR-CIT-RATE", "jurisdiction": "FR", "as_of_date": "2024-01-01", "source_citation": "CGI Art.219 — FR-source third-party revenue"}
+          }
+        ]
+      },
+      "applicable_rules": {
+        "FR": [
+          {"rule_id": "FR-CIT-RATE", "jurisdiction": "FR", "rule_type": "rate", "as_of_date": "2024-01-01", "source_citation": "CGI Art.219", "relevance_note": "Third-party revenue in FR CIT base"}
+        ]
+      }
+    }
+  }
+}
