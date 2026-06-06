@@ -29,7 +29,7 @@ class FakeClaudeClient:
             ],
             narrative_template=(
                 "Revenue is recognized for {{engine:amount}} under the applicable service contract. "
-                "Use {{engine:invoice_date}} for date-based revenue recognition." 
+                "Use {{engine:invoice_date}} for date-based revenue recognition."
             ),
             needs_human_review=False,
             abstain=False,

@@ -1,14 +1,17 @@
 """
-RAG retriever adapter that queries the local rules DB to return `RuleSummary` objects.
-Implements the `get_rule_summaries(jurisdictions)` interface expected by the service.
+Module: rag_retriever
+Layer: ai
+Purpose: RAG retriever adapter that queries the local rules DB to return RuleSummary objects.
+Dependencies: tributary.rules.db (via ai.retrieval_db after W6c.9), tributary.ai.models
+Used by: ai.adapter, tests
 """
 from __future__ import annotations
 
-from typing import List, Iterable
+from collections.abc import Iterable
 from pathlib import Path
 
-from tributary.rules import db as rules_db
 from tributary.ai.models import RuleSummary
+from tributary.ai.retrieval_db import query_rules
 
 
 class RAGRetriever:
@@ -16,19 +19,17 @@ class RAGRetriever:
         self.db_path = Path(db_path)
         self.top_k = int(top_k)
 
-    def get_rule_summaries(self, jurisdictions: Iterable[str], query_text: str | None = None) -> List[RuleSummary]:
+    def get_rule_summaries(self, jurisdictions: Iterable[str], query_text: str | None = None) -> list[RuleSummary]:
         # Query the local rules DB; prefer text-matching if we have transaction text
-        results = rules_db.query_rules(self.db_path, query=query_text, jurisdictions=jurisdictions, limit=self.top_k)
-        summaries: List[RuleSummary] = []
+        results = query_rules(self.db_path, query=query_text, jurisdictions=jurisdictions, limit=self.top_k)
+        summaries: list[RuleSummary] = []
         for r in results:
             summaries.append(
-                RuleSummary.model_validate(
-                    {
-                        "id": r.get("rule_id"),
-                        "summary": r.get("summary", ""),
-                        "as_of_date": r.get("as_of_date", ""),
-                        "source_citation": r.get("source_citation", ""),
-                    }
+                RuleSummary(
+                    id=r.rule_id,
+                    summary=r.summary,
+                    as_of_date=r.as_of_date,
+                    source_citation=r.source_citation,
                 )
             )
         return summaries

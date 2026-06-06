@@ -12,9 +12,9 @@ import json
 
 from pydantic import ValidationError
 
+from tributary.ai.models import AILayerOutput
 from tributary.common.errors import AIClientError
 from tributary.common.logging import get_logger
-from tributary.ai.models import AILayerOutput
 from tributary.config import settings
 
 logger = get_logger(__name__)
@@ -58,6 +58,7 @@ class ClaudeClient:
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=max_tokens,
+                temperature=self.temperature,
             )
         except Exception as exc:
             logger.error("Claude API call failed", exc_info=exc)

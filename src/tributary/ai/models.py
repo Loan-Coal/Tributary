@@ -5,14 +5,15 @@ Purpose: Pydantic models for AI layer I/O contracts.
 Dependencies: typing, pydantic
 Used by: ai.client, ai.service, ai.fake_client, tests
 """
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List, Literal, Any
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TransactionContext(BaseModel):
     transaction_text: str | None = Field(None, description="Free-form transaction description")
-    candidate_jurisdictions: List[str] = Field(default_factory=list, description="ISO country codes")
-    model_config = ConfigDict(extra="allow")
+    candidate_jurisdictions: list[str] = Field(default_factory=list, description="ISO country codes")
+    model_config = ConfigDict(extra="forbid")
 
 
 class RuleSummary(BaseModel):
@@ -40,9 +41,9 @@ class AILayerOutput(BaseModel):
         "LOAN",
         "UNCLASSIFIED",
     ]
-    candidate_jurisdictions: List[str] = Field(..., description="ISO country codes")
-    retrieved_rules: List[RuleCitation]
-    evidence_requests: List[str] = Field(..., description="Questions for CPA to satisfy operational tests")
+    candidate_jurisdictions: list[str] = Field(..., description="ISO country codes")
+    retrieved_rules: list[RuleCitation]
+    evidence_requests: list[str] = Field(..., description="Questions for CPA to satisfy operational tests")
     narrative_template: str = Field(..., description="Must use {{engine:xxx}} placeholders for all numbers")
     needs_human_review: bool
     abstain: bool = Field(..., description="True if info is insufficient to make a determination")
