@@ -1,0 +1,33 @@
+{
+  "jurisdiction_a": "DE",
+  "jurisdiction_b": "HK",
+  "rules": [
+    {
+      "id": "DEHK-DTA-DIVIDEND",
+      "jurisdiction": "DE",
+      "type": "treaty",
+      "category": "treaty_dividend",
+      "parameters": { "treaty_rate": "0.05", "min_holding_pct": "10", "min_holding_months": 12 },
+      "as_of_date": "2010-04-13",
+      "source_citation": "HK-DE DTA Art.10 (5% if beneficial owner holds >=10% for >=12 months)"
+    },
+    {
+      "id": "DEHK-DTA-INTEREST",
+      "jurisdiction": "DE",
+      "type": "treaty",
+      "category": "treaty_interest",
+      "parameters": { "treaty_rate": "0.0" },
+      "as_of_date": "2010-04-13",
+      "source_citation": "HK-DE DTA Art.11 (0% interest withholding)"
+    },
+    {
+      "id": "DEHK-DTA-ROYALTY",
+      "jurisdiction": "DE",
+      "type": "treaty",
+      "category": "treaty_royalty",
+      "parameters": { "treaty_rate": "0.05" },
+      "as_of_date": "2010-04-13",
+      "source_citation": "HK-DE DTA Art.12 (5% royalty withholding)"
+    }
+  ]
+}
