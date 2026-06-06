@@ -38,6 +38,9 @@ def zinsschranke_check(base: EntityBase, rule: Rule) -> ThresholdResult:
     cap_fraction = rule.parameters.cap_fraction or Decimal("0")
     non_interest_deductible = base.deductible_expense_hkd - base.interest_expense_hkd
     ebitda_proxy = base.third_party_income_hkd + base.ic_income_taxable_hkd - non_interest_deductible
+    # Clamp to 0: a negative EBITDA yields a negative cap, falsely flagging any positive interest.
+    # Under German law, zero/negative EBITDA means no interest is deductible (cap = 0, not negative).
+    ebitda_proxy = max(ebitda_proxy, Decimal("0"))
     cap = cap_fraction * ebitda_proxy
     return ThresholdResult(
         entity_id=base.entity_id,

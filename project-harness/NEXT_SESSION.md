@@ -1,28 +1,31 @@
 # Session Handoff
 
 **Branch:** `conflict-detection`
-**Last completed:** W6c.2 — `EU_MEMBER_JURISDICTIONS` moved to `common/jurisdictions.py`; 7 regression tests added; 216 tests green
-**Test status:** 216 passed, 6 skipped — `make test` green
-**Status:** Wave 6c active. W6c.1 + W6c.2 ticked. Next: W6c.3 (Zinsschranke negative EBITDA clamp).
+**Last completed:** W6c.3 — Zinsschranke negative EBITDA clamp; 2 regression tests; 218 tests green
+**Test status:** 218 passed, 6 skipped — `make test` green
+**Status:** Wave 6c active. W6c.1+W6c.2+W6c.3 ticked. Next: W6c.4 (conflict_id collision).
 
 ---
 
 ## Immediate next tasks (in order)
 
-### 1. Wave 6c — W6c.3: Zinsschranke negative EBITDA false-positive (~15 min)
+### 1. Wave 6c — W6c.4: non-unique conflict_id (~10 min)
 Files:
-- `src/tributary/engine/thresholds.py` (edit — line 40-41)
-- `tests/unit/test_thresholds.py` (edit — add loss-making entity case)
+- `src/tributary/engine/conflict.py` (edit — line ~56, the `f"PE-TRIANGLE-{year}"` f-string)
+- `tests/unit/test_engine_units.py` (add — two-entity same-year case → distinct conflict IDs)
 
-### 4. Wave 6c — W6c.4: non-unique conflict_id (~10 min)
-Files:
-- `src/tributary/engine/conflict.py` (edit — line 56)
-- `tests/unit/test_conflict.py` (edit — two-entity same-year case)
+Fix: include `entity_id` and `residence_jurisdiction` in the key:
+`f"PE-{pe.entity_id}-{residence_jurisdiction}-{year}"`
 
-### 5. Wave 6c — W6c.5: unguarded [0] index in runner (~10 min)
+### 2. Wave 6c — W6c.5: unguarded [0] index in runner (~10 min)
 Files:
-- `src/tributary/engine/runner.py` (edit — line 210)
-- `tests/unit/test_runner.py` (edit — pack missing CIT rule raises EngineError)
+- `src/tributary/engine/runner.py` (edit — the `_cit_rule()` method)
+- `tests/unit/test_engine_units.py` (add — missing CIT rule raises EngineError, not IndexError)
+
+### 3. Wave 6c — W6c.6: fabricated adapter-placeholder citation (~20 min)
+Files:
+- `src/tributary/ai/adapter.py` (edit — `_to_attribution()`, lines ~139-142)
+- `tests/unit/test_ai_adapter.py` (add — no RuleCitation with "placeholder" in rule_id)
 
 ---
 
@@ -32,9 +35,9 @@ Files:
 - **Layer rule:** `engine/` never imports from `ai/`. Protocols live in `common/`.
 - **DEC-002:** AI emits no figures — all amounts in engine outputs are engine-computed.
 - **Golden figures (EXPECTED.md):** HK HKD 445,500; DE CIT HKD 47,673; DE Trade Tax HKD 42,175; FR CIT HKD 1,030,938.
-- **W6c P1 priority:** fabricated `adapter-placeholder` citations (W6c.6) and `rules/db.py` layer violation (W6c.9) are the two highest-impact fixes after the WHT bug.
+- **W6c P1 priority:** fabricated `adapter-placeholder` citations (W6c.6) and `rules/db.py` layer violation (W6c.9) are the highest-impact remaining fixes.
 - **W6c.9 (rules/db.py move) is risky** — it deletes a file and touches all its callers. Do not attempt in a long context; start it fresh.
-- **W6b entry gate updated:** Wave 6b remaining tasks (W6b.4+W6b.5+W6b.7) now require Wave 6c complete first (see ROADMAP ordering).
+- **W6b entry gate updated:** Wave 6b remaining tasks (W6b.4+W6b.5+W6b.7) require Wave 6c complete first.
 - **GroupReliefMechanism** enum: GROUP_RELIEF | ORGANSCHAFT | INTEGRATION_FISCALE | TRANSFER_PRICING_NOTE
 - **EntityBase** — check `engine/aggregator.py` for `net_income_hkd` field name before coding W6b.4.
 
@@ -45,7 +48,7 @@ Files:
 **P1a — business integrity (regression test first each time):**
 - [x] W6c.1 — wht_engine.py:98 silent 0% WHT bug
 - [x] W6c.2 — EU_MEMBER_JURISDICTIONS out of engine/
-- [ ] W6c.3 — Zinsschranke negative EBITDA clamp
+- [x] W6c.3 — Zinsschranke negative EBITDA clamp
 - [ ] W6c.4 — conflict_id collision (include entity_id)
 - [ ] W6c.5 — runner.py unguarded [0] index
 - [ ] W6c.6 — adapter.py fabricated adapter-placeholder citation

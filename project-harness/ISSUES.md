@@ -105,7 +105,8 @@ Rules:
 **Why deferred:** Surfaced by full-codebase audit; remediation is a separate gated step.
 **To fix:** Move the membership set to a reference data file in `common/` or `config/` (e.g. `EU_MEMBERS` constant), or add an `eu_member: bool` flag to each country's rule pack parameters and read that in the engine. Route via /iterate (regression test: EU PSD exemption still fires for MERID-FR→MERID-DE T004).
 
-## ISSUE-012: thresholds.py:40-41 — negative EBITDA proxy causes false-positive Zinsschranke
+## [FIXED] ISSUE-012: thresholds.py:40-41 — negative EBITDA proxy causes false-positive Zinsschranke
+**Fixed:** 2026-06-06, W6c.3 — clamped `ebitda_proxy = max(ebitda_proxy, Decimal("0"))` before cap; 2 regression tests added; 218 tests green
 **Found:** 2026-06-06, during /audit
 **Severity:** P1 (business correctness — needs tax-expert sign-off)
 **Where:** `src/tributary/engine/thresholds.py:40-41`

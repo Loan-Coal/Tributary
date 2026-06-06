@@ -211,6 +211,46 @@ class TestZinsschranke:
         result = zinsschranke_check(base, barrier_rule)
         assert result.breached is True
 
+    def test_loss_making_no_interest_not_breached(self, barrier_rule):
+        """W6c.3 regression (ISSUE-012): loss-making entity with zero interest must not be flagged.
+
+        Before the EBITDA clamp, negative EBITDA yielded a negative cap, causing
+        `0 > negative_cap` to evaluate True — a false-positive Zinsschranke flag.
+        """
+        base = _base(
+            jur="DE",
+            third_party=Decimal("200000"),
+            ic_taxable=Decimal("0"),
+            deductible=Decimal("900000"),  # large losses, but NO interest component
+            interest=Decimal("0"),
+        )
+        # Unclamped EBITDA proxy = 200,000 - 900,000 = -700,000; cap = -210,000
+        # Bug: 0 > -210,000 → True (false positive)
+        # Fixed: clamp to 0; cap = 0; 0 > 0 → False
+        result = zinsschranke_check(base, barrier_rule)
+        assert result.breached is False
+        assert result.threshold_value_hkd >= Decimal("0")
+
+    def test_loss_making_with_interest_cap_non_negative(self, barrier_rule):
+        """W6c.3 regression (ISSUE-012): negative EBITDA must produce a non-negative cap.
+
+        When EBITDA is negative, the 30%-cap must be clamped to 0 — not negative.
+        A negative threshold_value_hkd is numerically incoherent.
+        """
+        base = _base(
+            jur="DE",
+            third_party=Decimal("500000"),
+            ic_taxable=Decimal("0"),
+            deductible=Decimal("2000000"),  # includes interest below
+            interest=Decimal("300000"),
+        )
+        # non_interest_deductible = 2,000,000 - 300,000 = 1,700,000
+        # EBITDA proxy = 500,000 - 1,700,000 = -1,200,000 (negative)
+        # Without clamp: cap = 0.30 × -1,200,000 = -360,000 (wrong)
+        # With clamp: cap = 0.30 × 0 = 0 (correct — no interest deductible when EBITDA ≤ 0)
+        result = zinsschranke_check(base, barrier_rule)
+        assert result.threshold_value_hkd >= Decimal("0")
+
 
 class TestPeDaysCheck:
     @pytest.fixture
