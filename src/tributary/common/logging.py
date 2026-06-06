@@ -1,6 +1,7 @@
 """
 Module: logging
 Layer: common
+<<<<<<< HEAD
 Purpose: Structured logging utility — all layers use get_logger(), never print().
     Emits JSON lines with timestamp, level, name, message, and optional extra fields.
 Dependencies: logging, json, datetime

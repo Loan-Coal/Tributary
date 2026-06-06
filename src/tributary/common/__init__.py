@@ -66,6 +66,11 @@ from .errors import (
     TributaryError,
 )
 from .logging import get_logger
+from .errors import (
+    AIClientError,
+    AILayerServiceError,
+    PromptLoaderError,
+)
 
 __all__ = [
     # Models
@@ -120,4 +125,8 @@ __all__ = [
     "TributaryError",
     # Logging
     "get_logger",
+    # AI layer service errors (from AI colleague's layer)
+    "AIClientError",
+    "AILayerServiceError",
+    "PromptLoaderError",
 ]

@@ -54,6 +54,18 @@ class AIContractViolationError(AILayerError):
     """Raised when AI output violates a contract constraint (e.g. emits a figure, DEC-002)."""
 
 
+class AIClientError(AILayerError):
+    """Raised when the AI client returns an unexpected response or structured output is invalid."""
+
+
+class AILayerServiceError(AILayerError):
+    """Raised when the AI layer service encounters an unrecoverable error."""
+
+
+class PromptLoaderError(AILayerError):
+    """Raised when a prompt YAML file cannot be loaded or validated."""
+
+
 # ---------------------------------------------------------------------------
 # Engine and rule-pack errors
 # ---------------------------------------------------------------------------
