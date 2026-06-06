@@ -8,7 +8,7 @@ Rules:
 - Never delete entries. Mark as `[FIXED]` instead.
 - Severity: P1 (blocking) | P2 (annoying) | P3 (nice-to-fix).
 - New issues get the next monotonic ID.
-- **Next ID to use: ISSUE-007**
+- **Next ID to use: ISSUE-009**
 
 ---
 
@@ -61,6 +61,15 @@ Rules:
 **Description:** Neo4j does not support Python's `Decimal` type. The seed script converts all `Decimal` fields (e.g. `amount_hkd`, `fx_rate`, `ownership_pct`, `original_loss_hkd`, `remaining_loss_hkd`) to `float` before writing. Float representation can introduce small precision errors for large monetary values (e.g. rounding at the 15th significant digit). For the golden demo scenario the amounts are simple enough that no precision is lost in practice, but this is not guaranteed for arbitrary values.
 **Why deferred:** Acceptable for a dev-utility seed. Wave 2 `graph/writer.py` will own the production write path.
 **To fix:** In Wave 2 graph layer, store monetary amounts either as Neo4j `integer` cents (multiply by 100 and round) or as `string` with a defined scale, then convert back on read. Alternatively, use Neo4j APOC's BigDecimal support if licensed. Document the precision contract in the graph schema.
+
+## ISSUE-008: ClaudeClient uses legacy completions API — will fail in production
+
+**Found:** 2026-06-06, during Wave 5 AI layer review
+**Severity:** P1 (blocking — live Claude path does not work)
+**Where:** `src/tributary/ai/client.py:27,37`
+**Description:** `ClaudeClient.__init__` sets `model="claude-3.0"` (not a valid model ID) and `generate()` calls `client.completions.create()` — the old text-completion API which is removed from the Anthropic SDK. The correct path is `client.messages.create()` with a `messages=[{"role": "user", "content": prompt}]` structure and a valid model ID (e.g. `claude-haiku-4-5-20251001`).
+**Why deferred:** Tests use `FakeClaudeClient` or `QwenLocalClient`; the broken path is never exercised. Demo can run offline with `QwenLocalClient`.
+**To fix:** In `client.py` replace `client.completions.create(model=..., prompt=..., max_tokens_to_sample=...)` with `client.messages.create(model=..., messages=[{"role":"user","content":prompt}], max_tokens=...)`. Read model name from `settings.CLAUDE_MODEL` (add the setting). Write a unit test that mocks `Anthropic.messages.create`.
 
 ## ISSUE-006: PE attribution percentage (35%) is a demo assumption
 **Found:** 2026-06-06, during W1.5 (EXPECTED.md hand-computation)

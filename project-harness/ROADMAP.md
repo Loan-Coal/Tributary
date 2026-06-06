@@ -24,13 +24,14 @@ _Maintained by `/wave-parallel`. State that survives between sessions so a fresh
 run needn't rediscover it. Add a line when a task completes and unblocks something
 later; delete consumed lines; keep it under ~15 lines._
 
-- **Wave 1 COMPLETE**: All 6 tasks done. Seed script written — run `docker-compose up -d && make ingest` to meet the exit gate, then verify in Neo4j Browser.
+- **Waves 1, 3, 4a, 4b COMPLETE**: Engine produces golden figures; 179 tests green.
+- **Wave 5 ~80% complete**: `AILayerAdapter` wired; `FakeClaudeClient` + `QwenLocalClient` ready; `ClaudeClient` uses legacy completions API (see ISSUE-008); W5.7 integration test not yet written.
+- **Wave 6 engine-side built**: `pe.py` + `conflict.py` detect PE Triangle and emit `ConflictFlag`. W6.4 (WHT exposure flag) + W6.7 (golden-value integration test) still pending.
+- **Wave 6b NEW**: Group profit redistribution detection — see Wave 6b section below. DEC-020 records the architectural decision.
 - **Models split**: `common/models.py` re-exports from `models_entity.py`, `models_engine.py`, `models_ai.py`. See DEC-012.
-- **EXPECTED.md canonical figures**: HK Profits Tax HKD 445,500; DE CIT HKD 47,673; DE Trade Tax HKD 42,175; FR CIT HKD 1,030,938. PE Triangle treaty credit HKD 162,007. T006 interest deduction included in DE base.
-- **Wave 2**: graph colleague primary (W2.1–W2.3, W2.6). Engine owner reviews W2.4 (`GraphReader`) and W2.5 (`GraphWriter`) when PRs ready.
-- **Gates**: `make test` must be green before marking a wave's exit gate met. `make test-engine` for engine-only waves (4a, 4b, 6).
-- **Collaborator handoffs**: Wave 2 (graph colleague), Wave 5 (AI colleague), Wave 7 (both). Do not dispatch collaborator-owned tasks; flag as blocked in `/wave-parallel`.
-- **Next ISSUE id**: ISSUE-008. **Next DEC id**: DEC-015.
+- **EXPECTED.md canonical figures**: HK HKD 445,500; DE CIT HKD 47,673; DE Trade Tax HKD 42,175; FR CIT HKD 1,030,938. PE Triangle — exemption method, residual double-tax = 0.
+- **Wave 2**: graph colleague primary (W2.1–W2.3, W2.6). Engine owner reviews W2.4 + W2.5 when PRs ready.
+- **Next ISSUE id**: ISSUE-009. **Next DEC id**: DEC-021.
 
 ---
 
@@ -239,13 +240,45 @@ later; delete consumed lines; keep it under ~15 lines._
 **Exit gate:** PE Triangle conflict detected, explained, treaty pointer correct, credit amount matches `EXPECTED.md`.
 
 ### Tasks
-- [ ] **W6.1** — `engine/conflict.py`: scan `EngineRunResult.obligations` for flows where `source_flow_ids` overlap across jurisdictions → double-tax candidate
-- [ ] **W6.2** — full PE attribution computation: aggregate presence_days from graph; if above PE threshold: compute attribution percentage; split attributed income from parent jurisdiction's CIT base
-- [ ] **W6.3** — double-tax flag: same attributed income appearing in two `ObligationResult` records → `ConflictFlag`
-- [ ] **W6.4** — WHT exposure flag: check WHT obligations against treaty entitlement; flag over-withheld cases
-- [ ] **W6.5** — `ConflictFlag` model in `common/models.py`; `EngineRunResult.conflicts` field populated
-- [ ] **W6.6** — treaty pointer lookup: conflict detector reads treaty pack for relevant DTA article + elimination method
-- [ ] **W6.7** — unit tests: PE Triangle fires; treaty credit computed correctly; conflict report matches `EXPECTED.md`
+- [x] **W6.1** — `engine/conflict.py`: scan `EngineRunResult.obligations` for flows where `source_flow_ids` overlap across jurisdictions → double-tax candidate
+- [x] **W6.2** — full PE attribution computation: aggregate presence_days from graph; if above PE threshold: compute attribution percentage; split attributed income from parent jurisdiction's CIT base (`engine/pe.py`)
+- [x] **W6.3** — double-tax flag: same attributed income appearing in two `ObligationResult` records → `ConflictFlag`
+- [ ] **W6.4** — WHT exposure flag: check WHT obligations against treaty entitlement; flag over-withheld cases (`engine/wht_exposure.py` — new module)
+- [x] **W6.5** — `ConflictFlag` model in `common/models.py`; `EngineRunResult.conflicts` field populated
+- [x] **W6.6** — treaty pointer lookup: conflict detector reads treaty pack for relevant DTA article + elimination method
+- [ ] **W6.7** — integration test: PE Triangle fires; exemption method applied; residual double-tax = 0; conflict report matches `EXPECTED.md`
+
+---
+
+## Wave 6b — Group profit redistribution detection
+
+**Owner:** engine owner
+**Deliverable:** Engine detects opportunities to redistribute pre-tax profit within the group to offset losses in another member entity, where a jurisdiction-level group-relief rule exists. Emits `GroupReliefOpportunity` flags citing the applicable statute. The AI uses these in the brief narrative (Wave 7). The engine never recommends an amount — it flags the opportunity and leaves quantification to the professional (DEC-002, DEC-020).
+
+**Entry:** Wave 4b complete; rule packs in place
+**Exit gate:** For each entity pair (A has income, B has unused losses) in a jurisdiction with a `GROUP_RELIEF` rule, one `GroupReliefOpportunity` is emitted per eligible pair. For the golden scenario (HK/DE/FR — no bilateral group relief available), no opportunities are emitted; this is itself a verifiable test result.
+
+### Tasks
+- [ ] **W6b.1** — `common/models_engine.py`: add `GroupReliefOpportunity` model:
+  - `opportunity_id`, `income_entity_id`, `loss_entity_id`
+  - `income_jurisdiction`, `loss_jurisdiction`
+  - `available_income_hkd`, `unused_loss_hkd` (engine-computed amounts, not AI estimates)
+  - `relief_mechanism` (Literal: `"group_relief"` | `"organschaft"` | `"integration_fiscale"` | `"transfer_pricing_note"`)
+  - `applicable_rule_id`, `as_of_date`, `source_citation`, `conditions_summary`
+  - `needs_review: bool = True` (always — professional sign-off required)
+- [ ] **W6b.2** — extend `EngineRunResult` with `group_relief_opportunities: list[GroupReliefOpportunity] = []`
+- [ ] **W6b.3** — `rules/models.py`: add `GROUP_RELIEF` to `RuleCategory` enum
+- [ ] **W6b.4** — `engine/group_relief.py`: cross-entity scanner
+  - Accepts all `EntityBase` objects from the runner's aggregation phase
+  - For each ordered pair (A, B) where A has `net_income_hkd > 0` and B has unused losses in a related jurisdiction: check if `GROUP_RELIEF` rule exists for the pair's jurisdictions
+  - If rule found: emit `GroupReliefOpportunity` citing the rule; set `available_income_hkd = A.net_income_hkd`, `unused_loss_hkd = B.total_unused_losses_hkd`
+  - If no rule: no flag (correct — group relief is not universally available)
+- [ ] **W6b.5** — wire into `engine/runner.py` after `_assemble_results`: call `scan_group_relief(bases, entities, loader)` and attach results to each affected `EngineRunResult`
+- [ ] **W6b.6** — rule pack updates: add `GROUP_RELIEF` rules to any applicable jurisdiction packs. For golden scenario (HK, DE, FR): correctly have no bilateral group relief rule between these three — zero opportunities emitted for MERID group is the expected result
+- [ ] **W6b.7** — unit tests:
+  - Two entities (income + loss) in a jurisdiction pair with a `GROUP_RELIEF` rule → `GroupReliefOpportunity` emitted with correct fields
+  - Same pair in jurisdictions without the rule → no opportunity (correct negative case)
+  - Golden scenario produces zero opportunities (regression guard)
 
 ---
 
@@ -304,3 +337,4 @@ later; delete consumed lines; keep it under ~15 lines._
 | 1 | 2026-06-06 | setup | Copied + updated harness from NPCSystem | Harness ready, no code yet |
 | 2 | 2026-06-06 | planning | Engine plan refined; API contracts written; planted conflict designed; wave roadmap authored | API_ENGINE_AI.md, API_ENGINE_GRAPH.md, DECISIONS.md updated, ROADMAP.md rewritten; ready for Wave 1 |
 | 3 | 2026-06-06 | 0–1 | Technical audit, architecture fixes, full engine implementation | 137 tests green, layer check clean, engine produces golden figures |
+| 4 | 2026-06-06 | 5 | AI layer v1 merge integration — AILayerAdapter, adapter tests, engine hardening | 179 tests green; Wave 5 ~80%; Wave 6 engine-side built; Wave 6b scoped |
