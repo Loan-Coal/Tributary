@@ -1,27 +1,31 @@
 """
-Example runner for the Tributary AI layer over the real processed transactions.
+Example runner for the Tributary AI layer over the graph snapshot.
 
-Reads `data/processed/transactions.csv`, classifies every transaction against the
-DIPN 21 rule pack (`examples/Datasets/hk_dipn21_rules.json`) used as the RAG source,
-and writes a single aggregated JSON report.
+Reads `graph/graph_snapshot.json`, classifies every `FinancialLineItem` node
+against the DIPN 21 rule pack (`examples/Datasets/hk_dipn21_rules.json`) used as
+the RAG source, and writes a single aggregated JSON report.
 
 Design notes:
 - Monetary amounts are intentionally IGNORED. The AI layer only judges which
-  regulation applies, with what confidence, and whether rules conflict. No figures
-  are emitted (numeric slots stay as ``{{engine:...}}`` placeholders for the engine).
-- Transactions are deduplicated by their classification signature (amount/date/id
-  excluded) so the ~340 rows collapse to a handful of unique groups; each group is
-  classified once and mapped back to all its transaction ids.
+  regulation applies, with what confidence, and whether rules / jurisdictions
+  conflict. No figures are emitted (numeric slots stay as ``{{engine:...}}``
+  placeholders for the deterministic engine downstream).
+- Line items are deduplicated by classification signature (amount/period/node-id
+  excluded) so the 900+ nodes collapse to one group per (jurisdiction, line_item);
+  each group is classified once and mapped back to all its node ids and periods.
+- Because the snapshot reports the SAME company under three listings (HK / US / DE),
+  a cross-border pass flags tax-base-relevant line items claimed by >= 2
+  jurisdictions -- the cross-border conflict signal for the downstream brief.
 - Default backend is a deterministic rule matcher (instant, reproducible). Pass
   ``--backend qwen`` to route each unique group through the local Qwen LLM instead.
 """
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 import re
 import sys
+from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Tuple
 
@@ -35,16 +39,13 @@ from tributary.ai.models import AILayerOutput, RuleCitation, RuleSummary, Transa
 # --- Configuration constants ------------------------------------------------
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_INPUT = REPO_ROOT / "data" / "processed" / "transactions.csv"
+DEFAULT_INPUT = REPO_ROOT / "graph" / "graph_snapshot.json"
 DEFAULT_RULES = REPO_ROOT / "examples" / "Datasets" / "hk_dipn21_rules.json"
 DEFAULT_OUTPUT = REPO_ROOT / "examples" / "ai_layer_output.json"
 
-# Columns that describe value/time rather than the nature of the flow. Excluded
-# from the classification signature so amounts never influence the determination.
-AMOUNT_OR_TIME_COLUMNS = ("amount", "date", "id")
-
-# Map raw jurisdiction tokens found in account/counterparty ids to ISO alpha-2.
-JURISDICTION_ALIASES = {"hkg": "HK", "hk": "HK"}
+LINE_ITEM_LABEL = "FinancialLineItem"
+REPORTS_REL = "REPORTS"  # entity -> financial line item
+RESIDENT_REL = "RESIDENT_IN"  # entity -> jurisdiction
 
 # Deterministic matcher thresholds.
 MIN_MATCH_CONFIDENCE = 0.35  # below this the group abstains / needs human review
@@ -58,21 +59,23 @@ STOPWORDS = frozenset(
         "the", "and", "for", "are", "from", "with", "that", "this", "their", "which",
         "where", "without", "based", "place", "profits", "income", "revenue", "tax",
         "other", "into", "they", "have", "been", "made", "fees", "fee", "out", "all",
+        "item", "items", "line", "sheet", "balance", "statement", "reported", "entity",
     }
 )
 
-# Map flow_direction + record_type to the engine's flow classification enum.
-FLOW_CLASSIFICATION_MAP = {
-    ("inbound", "tax_revenue"): "REVENUE",
-    ("inbound", "revenue"): "REVENUE",
-    ("outbound", "expense"): "EXPENSE",
-    ("inbound", "intercompany"): "INTERCOMPANY",
-    ("outbound", "intercompany"): "INTERCOMPANY",
-    ("inbound", "loan"): "LOAN",
-    ("outbound", "loan"): "LOAN",
-    ("inbound", "capital"): "CAPITAL",
-    ("outbound", "capital"): "CAPITAL",
-}
+# Keyword groups mapping a balance-sheet line item to the engine flow enum.
+# Checked in order; LOAN before CAPITAL so "Capital Lease Obligation" reads as debt.
+FLOW_KEYWORD_GROUPS = (
+    ("LOAN", ("debt", "loan", "lease", "borrow", "payable", "payables")),
+    ("CAPITAL", ("equity", "stock", "share", "shares", "capital", "retained", "treasury", "minority")),
+)
+
+# Line items whose base can plausibly be claimed by more than one jurisdiction.
+# Used to scope cross-border conflict flagging to tax-relevant stocks only.
+TAX_BASE_KEYWORDS = frozenset(
+    {"tax", "taxes", "deferred", "retained", "earnings", "profit", "goodwill",
+     "equity", "investment", "investments", "invested"}
+)
 
 
 # --- Rule pack loading -------------------------------------------------------
@@ -125,79 +128,111 @@ class JsonRuleRetriever:
         return summaries
 
 
-# --- Transaction ingestion ---------------------------------------------------
+# --- Graph snapshot ingestion ------------------------------------------------
 
-def read_transactions(input_path: Path) -> List[Dict[str, str]]:
-    """Read the processed transactions CSV into a list of row dicts."""
-    with input_path.open("r", encoding="utf-8", newline="") as handle:
-        return list(csv.DictReader(handle))
-
-
-def infer_jurisdictions(row: Dict[str, str]) -> List[str]:
-    """Infer candidate ISO jurisdictions from account/counterparty identifiers."""
-    blob = f"{row.get('account_id', '')} {row.get('counterparty_id', '')}".lower()
-    found: List[str] = []
-    for token, code in JURISDICTION_ALIASES.items():
-        if re.search(rf"(?<![a-z]){token}(?![a-z])", blob) and code not in found:
-            found.append(code)
-    return found or ["HK"]
+def load_graph(input_path: Path) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """Load the graph snapshot JSON into (nodes, relationships)."""
+    with input_path.open("r", encoding="utf-8") as handle:
+        snapshot = json.load(handle)
+    return snapshot.get("nodes", []), snapshot.get("relationships", [])
 
 
-def build_context(row: Dict[str, str], jurisdictions: List[str]) -> TransactionContext:
-    """Build a TransactionContext for a row, excluding monetary amounts."""
-    description = row.get("description", "").strip()
-    text = (
-        f"{description}. Flow {row.get('flow_direction', '')} via GL code "
-        f"{row.get('gl_code', '')}; record type {row.get('record_type', '')}; "
-        f"counterparty {row.get('counterparty_id', '')}."
-    )
+def build_jurisdiction_index(relationships: List[Dict[str, Any]]) -> Dict[str, str]:
+    """Map each line-item node id to its reporting jurisdiction.
+
+    Follows REPORTS (entity -> line item) then RESIDENT_IN (entity -> jurisdiction).
+    """
+    entity_jurisdiction = {
+        rel["source"]: rel["target"]
+        for rel in relationships
+        if rel.get("type") == RESIDENT_REL
+    }
+    node_jurisdiction: Dict[str, str] = {}
+    for rel in relationships:
+        if rel.get("type") != REPORTS_REL:
+            continue
+        jurisdiction = entity_jurisdiction.get(rel.get("source"))
+        if jurisdiction:
+            node_jurisdiction[rel["target"]] = jurisdiction
+    return node_jurisdiction
+
+
+def extract_line_items(nodes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Return the properties of every FinancialLineItem node."""
+    return [
+        node.get("properties", {})
+        for node in nodes
+        if LINE_ITEM_LABEL in node.get("labels", [])
+    ]
+
+
+def jurisdiction_for(props: Dict[str, Any], node_jurisdiction: Dict[str, str]) -> str:
+    """Resolve a line item's jurisdiction from the graph, falling back to its id."""
+    direct = node_jurisdiction.get(props.get("id", ""))
+    if direct:
+        return direct
+    blob = props.get("id", "").lower()
+    for token, code in (("lenovo_hk", "HK"), ("lenovo_us", "US"), ("lenovo_de", "DE")):
+        if token in blob:
+            return code
+    return "UNKNOWN"
+
+
+def classify_flow(line_item: str) -> str:
+    """Map a balance-sheet line item name to the engine flow enum."""
+    lowered = line_item.lower()
+    for flow, keywords in FLOW_KEYWORD_GROUPS:
+        if any(keyword in lowered for keyword in keywords):
+            return flow
+    return "UNCLASSIFIED"
+
+
+def build_context(props: Dict[str, Any], jurisdiction: str) -> TransactionContext:
+    """Build a TransactionContext for a line item, excluding monetary amounts."""
+    line_item = props.get("line_item", "")
+    # Only the line-item's own wording should drive rule matching; boilerplate
+    # field names (source / statement / ticker) are deliberately kept out of the text.
+    text = f"Balance-sheet line item: {line_item}."
     return TransactionContext(
         transaction_text=text,
-        candidate_jurisdictions=jurisdictions,
-        gl_code=row.get("gl_code", ""),
-        flow_direction=row.get("flow_direction", ""),
-        record_type=row.get("record_type", ""),
-        data_source=row.get("data_source", ""),
-        counterparty_id=row.get("counterparty_id", ""),
-        currency=row.get("currency", ""),
+        candidate_jurisdictions=[jurisdiction],
+        line_item=line_item,
+        statement_type=props.get("statement_type", ""),
+        currency=props.get("currency", ""),
+        source=props.get("source", ""),
     )
 
 
-def signature_of(row: Dict[str, str], jurisdictions: List[str]) -> Tuple[str, ...]:
-    """Return the classification signature for a row (amount/date/id excluded)."""
+def signature_of(props: Dict[str, Any], jurisdiction: str) -> Tuple[str, ...]:
+    """Return the classification signature for a line item (amount/period/id excluded)."""
     return (
-        ",".join(jurisdictions),
-        row.get("description", ""),
-        row.get("gl_code", ""),
-        row.get("flow_direction", ""),
-        row.get("record_type", ""),
-        row.get("currency", ""),
+        jurisdiction,
+        props.get("line_item", ""),
+        props.get("statement_type", ""),
+        props.get("currency", ""),
     )
 
 
-def group_transactions(rows: List[Dict[str, str]]) -> List[Dict[str, Any]]:
-    """Collapse rows into unique classification groups.
-
-    Returns:
-        A list of group dicts, each with a representative context, the member
-        transaction ids, and the date span the group covers.
-    """
+def group_line_items(
+    line_items: List[Dict[str, Any]], node_jurisdiction: Dict[str, str]
+) -> List[Dict[str, Any]]:
+    """Collapse line items into unique (jurisdiction, line_item) classification groups."""
     groups: Dict[Tuple[str, ...], Dict[str, Any]] = {}
     order: List[Tuple[str, ...]] = []
-    for row in rows:
-        jurisdictions = infer_jurisdictions(row)
-        key = signature_of(row, jurisdictions)
+    for props in line_items:
+        jurisdiction = jurisdiction_for(props, node_jurisdiction)
+        key = signature_of(props, jurisdiction)
         if key not in groups:
             groups[key] = {
-                "context": build_context(row, jurisdictions),
-                "jurisdictions": jurisdictions,
-                "description": row.get("description", ""),
-                "transaction_ids": [],
-                "dates": [],
+                "context": build_context(props, jurisdiction),
+                "jurisdiction": jurisdiction,
+                "line_item": props.get("line_item", ""),
+                "node_ids": [],
+                "periods": [],
             }
             order.append(key)
-        groups[key]["transaction_ids"].append(row.get("id", ""))
-        groups[key]["dates"].append(row.get("date", ""))
+        groups[key]["node_ids"].append(props.get("id", ""))
+        groups[key]["periods"].append(props.get("period", ""))
     return [groups[key] for key in order]
 
 
@@ -215,23 +250,25 @@ def _rule_keywords(rule: Dict[str, Any]) -> set[str]:
 
 def _context_tokens(context: TransactionContext) -> set[str]:
     """Extract lowercase keyword tokens from a transaction context."""
-    text = " ".join(
-        str(part)
-        for part in (context.transaction_text, context.record_type, context.flow_direction)
-        if part
-    )
-    return {word for word in re.findall(r"[a-z]+", text.lower()) if len(word) > 3}
+    text = context.transaction_text or ""
+    return {word for word in re.findall(r"[a-z]+", text.lower()) if len(word) > 3} - STOPWORDS
 
 
 def _score_rule(rule_tokens: set[str], context_tokens: set[str]) -> float:
-    """Score a rule against context tokens; returns a confidence in [0, 0.95]."""
+    """Score a rule against context tokens; returns a confidence in [0, 0.95].
+
+    A single coincidental keyword stays below the match floor (it should abstain);
+    a genuine match requires at least two overlapping terms.
+    """
     if not rule_tokens:
         return 0.0
     overlap = rule_tokens & context_tokens
     if not overlap:
         return 0.0
     coverage = len(overlap) / len(rule_tokens)
-    return round(min(0.95, 0.30 + 0.65 * coverage), 3)
+    if len(overlap) == 1:
+        return round(min(0.30, 0.20 + 0.10 * coverage), 3)
+    return round(min(0.95, 0.45 + 0.45 * coverage), 3)
 
 
 def classify_group_deterministic(group: Dict[str, Any], rules: List[Dict[str, Any]]) -> AILayerOutput:
@@ -246,15 +283,13 @@ def classify_group_deterministic(group: Dict[str, Any], rules: List[Dict[str, An
     citations = [_citation(rule, score) for rule, score in scored[:MAX_REPORTED_RULES] if score > 0.0]
     top_confidence = citations[0].confidence if citations else 0.0
     abstain = top_confidence < MIN_MATCH_CONFIDENCE
-    flow = FLOW_CLASSIFICATION_MAP.get(
-        (context.flow_direction or "", context.record_type or ""), "UNCLASSIFIED"
-    )
+    flow = classify_flow(group["line_item"])
     return AILayerOutput(
-        transaction_id=group["transaction_ids"][0],
+        transaction_id=group["node_ids"][0],
         flow_classification=flow,
-        candidate_jurisdictions=group["jurisdictions"],
+        candidate_jurisdictions=[group["jurisdiction"]],
         retrieved_rules=citations,
-        evidence_requests=_evidence_requests(abstain, context),
+        evidence_requests=_evidence_requests(abstain),
         narrative_template=_narrative_template(flow, abstain),
         needs_human_review=abstain or top_confidence < MATERIAL_CONFIDENCE,
         abstain=abstain,
@@ -269,21 +304,21 @@ def _citation(rule: Dict[str, Any], score: float) -> RuleCitation:
         source_citation=rule.get("source_citation", ""),
         as_of_date=rule.get("as_of_date", ""),
         confidence=score,
-        reasoning=f"Transaction wording overlaps the rule scope '{applies}'.",
+        reasoning=f"Line-item wording overlaps the rule scope '{applies}'.",
     )
 
 
-def _evidence_requests(abstain: bool, context: TransactionContext) -> List[str]:
+def _evidence_requests(abstain: bool) -> List[str]:
     """Build CPA evidence requests for a group."""
     if abstain:
         return [
-            "No DIPN 21 source rule clearly applies to this flow. Confirm the underlying "
-            "business activity (trading, services, commission, financing) and the place "
-            "where the profit-generating operations are performed.",
+            "No DIPN 21 source rule clearly applies to this balance-sheet line item. "
+            "Confirm the underlying transactions (trading, services, financing, securities) "
+            "and where the profit-generating operations were performed.",
         ]
     return [
-        "Confirm where the operations giving rise to this flow were physically performed "
-        "to validate the source determination.",
+        "Confirm where the operations giving rise to this balance reside to validate "
+        "the source determination.",
     ]
 
 
@@ -292,10 +327,10 @@ def _narrative_template(flow: str, abstain: bool) -> str:
     if abstain:
         return (
             "Classification could not be grounded in a DIPN 21 source rule for this "
-            "{{engine:flow_count}} flow(s). Refer to a CPA for the operational facts."
+            "line item across {{engine:period_count}} period(s). Refer to a CPA."
         )
     return (
-        f"This {flow.lower()} flow of {{{{engine:amount}}}} is assessed under the cited "
+        f"This {flow.lower()} balance of {{{{engine:amount}}}} is assessed under the cited "
         "DIPN 21 source rule, with locality determined by the place of operations."
     )
 
@@ -319,12 +354,12 @@ def classify_group_qwen(group: Dict[str, Any], retriever: JsonRuleRetriever, mod
 
     reader = _SingleContextGraphReader(group["context"])
     service = AILayerService(reader, retriever, QwenLocalClient(model_name=model_name))
-    return service.classify_transaction(group["transaction_ids"][0])
+    return service.classify_transaction(group["node_ids"][0])
 
 
 # --- Conflict detection ------------------------------------------------------
 
-def detect_conflict(output: AILayerOutput, params_by_id: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+def detect_rule_conflict(output: AILayerOutput, params_by_id: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
     """Flag regulatory conflicts among the material matched rules.
 
     Detects (a) apportionment disagreement between applicable rules and
@@ -332,7 +367,7 @@ def detect_conflict(output: AILayerOutput, params_by_id: Dict[str, Dict[str, Any
     """
     material = [c for c in output.retrieved_rules if c.confidence >= MATERIAL_CONFIDENCE]
     if len(material) < 2:
-        return {"has_conflict": False, "conflict_type": None, "details": "", "rule_ids": []}
+        return _no_conflict()
 
     apportionment = {
         c.rule_id: params_by_id.get(c.rule_id, {}).get("apportionment_allowed")
@@ -354,30 +389,79 @@ def detect_conflict(output: AILayerOutput, params_by_id: Dict[str, Dict[str, Any
             "details": "Two source rules match with near-equal confidence; scope is ambiguous.",
             "rule_ids": [material[0].rule_id, material[1].rule_id],
         }
+    return _no_conflict()
+
+
+def _no_conflict() -> Dict[str, Any]:
+    """Return the canonical no-conflict record."""
     return {"has_conflict": False, "conflict_type": None, "details": "", "rule_ids": []}
+
+
+def is_tax_base_relevant(line_item: str) -> bool:
+    """Whether a line item represents a base that jurisdictions could overlap on."""
+    tokens = set(re.findall(r"[a-z]+", line_item.lower()))
+    return bool(tokens & TAX_BASE_KEYWORDS)
+
+
+def detect_cross_border_conflicts(group_records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Flag tax-base-relevant line items reported by >= 2 jurisdictions.
+
+    Mutates each participating group record's ``cross_border_conflict`` field and
+    returns the aggregated cross-border conflict list.
+    """
+    by_line_item: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    for record in group_records:
+        by_line_item[record["signature"]["line_item"]].append(record)
+
+    conflicts: List[Dict[str, Any]] = []
+    for line_item, records in by_line_item.items():
+        jurisdictions = sorted({r["signature"]["jurisdiction"] for r in records})
+        if len(jurisdictions) < 2 or not is_tax_base_relevant(line_item):
+            continue
+        matched_rule_ids = sorted({c["rule_id"] for r in records for c in r["matched_rules"]})
+        for record in records:
+            others = [j for j in jurisdictions if j != record["signature"]["jurisdiction"]]
+            record["cross_border_conflict"] = {
+                "is_flagged": True,
+                "also_reported_in": others,
+                "note": "Same tax-relevant base reported in multiple jurisdictions.",
+            }
+        conflicts.append({
+            "line_item": line_item,
+            "jurisdictions": jurisdictions,
+            "matched_rule_ids": matched_rule_ids,
+            "node_ids_by_jurisdiction": {
+                r["signature"]["jurisdiction"]: r["node_ids"] for r in records
+            },
+            "rationale": (
+                "A tax-relevant base reported under multiple listings may be claimed by "
+                "more than one jurisdiction; reconcile the source determination downstream."
+            ),
+        })
+    return conflicts
 
 
 # --- Report assembly ---------------------------------------------------------
 
-def build_group_record(group: Dict[str, Any], output: AILayerOutput, conflict: Dict[str, Any]) -> Dict[str, Any]:
+def build_group_record(group: Dict[str, Any], output: AILayerOutput, rule_conflict: Dict[str, Any]) -> Dict[str, Any]:
     """Assemble the downstream JSON record for a classified group."""
-    dates = [d for d in group["dates"] if d]
+    periods = sorted(p for p in group["periods"] if p)
     return {
         "signature": {
-            "description": group["description"],
-            "gl_code": group["context"].gl_code,
-            "flow_direction": group["context"].flow_direction,
-            "record_type": group["context"].record_type,
-            "jurisdictions": group["jurisdictions"],
+            "jurisdiction": group["jurisdiction"],
+            "line_item": group["line_item"],
+            "statement_type": group["context"].statement_type,
+            "currency": group["context"].currency,
         },
-        "transaction_ids": group["transaction_ids"],
-        "transaction_count": len(group["transaction_ids"]),
-        "date_range": {"earliest": min(dates), "latest": max(dates)} if dates else None,
+        "node_ids": group["node_ids"],
+        "node_count": len(group["node_ids"]),
+        "periods": periods,
         "flow_classification": output.flow_classification,
         "candidate_jurisdictions": output.candidate_jurisdictions,
         "matched_rules": [c.model_dump() for c in output.retrieved_rules],
         "top_confidence": output.retrieved_rules[0].confidence if output.retrieved_rules else 0.0,
-        "conflict": conflict,
+        "rule_conflict": rule_conflict,
+        "cross_border_conflict": {"is_flagged": False, "also_reported_in": [], "note": ""},
         "abstain": output.abstain,
         "needs_human_review": output.needs_human_review,
         "evidence_requests": output.evidence_requests,
@@ -389,26 +473,24 @@ def assemble_report(
     input_path: Path,
     rules_path: Path,
     backend: str,
-    rows: List[Dict[str, str]],
+    line_item_count: int,
     group_records: List[Dict[str, Any]],
+    cross_border: List[Dict[str, Any]],
     rule_as_of: str,
 ) -> Dict[str, Any]:
-    """Assemble the full output report with metadata and conflict summary."""
-    conflicts = [
-        {"signature": rec["signature"], "transaction_count": rec["transaction_count"], "conflict": rec["conflict"]}
-        for rec in group_records
-        if rec["conflict"]["has_conflict"]
-    ]
+    """Assemble the full output report with metadata and conflict summaries."""
     return {
         "metadata": {
             "source_file": str(input_path),
             "rule_pack": str(rules_path),
             "rule_pack_as_of": rule_as_of,
             "backend": backend,
-            "total_transactions": len(rows),
+            "total_line_items": line_item_count,
             "unique_groups": len(group_records),
+            "jurisdictions": sorted({r["signature"]["jurisdiction"] for r in group_records}),
             "groups_needing_review": sum(1 for r in group_records if r["needs_human_review"]),
-            "groups_with_conflict": len(conflicts),
+            "groups_with_rule_conflict": sum(1 for r in group_records if r["rule_conflict"]["has_conflict"]),
+            "cross_border_conflicts": len(cross_border),
             "note": (
                 "Monetary amounts ignored by design. Output is regulation matching, "
                 "confidence, and conflict judgment only; numeric values stay as engine "
@@ -416,35 +498,41 @@ def assemble_report(
             ),
         },
         "classifications": group_records,
-        "conflicts_summary": conflicts,
+        "cross_border_conflicts": cross_border,
     }
 
 
 # --- Orchestration -----------------------------------------------------------
 
 def run(input_path: Path, rules_path: Path, output_path: Path, backend: str, qwen_model: str) -> None:
-    """Classify all transactions and write the aggregated JSON report."""
+    """Classify all line items and write the aggregated JSON report."""
     rules, params_by_id = load_rule_pack(rules_path)
     rule_as_of = rules[0].get("as_of_date", "") if rules else ""
     retriever = JsonRuleRetriever(rules)
 
-    rows = read_transactions(input_path)
-    groups = group_transactions(rows)
-    print(f"Read {len(rows)} transactions -> {len(groups)} unique classification groups.")
+    nodes, relationships = load_graph(input_path)
+    node_jurisdiction = build_jurisdiction_index(relationships)
+    line_items = extract_line_items(nodes)
+    groups = group_line_items(line_items, node_jurisdiction)
+    print(f"Read {len(line_items)} line items -> {len(groups)} unique (jurisdiction, line_item) groups.")
 
     group_records: List[Dict[str, Any]] = []
-    for index, group in enumerate(groups, start=1):
+    for group in groups:
         if backend == "qwen":
             output = classify_group_qwen(group, retriever, qwen_model)
         else:
             output = classify_group_deterministic(group, rules)
-        conflict = detect_conflict(output, params_by_id)
-        group_records.append(build_group_record(group, output, conflict))
-        print(f"  [{index}/{len(groups)}] {group['context'].gl_code or '-'}: "
-              f"{output.flow_classification}, top_conf="
-              f"{group_records[-1]['top_confidence']}, conflict={conflict['has_conflict']}")
+        rule_conflict = detect_rule_conflict(output, params_by_id)
+        group_records.append(build_group_record(group, output, rule_conflict))
 
-    report = assemble_report(input_path, rules_path, backend, rows, group_records, rule_as_of)
+    cross_border = detect_cross_border_conflicts(group_records)
+    matched = sum(1 for r in group_records if not r["abstain"])
+    print(f"Matched a DIPN 21 rule for {matched} groups; "
+          f"flagged {len(cross_border)} cross-border conflicts.")
+
+    report = assemble_report(
+        input_path, rules_path, backend, len(line_items), group_records, cross_border, rule_as_of
+    )
     with output_path.open("w", encoding="utf-8") as handle:
         json.dump(report, handle, indent=2, ensure_ascii=False)
     print(f"Wrote AI layer report to: {output_path}")
