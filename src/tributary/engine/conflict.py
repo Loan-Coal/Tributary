@@ -53,7 +53,7 @@ def build_pe_conflict(
     relieved, residual = _resolve(mechanism, pe_tax, residence_tax)
     unrelieved_under_credit = max(pe_tax - residence_tax, Decimal("0"))
     return ConflictFlag(
-        conflict_id=f"PE-TRIANGLE-{conflict_year}",
+        conflict_id=f"PE-{pe.entity_id}-{pe.residence_jurisdiction}-{conflict_year}",
         conflict_type=ConflictType.SERVICE_PE_DOUBLE_TAX,
         trigger_flow_ids=pe.trigger_presence_ids,
         entities=[pe.entity_id, pe_entity_id],

@@ -399,7 +399,7 @@ class TestBuildPeConflict:
     def test_conflict_figures_match_expected(self, pe_attr, rules):
         de_cit, fr_cit, elim = rules
         conflict = build_pe_conflict(pe_attr, de_cit, fr_cit, elim, "MERID-FR", 2025)
-        assert conflict.conflict_id == "PE-TRIANGLE-2025"
+        assert conflict.conflict_id == "PE-MERID-DE-DE-2025"
         assert conflict.attributed_base_hkd == Decimal("1023750")
         assert conflict.pe_tax_hkd == Decimal("255938")
         assert conflict.residence_tax_before_relief_hkd == Decimal("162008")
@@ -410,6 +410,38 @@ class TestBuildPeConflict:
         de_cit, fr_cit, elim = rules
         conflict = build_pe_conflict(pe_attr, de_cit, fr_cit, elim, "MERID-FR", 2025)
         assert conflict.conflict_type == ConflictType.SERVICE_PE_DOUBLE_TAX
+
+    def test_two_entities_same_year_produce_distinct_ids(self, rules):
+        """Two distinct entities triggering PE in the same year must get different conflict IDs."""
+        de_cit, fr_cit, elim = rules
+
+        def _make_pe(entity_id: str, residence: str) -> PeAttribution:
+            t = ThresholdResult(
+                entity_id=entity_id,
+                jurisdiction="FR",
+                rule_id="DEFR-DTA-PE",
+                threshold_name="service_pe_days",
+                threshold_value_hkd=Decimal("183"),
+                actual_value_hkd=Decimal("185"),
+                breached=True,
+                as_of_date=date(2017, 1, 1),
+                source_citation="DE-FR DTA Art.5",
+            )
+            return PeAttribution(
+                entity_id=entity_id,
+                residence_jurisdiction=residence,
+                pe_jurisdiction="FR",
+                total_days=185,
+                attribution_pct=Decimal("0.35"),
+                attributed_income_hkd=Decimal("1023750"),
+                threshold=t,
+                treaty_pe_rule_id="DEFR-DTA-PE",
+                trigger_presence_ids=[f"PRES-{entity_id}-FR-2025"],
+            )
+
+        conflict_de = build_pe_conflict(_make_pe("MERID-DE", "DE"), de_cit, fr_cit, elim, "MERID-FR", 2025)
+        conflict_hk = build_pe_conflict(_make_pe("MERID-HK", "HK"), de_cit, fr_cit, elim, "MERID-FR", 2025)
+        assert conflict_de.conflict_id != conflict_hk.conflict_id
 
 
 # ===========================================================================

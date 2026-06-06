@@ -260,7 +260,7 @@ class TestPeTriangleConflict:
         return de.conflicts[0]
 
     def test_conflict_id(self, conflict):
-        assert conflict.conflict_id == "PE-TRIANGLE-2025"
+        assert conflict.conflict_id == "PE-MERID-DE-DE-2025"
 
     def test_attributed_base(self, conflict):
         assert conflict.attributed_base_hkd == Decimal("1023750")

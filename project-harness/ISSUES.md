@@ -114,7 +114,8 @@ Rules:
 **Why deferred:** Surfaced by full-codebase audit; remediation requires tax-expert confirmation.
 **To fix:** Clamp `ebitda_proxy = max(ebitda_proxy, Decimal("0"))` before computing the cap, consistent with the German minimum-base rule. Add regression test for a loss-making entity with interest. Route via /iterate.
 
-## ISSUE-013: conflict.py:56 — PE conflict_id not unique for multi-entity PE
+## [FIXED] ISSUE-013: conflict.py:56 — PE conflict_id not unique for multi-entity PE
+**Fixed:** 2026-06-06, W6c.4 — conflict_id now `f"PE-{pe.entity_id}-{pe.residence_jurisdiction}-{conflict_year}"`; regression test added; 219 tests green
 **Found:** 2026-06-06, during /audit
 **Severity:** P1 (correctness — data loss for multi-entity scenarios)
 **Where:** `src/tributary/engine/conflict.py:56`

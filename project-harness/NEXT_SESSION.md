@@ -1,31 +1,30 @@
 # Session Handoff
 
 **Branch:** `conflict-detection`
-**Last completed:** W6c.3 — Zinsschranke negative EBITDA clamp; 2 regression tests; 218 tests green
-**Test status:** 218 passed, 6 skipped — `make test` green
-**Status:** Wave 6c active. W6c.1+W6c.2+W6c.3 ticked. Next: W6c.4 (conflict_id collision).
+**Last completed:** W6c.4 — conflict_id collision fix; regression test + golden test updated; 219 tests green
+**Test status:** 219 passed, 6 skipped — `make test` green
+**Status:** Wave 6c active. W6c.1–W6c.4 ticked. Next: W6c.5 (runner unguarded [0] index).
 
 ---
 
 ## Immediate next tasks (in order)
 
-### 1. Wave 6c — W6c.4: non-unique conflict_id (~10 min)
+### 1. Wave 6c — W6c.5: unguarded [0] index in runner (~10 min)
 Files:
-- `src/tributary/engine/conflict.py` (edit — line ~56, the `f"PE-TRIANGLE-{year}"` f-string)
-- `tests/unit/test_engine_units.py` (add — two-entity same-year case → distinct conflict IDs)
-
-Fix: include `entity_id` and `residence_jurisdiction` in the key:
-`f"PE-{pe.entity_id}-{residence_jurisdiction}-{year}"`
-
-### 2. Wave 6c — W6c.5: unguarded [0] index in runner (~10 min)
-Files:
-- `src/tributary/engine/runner.py` (edit — the `_cit_rule()` method)
+- `src/tributary/engine/runner.py` (edit — the `_cit_rule()` method, line ~210)
 - `tests/unit/test_engine_units.py` (add — missing CIT rule raises EngineError, not IndexError)
 
-### 3. Wave 6c — W6c.6: fabricated adapter-placeholder citation (~20 min)
+Fix: `if not rules: raise EngineError(f"no CIT rate rule for jurisdiction {jurisdiction}")`
+
+### 2. Wave 6c — W6c.6: fabricated adapter-placeholder citation (~20 min)
 Files:
 - `src/tributary/ai/adapter.py` (edit — `_to_attribution()`, lines ~139-142)
 - `tests/unit/test_ai_adapter.py` (add — no RuleCitation with "placeholder" in rule_id)
+
+### 3. Wave 6c — W6c.7: service.py in-place Pydantic mutation (~10 min)
+Files:
+- `src/tributary/ai/service.py` (edit — line ~42, replace in-place mutation with model_copy)
+- `tests/unit/test_ai_service.py` (add — mismatched transaction ID logs warning, not silent overwrite)
 
 ---
 
@@ -40,6 +39,7 @@ Files:
 - **W6b entry gate updated:** Wave 6b remaining tasks (W6b.4+W6b.5+W6b.7) require Wave 6c complete first.
 - **GroupReliefMechanism** enum: GROUP_RELIEF | ORGANSCHAFT | INTEGRATION_FISCALE | TRANSFER_PRICING_NOTE
 - **EntityBase** — check `engine/aggregator.py` for `net_income_hkd` field name before coding W6b.4.
+- **conflict_id format (updated):** `f"PE-{pe.entity_id}-{pe.residence_jurisdiction}-{conflict_year}"` (e.g. `PE-MERID-DE-DE-2025`)
 
 ---
 
@@ -49,7 +49,7 @@ Files:
 - [x] W6c.1 — wht_engine.py:98 silent 0% WHT bug
 - [x] W6c.2 — EU_MEMBER_JURISDICTIONS out of engine/
 - [x] W6c.3 — Zinsschranke negative EBITDA clamp
-- [ ] W6c.4 — conflict_id collision (include entity_id)
+- [x] W6c.4 — conflict_id collision (include entity_id)
 - [ ] W6c.5 — runner.py unguarded [0] index
 - [ ] W6c.6 — adapter.py fabricated adapter-placeholder citation
 - [ ] W6c.7 — service.py in-place Pydantic mutation
@@ -77,7 +77,7 @@ Files:
 - [ ] W6c.27 — ConfigurationError in common/errors.py
 - [ ] W6c.28 — deferred imports hoist (cit_engine, deadlines)
 - [ ] W6c.29 — ruff --fix sweep
-- [ ] W6c.30 — test coverage push to ≥80%
+- [ ] W6c.30 — test coverage push to >=80%
 
 ---
 
