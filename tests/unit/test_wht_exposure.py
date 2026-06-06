@@ -302,3 +302,143 @@ class TestGoldenScenarioNoOverWithheld:
             if c.conflict_type == ConflictType.WHT_OVER_WITHHELD
         ]
         assert over_withheld == []
+
+
+# ---------------------------------------------------------------------------
+# Branch coverage: _check_obligation early-return paths
+# ---------------------------------------------------------------------------
+
+
+class TestCheckObligationBranches:
+    """Direct tests for _check_obligation() branches missed by happy-path tests."""
+
+    @pytest.fixture
+    def loader(self):
+        return JSONRulePackLoader()
+
+    def _period(self, jur: JurisdictionCode) -> FiscalPeriod:
+        return FiscalPeriod(
+            jurisdiction=jur,
+            start_date=date(2025, 1, 1),
+            end_date=date(2025, 12, 31),
+        )
+
+    def test_non_wht_obligation_returns_no_flag(self, loader):
+        """_check_obligation must return None for a CIT obligation (not WHT)."""
+        from tributary.common.models import ComputationStep
+
+        cit_obligation = ObligationResult(
+            obligation_id="OBL-CIT",
+            entity_id="TEST",
+            jurisdiction=_DE,
+            obligation_type=ObligationType.CIT,
+            fiscal_period=self._period(_DE),
+            taxable_base_hkd=Decimal("1000000"),
+            rate=Decimal("0.15"),
+            gross_amount_hkd=Decimal("150000"),
+            treaty_relief_hkd=Decimal("0"),
+            net_amount_hkd=Decimal("150000"),
+            rule_id="TEST",
+            as_of_date=date(2025, 1, 1),
+            source_citation="Test",
+            treaty_citation=None,
+            source_flow_ids=["T-CIT"],
+            computation_trace=[
+                ComputationStep(
+                    step_name="apply_rate",
+                    input_value_hkd=Decimal("1000000"),
+                    rule_id="TEST",
+                    rule_as_of_date=date(2025, 1, 1),
+                    result_value_hkd=Decimal("150000"),
+                    note="CIT",
+                )
+            ],
+            needs_review=False,
+        )
+        flags = scan_wht_exposure(
+            wht_obligations=[cit_obligation],
+            payments=[],
+            loader=loader,
+            reader=_OwningFakeReader(),
+            period=self._period(_DE),
+        )
+        assert flags == []
+
+    def test_no_source_flow_ids_returns_no_flag(self, loader):
+        """_check_obligation must return None when source_flow_ids is empty."""
+        from tributary.common.models import ComputationStep
+
+        obligation = ObligationResult(
+            obligation_id="OBL-EMPTY",
+            entity_id="TEST",
+            jurisdiction=_DE,
+            obligation_type=ObligationType.WHT,
+            fiscal_period=self._period(_DE),
+            taxable_base_hkd=Decimal("500000"),
+            rate=Decimal("0.25"),
+            gross_amount_hkd=Decimal("125000"),
+            treaty_relief_hkd=Decimal("0"),
+            net_amount_hkd=Decimal("125000"),
+            rule_id="TEST",
+            as_of_date=date(2025, 1, 1),
+            source_citation="Test",
+            treaty_citation=None,
+            source_flow_ids=[],  # empty → early return
+            computation_trace=[
+                ComputationStep(
+                    step_name="apply_rate",
+                    input_value_hkd=Decimal("500000"),
+                    rule_id="TEST",
+                    rule_as_of_date=date(2025, 1, 1),
+                    result_value_hkd=Decimal("125000"),
+                    note="WHT",
+                )
+            ],
+            needs_review=False,
+        )
+        flags = scan_wht_exposure(
+            wht_obligations=[obligation],
+            payments=[],
+            loader=loader,
+            reader=_OwningFakeReader(),
+            period=self._period(_DE),
+        )
+        assert flags == []
+
+    def test_payment_not_in_map_returns_no_flag(self, loader):
+        """_check_obligation must log a warning and return None when flow_id not in payment map."""
+        obligation = _make_obligation(
+            flow_id="T-MISSING",
+            payer_jur=_DE,
+            rate=Decimal("0.25"),
+            gross_hkd=Decimal("500000"),
+        )
+        # payments list is empty — flow_id will not be found
+        flags = scan_wht_exposure(
+            wht_obligations=[obligation],
+            payments=[],
+            loader=loader,
+            reader=_OwningFakeReader(),
+            period=self._period(_DE),
+        )
+        assert flags == []
+
+    def test_rate_at_treaty_entitlement_no_flag(self, loader):
+        """No flag when the applied rate is already at or below the treaty rate."""
+        # DE-HK treaty dividend rate is 5%; apply exactly 5% → no over-withholding
+        obligation = _make_obligation(
+            flow_id="T-EXACT",
+            payer_jur=_DE,
+            rate=Decimal("0.05"),
+            gross_hkd=Decimal("1500000"),
+            treaty_citation=None,  # no treaty in obligation, but rate is already correct
+        )
+        payment = _make_payment("T-EXACT", _DE, _HK)
+        flags = scan_wht_exposure(
+            wht_obligations=[obligation],
+            payments=[payment],
+            loader=loader,
+            reader=_OwningFakeReader(),
+            period=self._period(_DE),
+        )
+        assert flags == []

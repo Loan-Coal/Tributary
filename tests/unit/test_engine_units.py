@@ -140,6 +140,26 @@ class TestLossLedgerMindestbesteuerung:
         assert result.post_loss_base_hkd == Decimal("200000")
         assert result.records[0].remaining_loss_hkd == Decimal("0")
 
+    def test_capped_record_carries_limitation_rule_id(self, de_rule):
+        """When the Mindestbesteuerung cap is applied, each LossCarryforwardRecord must
+        carry the limiting rule's id (not None)."""
+        # Base > de_minimis → cap kicks in → limitation_applied=True
+        loss = _loss("E1", "DE", Decimal("10000000"))
+        result = apply_loss_offset(Decimal("10000000"), [loss], de_rule, "DE")
+        assert result.limitation_applied is True
+        for record in result.records:
+            assert record.limitation_rule_id == de_rule.id, (
+                f"Expected limitation_rule_id={de_rule.id!r}, got {record.limitation_rule_id!r}"
+            )
+
+    def test_uncapped_record_limitation_rule_id_is_none(self, de_rule):
+        """When no cap is applied, limitation_rule_id must be None."""
+        loss = _loss("E1", "DE", Decimal("1000000"))
+        result = apply_loss_offset(Decimal("1901250"), [loss], de_rule, "DE")
+        assert result.limitation_applied is False
+        for record in result.records:
+            assert record.limitation_rule_id is None
+
 
 # ===========================================================================
 # thresholds.py

@@ -103,3 +103,62 @@ def test_both_eu_false_for_two_non_eu_members() -> None:
     from tributary.engine.wht_engine import _both_eu  # noqa: PLC0415
 
     assert _both_eu(_payment("HK", "SG")) is False
+
+
+# ---------------------------------------------------------------------------
+# Branch coverage: _holding_qualifies and get_treaty_rate paths
+# ---------------------------------------------------------------------------
+
+
+class TestHoldingQualifies:
+    """Test _holding_qualifies() branches not hit by the golden integration test."""
+
+    def test_holding_does_not_qualify_when_pct_too_low(self):
+        """_holding_qualifies returns False when ownership < min_holding_pct."""
+        from decimal import Decimal
+        from datetime import date
+
+        from tests.support.fakes import FakeGraphReader  # noqa: PLC0415
+        from tributary.common.models import OwnershipRecord
+        from tributary.engine.wht_engine import _holding_qualifies  # noqa: PLC0415
+        from tributary.rules.models import Rule, RuleCategory, RuleParameters, RuleType
+
+        rule = Rule(
+            id="TEST-RULE",
+            jurisdiction="DE",
+            type=RuleType.TREATY,
+            category=RuleCategory.TREATY_DIVIDEND,
+            parameters=RuleParameters(min_holding_pct=Decimal("25"), min_holding_months=12),
+            as_of_date=date(2024, 1, 1),
+            source_citation="Test",
+        )
+        # Graph reader with only 10% ownership — below the 25% threshold
+        reader = FakeGraphReader()
+
+        result = _holding_qualifies(reader, "PAYER-001", "PAYEE-001", rule, date(2025, 12, 31))
+        assert result is False
+
+    def test_get_treaty_rate_returns_none_for_non_treaty_activity(self):
+        """get_treaty_rate returns None when the activity has no treaty category."""
+        from datetime import date
+        from decimal import Decimal
+
+        from tests.support.fakes import FakeGraphReader  # noqa: PLC0415
+        from tributary.common.models import ActivityType
+        from tributary.engine.aggregator import OutboundPayment
+        from tributary.engine.wht_engine import get_treaty_rate  # noqa: PLC0415
+        from tributary.rules.loader import JSONRulePackLoader
+
+        loader = JSONRulePackLoader()
+        reader = FakeGraphReader()
+        payment = OutboundPayment(
+            flow_id="T-MGMT",
+            activity=ActivityType.MANAGEMENT_FEE,  # not in TREATY_CATEGORY
+            gross_hkd=Decimal("100000"),
+            payer_entity_id="PAYER",
+            payer_jurisdiction="DE",
+            payee_entity_id="PAYEE",
+            payee_jurisdiction="HK",
+        )
+        result = get_treaty_rate(reader, loader, payment, date(2025, 12, 31))
+        assert result is None

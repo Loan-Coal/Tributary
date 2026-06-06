@@ -172,3 +172,47 @@ class TestGroupReliefCategory:
             assert rules == [], (
                 f"Expected no GROUP_RELIEF rules for {jurisdiction}; got {rules}"
             )
+
+
+# ===========================================================================
+# Loader error paths (W6c.30 coverage)
+# ===========================================================================
+
+
+class TestLoaderErrorPaths:
+    def test_get_rule_raises_when_id_not_found(self, loader):
+        """get_rule() raises RulePackError when the rule ID does not exist in the pack."""
+        with pytest.raises(RulePackError, match="not found"):
+            loader.get_rule("HK", "NONEXISTENT-RULE-ID-XYZ")
+
+    def test_load_pack_raises_on_invalid_json(self, tmp_path):
+        """_load_pack() raises RulePackError when the JSON file is malformed."""
+        bad_json = tmp_path / "xx.json"
+        bad_json.write_text("this is not json {", encoding="utf-8")
+        ldr = JSONRulePackLoader(rules_dir=tmp_path)
+        with pytest.raises(RulePackError, match="Invalid rule pack"):
+            ldr.get_rules("XX", RuleCategory.CIT_RATE)
+
+    def test_load_treaty_returns_none_for_unknown_pair(self, tmp_path):
+        """get_treaty_rules() returns empty list when no treaty file exists for the pair."""
+        # Make a valid HK pack so _load_pack doesn't fail
+        import shutil
+        hk_src = Path(__file__).resolve().parents[2] / "data" / "rules" / "hk.json"
+        shutil.copy(hk_src, tmp_path / "hk.json")
+        (tmp_path / "treaties").mkdir()  # empty treaties dir
+        ldr = JSONRulePackLoader(rules_dir=tmp_path)
+        result = ldr.get_treaty_rules("HK", "ZZ")  # ZZ has no treaty file
+        assert result == []
+
+    def test_load_treaty_raises_on_invalid_treaty_json(self, tmp_path):
+        """get_treaty_rules() raises RulePackError when the treaty JSON is malformed."""
+        import shutil
+        hk_src = Path(__file__).resolve().parents[2] / "data" / "rules" / "hk.json"
+        shutil.copy(hk_src, tmp_path / "hk.json")
+        treaties_dir = tmp_path / "treaties"
+        treaties_dir.mkdir()
+        bad = treaties_dir / "hk_zz.json"
+        bad.write_text("not valid json {{", encoding="utf-8")
+        ldr = JSONRulePackLoader(rules_dir=tmp_path)
+        with pytest.raises(RulePackError, match="Invalid treaty pack"):
+            ldr.get_treaty_rules("HK", "ZZ")
