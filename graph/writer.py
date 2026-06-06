@@ -1,7 +1,8 @@
 from neo4j import Session
 from common.models import (
     Jurisdiction, Entity, Ownership,
-    Account, Counterparty, Transaction, Obligation
+    Account, Counterparty, Transaction, Obligation,
+    FinancialLineItem
 )
 
 
@@ -113,6 +114,32 @@ def write_transaction(session: Session, tx: Transaction) -> None:
         MERGE (t)-[:WITH]->(c)
         """,
         tid=tx.id, cid=tx.counterparty_id
+    )
+
+
+def write_financial_line_item(session: Session, f: FinancialLineItem) -> None:
+    """Upsert a balance-sheet line item and link it to its reporting Entity."""
+    session.run(
+        """
+        MERGE (f:FinancialLineItem {id: $id})
+        SET f.period         = $period,
+            f.line_item      = $line_item,
+            f.amount         = $amount,
+            f.currency       = $currency,
+            f.statement_type = $statement_type,
+            f.source         = $source
+        WITH f
+        MATCH (e:Entity {id: $entity_id})
+        MERGE (e)-[:REPORTS]->(f)
+        """,
+        id=f.id,
+        period=f.period,
+        line_item=f.line_item,
+        amount=f.amount,
+        currency=f.currency,
+        statement_type=f.statement_type,
+        source=f.source,
+        entity_id=f.entity_id,
     )
 
 

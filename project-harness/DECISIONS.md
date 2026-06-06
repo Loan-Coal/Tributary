@@ -66,3 +66,49 @@ honest, defensible design choice. Tax professionals reviewing the brief can judg
 **Decision:** Single Docker Neo4j instance, single graph, no `world_id` or tenant isolation needed.
 **Why:** Multi-tenancy adds complexity with no hackathon benefit. The company is a distinct unit;
 post-hackathon this can be revisited if the product goes multi-tenant.
+
+## DEC-006: Per-country balance sheets sourced from one company's multi-exchange listings
+
+**Date:** 2026-06-06
+**Context:** `data/raw/get_data.py` needed real, per-country balance sheets for the same
+multinational (Lenovo Group). Initial attempts used per-country *stand-in* tickers (Medion/Infineon
+for Germany, Luxshare for a CNY "Beijing" entity), which is fabrication-by-proxy. The original
+German ticker `MDN.DE` (Medion) returns empty from Yahoo Finance (delisted after Lenovo's squeeze-out).
+**Options considered:**
+- (a) Per-country stand-in companies in local currency — rejected: not the same company; misleading.
+- (b) FX-convert the one USD statement into HKD/EUR/CNY at rate-dated FX — viable but introduces
+  derived (non-source) numbers.
+- (c) Pull the same Lenovo statement from each country's exchange listing, as reported (USD).
+**Decision:** Option (c). Pull Lenovo Group's consolidated balance sheet from its Hong Kong primary
+listing (`0992.HK`), US ADR (`LNVGY`), and Frankfurt listing (`LHL.F`). All return the identical
+real statement in USD (verified byte-identical). Files: `lenovo_consolidated_<country>_<ticker>.csv`.
+**Why:** A multinational files ONE consolidated balance sheet; a stock-exchange listing changes where
+shares trade, not the underlying statement. Pulling per listing keeps every figure real and traceable
+to the issuer's filing, with no fabricated entities and no derived FX numbers. **China is omitted**:
+Lenovo has no mainland listing (its Shanghai STAR Market CDR was withdrawn in 2021), so no real
+Chinese-filed statement exists. The available fiscal years are FY2022–FY2025 (ending March 31), not
+2020 — filenames reflect this rather than the earlier misleading `_2020` suffix.
+
+## DEC-007: Balance sheets modelled as FinancialLineItem nodes; package dirs lowercased
+
+**Date:** 2026-06-06
+**Context:** Wiring the Lenovo balance-sheet CSVs into the Neo4j graph. A balance sheet does not fit
+the existing `Entity → Account → Transaction → Counterparty` model (line items have no account or
+counterparty). The `seed` orchestrator also could not be imported.
+**Decision:**
+1. **New graph node type `FinancialLineItem`** `{id, entity_id, period, line_item, amount, currency,
+   statement_type, source}`, linked `Entity-[:REPORTS]->FinancialLineItem`. One Entity (type `holdco`)
+   per country listing (HK/US/DE), each `RESIDENT_IN` its Jurisdiction. (User-approved schema addition.)
+2. **New balance-sheet normalizer** `pipeline/normalize_balance_sheet.py` (separate file per OCP; the
+   OECD normalizer is untouched). `seed/seed.py` now seeds only the balance-sheet graph and exports a
+   JSON snapshot via `graph/snapshot.py` into the `graph/` folder.
+3. **Renamed `Graph/`→`graph/` and `Seed/`→`seed/`.** Python's import finder is case-sensitive even on
+   case-insensitive macOS, so the lowercase imports (`from graph.writer …`) and the makefile target
+   (`python -m seed.seed`) never resolved against the capitalised dirs. Lowercase matches the makefile,
+   the import statements, and the snake_case naming rule.
+4. **`seed()` now wipes the graph (`DETACH DELETE`) before rebuilding**, so the graph reflects exactly
+   the source data (the scratch DB held unrelated `LegalEntity`/`Transaction` nodes from prior tests).
+5. **Neo4j default password corrected** to match the running container (`NEO4J_AUTH`); credentials are
+   now read from `NEO4J_URI`/`NEO4J_USER`/`NEO4J_PASSWORD` env vars with local-dev fallbacks.
+**Why:** Faithful representation of balance-sheet data without distorting the transaction model; a
+runnable, reproducible seed that matches the project's intended invocation and naming conventions.
