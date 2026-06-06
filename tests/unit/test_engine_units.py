@@ -458,3 +458,95 @@ class TestPeriods:
         assert period.start_date == date(2025, 1, 1)
         assert period.end_date == date(2025, 12, 31)
         assert period.jurisdiction == "DE"
+
+
+# ===========================================================================
+# loss_ledger.py — FIFO multi-period allocation
+# ===========================================================================
+
+class TestLossLedgerFifoMultiPeriod:
+    """Verify FIFO ordering and remaining balance decrements across three loss records."""
+
+    def test_fifo_oldest_consumed_first(self):
+        """Three losses: oldest consumed fully before touching newer ones."""
+        losses = [
+            _loss("E1", "HK", Decimal("500000")),   # oldest
+            _loss("E1", "HK", Decimal("700000")),   # middle
+            _loss("E1", "HK", Decimal("900000")),   # newest
+        ]
+        # Base 600,000 — should consume 500K from oldest, 100K from middle
+        result = apply_loss_offset(Decimal("600000"), losses, None, "HK")
+        assert result.total_offset_hkd == Decimal("600000")
+        assert result.post_loss_base_hkd == Decimal("0")
+        records = result.records
+        assert records[0].remaining_loss_hkd == Decimal("0")      # oldest: fully consumed
+        assert records[1].remaining_loss_hkd == Decimal("600000") # middle: 100K used, 600K left
+        assert records[2].remaining_loss_hkd == Decimal("900000") # newest: untouched
+
+    def test_fifo_partial_total_offset_across_all_three(self):
+        """Offset spanning all three loss records — total must match sum of consumed."""
+        losses = [
+            _loss("E1", "HK", Decimal("100000")),
+            _loss("E1", "HK", Decimal("200000")),
+            _loss("E1", "HK", Decimal("300000")),
+        ]
+        # Base 500,000 — consumes 100K + 200K + 200K of the 300K newest
+        result = apply_loss_offset(Decimal("500000"), losses, None, "HK")
+        assert result.total_offset_hkd == Decimal("500000")
+        assert result.post_loss_base_hkd == Decimal("0")
+        assert result.records[0].remaining_loss_hkd == Decimal("0")
+        assert result.records[1].remaining_loss_hkd == Decimal("0")
+        assert result.records[2].remaining_loss_hkd == Decimal("100000")
+
+    def test_base_exceeds_all_losses_floor_at_zero(self):
+        """If total losses are less than base, post_loss_base is base - total_losses."""
+        losses = [
+            _loss("E1", "HK", Decimal("200000")),
+            _loss("E1", "HK", Decimal("300000")),
+        ]
+        result = apply_loss_offset(Decimal("1000000"), losses, None, "HK")
+        assert result.total_offset_hkd == Decimal("500000")
+        assert result.post_loss_base_hkd == Decimal("500000")
+
+
+# ===========================================================================
+# wht_engine.py — failure path: missing domestic WHT rule
+# ===========================================================================
+
+from tributary.engine.wht_engine import compute_wht
+from tributary.engine.aggregator import OutboundPayment
+from tributary.common.errors import EngineError
+from tests.support.fakes import FakeGraphReader
+
+
+def _payment(flow_id: str, activity: ActivityType) -> OutboundPayment:
+    return OutboundPayment(
+        flow_id=flow_id,
+        activity=activity,
+        gross_hkd=Decimal("500000"),
+        payer_entity_id="MERID-HK",
+        payee_entity_id="MERID-DE",
+        payer_jurisdiction="HK",
+        payee_jurisdiction="DE",
+    )
+
+
+class TestWhtMissingDomesticRule:
+    @pytest.fixture
+    def loader_without_wht(self):
+        """Loader that returns HK rules — HK has no WHT on REVENUE activity."""
+        from tributary.rules.loader import JSONRulePackLoader
+        return JSONRulePackLoader()
+
+    def test_engine_error_on_missing_domestic_wht_rule(self, loader_without_wht):
+        """EngineError raised when no domestic WHT rule exists for the activity type."""
+        reader = FakeGraphReader()
+        period = FiscalPeriod(
+            jurisdiction="HK",
+            start_date=date(2025, 4, 1),
+            end_date=date(2026, 3, 31),
+        )
+        # REVENUE is not a WHT-bearing activity — no rule in any pack
+        payment = _payment("T-WHT-FAIL", ActivityType.REVENUE)
+        with pytest.raises(EngineError):
+            compute_wht(reader, loader_without_wht, payment, period, needs_review=False)
