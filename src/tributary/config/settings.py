@@ -18,6 +18,7 @@ NEO4J_USER: str = os.getenv("NEO4J_USER", "neo4j")
 # No hardcoded default — requires explicit env var or .env file.
 NEO4J_PASSWORD: str = os.getenv("NEO4J_PASSWORD", "")
 ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
+CLAUDE_MODEL: str = os.getenv("CLAUDE_MODEL", "claude-haiku-4-5-20251001")
 DATA_DIR: str = os.getenv("DATA_DIR", "data")
 
 

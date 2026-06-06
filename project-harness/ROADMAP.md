@@ -25,7 +25,7 @@ run needn't rediscover it. Add a line when a task completes and unblocks somethi
 later; delete consumed lines; keep it under ~15 lines._
 
 - **Waves 1, 3, 4a, 4b COMPLETE**: Engine produces golden figures; 179 tests green.
-- **Wave 5 ~80% complete**: `AILayerAdapter` wired; `FakeClaudeClient` + `QwenLocalClient` ready; `ClaudeClient` uses legacy completions API (see ISSUE-008); W5.7 integration test not yet written.
+- **Wave 5 ~85% complete**: `AILayerAdapter` wired; `FakeClaudeClient` + `QwenLocalClient` ready; `ClaudeClient` migrated to `messages.create()` API (ISSUE-008 fixed); W5.7 integration test not yet written.
 - **Wave 6 engine-side built**: `pe.py` + `conflict.py` detect PE Triangle and emit `ConflictFlag`. W6.4 (WHT exposure flag) + W6.7 (golden-value integration test) still pending.
 - **Wave 6b NEW**: Group profit redistribution detection — see Wave 6b section below. DEC-020 records the architectural decision.
 - **Models split**: `common/models.py` re-exports from `models_entity.py`, `models_engine.py`, `models_ai.py`. See DEC-012.

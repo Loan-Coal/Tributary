@@ -80,7 +80,7 @@ Legend: ✅ implemented + tested · 🟡 implemented, no dedicated test · ⬜ n
 | AI emits no figures — all numbers come from engine | ✅ enforced by prompt + adapter |
 | Mock (fake) Claude adapter for tests | ✅ `ai/fake_client.py` |
 | Local Qwen model adapter (offline demo) | ✅ `ai/qwen_client.py` |
-| Anthropic Claude API adapter | 🟡 `ai/client.py` — uses legacy completions API; needs migration to `messages` API |
+| Anthropic Claude API adapter | ✅ `ai/client.py` — migrated to `messages.create()` API; model from `settings.CLAUDE_MODEL` |
 | AILayerAdapter bridging service ↔ engine protocol | ✅ `ai/adapter.py` |
 | Per-flow LLM call cache (one call per flow_id) | ✅ `ai/adapter.py` |
 
@@ -107,7 +107,7 @@ Legend: ✅ implemented + tested · 🟡 implemented, no dedicated test · ⬜ n
 | Golden multinational mock dataset (Meridian Group, 3 jurisdictions, T001–T009) | ✅ `data/golden/` |
 | Planted cross-border conflict — PE Triangle (MERID-DE in France 185 days) | ✅ modeled + engine fires |
 | Hand-computed expected values in `data/golden/EXPECTED.md` | ✅ HK + DE + FR + PE Triangle |
-| 179 passing unit tests (6 skipped — Neo4j integration) | ✅ `make test` green |
+| 183 passing unit tests (6 skipped — Neo4j integration) | ✅ `make test` green |
 | Cached AI outputs for golden dataset (offline-safe demo) | ⬜ Wave 8 |
 | `make demo` reproducible without live Claude API | ⬜ Wave 8 |
 | Brief UI showing as_of_dates, citations, confidence, conflict highlight | ⬜ Wave 8 |
