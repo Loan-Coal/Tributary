@@ -96,7 +96,8 @@ Rules:
 **Why deferred:** Surfaced by full-codebase audit; remediation is a separate gated step.
 **To fix:** Replace with `if rule.parameters.treaty_rate is None: raise RulePackError(f"treaty rule {rule.id} missing treaty_rate")`. Add regression test with a rule pack where treaty_rate is None. Route via /iterate.
 
-## ISSUE-011: wht_engine.py:32-35 — EU_MEMBER_JURISDICTIONS violates DEC-006
+## [FIXED] ISSUE-011: wht_engine.py:32-35 — EU_MEMBER_JURISDICTIONS violates DEC-006
+**Fixed:** 2026-06-06, W6c.2 — moved to `common/jurisdictions.py`; engine imports from there
 **Found:** 2026-06-06, during /audit
 **Severity:** P1 (architecture — DEC-006 country-agnostic violation)
 **Where:** `src/tributary/engine/wht_engine.py:32-35`

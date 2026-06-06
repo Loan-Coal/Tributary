@@ -27,7 +27,7 @@ later; delete consumed lines; keep it under ~15 lines._
 - **Waves 1, 3, 4a, 4b, 5, 6 COMPLETE**: All engine passes golden; PE Triangle fires + verified; WHT exposure scanner built; 208 tests green.
 - **Wave 6b data contract done** (W6b.1–W6b.3, W6b.6): `GroupReliefOpportunity` + `GroupReliefMechanism` in `models_engine.py`; `GROUP_RELIEF` in `RuleCategory`; golden packs verified absent. W6b.4+W6b.5+W6b.7 (engine module + wiring + tests) remain — blocked behind W6c P1s.
 - **Audit complete** (2026-06-06, REVIEW.md): 13 P1s, 17 P2s, 12 P3 nits found. Most critical: fabricated `adapter-placeholder` citations (W6c.6), `rules/db.py` layer violation (W6c.9). **Wave 6c must complete before Wave 7 starts.**
-- **W6c.1 done**: `get_treaty_rate()` now raises `RulePackError` when `treaty_rate is None`; regression test added. Next: W6c.2 (EU_MEMBER_JURISDICTIONS move).
+- **W6c.1+W6c.2 done**: WHT silent-zero bug fixed; `EU_MEMBER_JURISDICTIONS` moved to `common/jurisdictions.py`; 7 new regression tests; 216 tests green. Next: W6c.3 (Zinsschranke negative EBITDA clamp).
 - **Models split**: `common/models.py` re-exports from `models_entity.py`, `models_engine.py`, `models_ai.py`. See DEC-012.
 - **EXPECTED.md canonical figures**: HK HKD 445,500; DE CIT HKD 47,673; DE Trade Tax HKD 42,175; FR CIT HKD 1,030,938. PE Triangle — exemption method, residual double-tax = 0.
 - **Wave 2**: graph colleague primary (W2.1–W2.3, W2.6). Engine owner reviews W2.4 + W2.5 when PRs ready.
@@ -261,7 +261,7 @@ later; delete consumed lines; keep it under ~15 lines._
 ### 6c-P1a — Business integrity (use `/iterate --unit <id>` — regression tests first)
 
 - [x] **W6c.1** — `engine/wht_engine.py:98`: replace `treaty_rate or Decimal("0")` with explicit `if rule.parameters.treaty_rate is None: raise RulePackError(...)`; regression test: malformed treaty pack raises `RulePackError`, not silently applies 0% WHT
-- [ ] **W6c.2** — `engine/wht_engine.py:32-35`: move `EU_MEMBER_JURISDICTIONS` frozenset out of `engine/` into `common/` reference data (e.g. `common/jurisdictions.py`); engine imports the constant from there; regression test: no jurisdiction literals in `engine/wht_engine.py`
+- [x] **W6c.2** — `engine/wht_engine.py:32-35`: move `EU_MEMBER_JURISDICTIONS` frozenset out of `engine/` into `common/` reference data (e.g. `common/jurisdictions.py`); engine imports the constant from there; regression test: no jurisdiction literals in `engine/wht_engine.py`
 - [ ] **W6c.3** — `engine/thresholds.py:40-41`: clamp `ebitda_proxy = max(ebitda_proxy, Decimal("0"))` before computing Zinsschranke cap; regression test: loss-making entity with interest expense does not false-positive the Zinsschranke flag
 - [ ] **W6c.4** — `engine/conflict.py:56`: include `entity_id` (or `residence_jurisdiction`) in the `conflict_id` f-string to prevent collision when multiple entities trigger PE in the same year; regression test: two entities in same year receive distinct conflict IDs
 - [ ] **W6c.5** — `engine/runner.py:210`: add `if not rules: raise EngineError(f"No CIT rule found for ...")` guard before `[0]` index; regression test: engine raises `EngineError`, not bare `IndexError`, when a CIT rule is absent from a pack

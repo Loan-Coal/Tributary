@@ -15,6 +15,7 @@ from datetime import date
 from decimal import Decimal
 
 from tributary.common.errors import EngineError, RulePackError
+from tributary.common.jurisdictions import EU_MEMBER_JURISDICTIONS
 from tributary.common.models import (
     ActivityType,
     ComputationStep,
@@ -27,12 +28,6 @@ from tributary.common.models import (
 from tributary.engine.aggregator import OutboundPayment
 from tributary.engine.money import round_hkd
 from tributary.rules.models import Rule, RuleCategory, RulePackLoader
-
-# EU member states — reference data (would live in a reference table in production).
-EU_MEMBER_JURISDICTIONS: frozenset[str] = frozenset({
-    "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU",
-    "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
-})
 
 _DOMESTIC_CATEGORY: dict[ActivityType, RuleCategory] = {
     ActivityType.DIVIDEND: RuleCategory.WHT_DIVIDEND,

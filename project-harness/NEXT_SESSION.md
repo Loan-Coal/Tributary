@@ -1,21 +1,15 @@
 # Session Handoff
 
 **Branch:** `conflict-detection`
-**Last completed:** W6c.1 — WHT silent-zero bug fixed; `get_treaty_rate()` raises `RulePackError` when `treaty_rate is None`
-**Test status:** 158 unit tests passed — `make test` green
-**Status:** Wave 6c active. W6c.1 ticked. Next: W6c.2 (EU_MEMBER_JURISDICTIONS out of engine/).
+**Last completed:** W6c.2 — `EU_MEMBER_JURISDICTIONS` moved to `common/jurisdictions.py`; 7 regression tests added; 216 tests green
+**Test status:** 216 passed, 6 skipped — `make test` green
+**Status:** Wave 6c active. W6c.1 + W6c.2 ticked. Next: W6c.3 (Zinsschranke negative EBITDA clamp).
 
 ---
 
 ## Immediate next tasks (in order)
 
-### 1. Wave 6c — W6c.2: EU_MEMBER_JURISDICTIONS layer violation (~20 min)
-Files:
-- `src/tributary/common/jurisdictions.py` (new — move frozenset here)
-- `src/tributary/engine/wht_engine.py` (edit — import from common)
-- `tests/unit/test_wht_engine.py` (edit — regression: no literals in engine)
-
-### 3. Wave 6c — W6c.3: Zinsschranke negative EBITDA false-positive (~15 min)
+### 1. Wave 6c — W6c.3: Zinsschranke negative EBITDA false-positive (~15 min)
 Files:
 - `src/tributary/engine/thresholds.py` (edit — line 40-41)
 - `tests/unit/test_thresholds.py` (edit — add loss-making entity case)
@@ -49,8 +43,8 @@ Files:
 ## Wave 6c task queue (full ordered list)
 
 **P1a — business integrity (regression test first each time):**
-- [ ] W6c.1 — wht_engine.py:98 silent 0% WHT bug
-- [ ] W6c.2 — EU_MEMBER_JURISDICTIONS out of engine/
+- [x] W6c.1 — wht_engine.py:98 silent 0% WHT bug
+- [x] W6c.2 — EU_MEMBER_JURISDICTIONS out of engine/
 - [ ] W6c.3 — Zinsschranke negative EBITDA clamp
 - [ ] W6c.4 — conflict_id collision (include entity_id)
 - [ ] W6c.5 — runner.py unguarded [0] index
