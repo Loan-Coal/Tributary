@@ -10,6 +10,12 @@ Built for the HKTE Euro Hackathon Munich 2026.
 
 ```bash
 cd /Tributary
+
+python3 examples/run_ai_layer.py          # deterministic (default)
+
+
+python3 examples/run_ai_layer.py  -b qwen    # local LLM
+
 python3 examples/run_ai_layer.py            # deterministic (default)
 python3 examples/run_ai_layer.py -b qwen    # local LLM
 ```
