@@ -1,62 +1,94 @@
 # Session Handoff
 
 **Branch:** `conflict-detection`
-**Last completed:** W6b.1+W6b.2+W6b.3+W6b.6 — GroupReliefOpportunity model, EngineRunResult extension, GROUP_RELIEF rule category; golden pack absence verified
-**Test status:** 208 passed, 6 skipped (Neo4j integration) — `make test` green
-**Status:** Waves 1, 3, 4a, 4b, 5, 6 complete. Wave 6b: data contract done; W6b.4+W6b.5+W6b.7 pending.
+**Last completed:** W6c.1 — WHT silent-zero bug fixed; `get_treaty_rate()` raises `RulePackError` when `treaty_rate is None`
+**Test status:** 158 unit tests passed — `make test` green
+**Status:** Wave 6c active. W6c.1 ticked. Next: W6c.2 (EU_MEMBER_JURISDICTIONS out of engine/).
 
 ---
 
 ## Immediate next tasks (in order)
 
-### 1. Wave 6b — W6b.4+W6b.5+W6b.7: Engine scanner + wiring + tests (~60 min)
+### 1. Wave 6c — W6c.2: EU_MEMBER_JURISDICTIONS layer violation (~20 min)
 Files:
-- `src/tributary/engine/group_relief.py` (new)
-- `src/tributary/engine/runner.py` (edit — wire scanner after `_assemble_results`)
-- `tests/unit/test_group_relief.py` (new)
-- `tests/integration/test_engine_golden.py` (edit — add zero-opportunities guard)
+- `src/tributary/common/jurisdictions.py` (new — move frozenset here)
+- `src/tributary/engine/wht_engine.py` (edit — import from common)
+- `tests/unit/test_wht_engine.py` (edit — regression: no literals in engine)
 
-Engine scanner spec (ROADMAP W6b.4):
-- `scan_group_relief(bases, entities, loader)` → `list[GroupReliefOpportunity]`
-- For each ordered pair (A has `net_income_hkd > 0`, B has unused losses):
-  - Check if `GROUP_RELIEF` rule exists for the pair's jurisdictions
-  - If yes: emit one `GroupReliefOpportunity` per eligible pair
-  - If no: emit nothing (correct)
-- `EntityBase` is in `engine/aggregator.py` — check its fields for `net_income_hkd` and `total_unused_losses_hkd`
-- `entities` parameter provides `EntityRecord` list for entity metadata
+### 3. Wave 6c — W6c.3: Zinsschranke negative EBITDA false-positive (~15 min)
+Files:
+- `src/tributary/engine/thresholds.py` (edit — line 40-41)
+- `tests/unit/test_thresholds.py` (edit — add loss-making entity case)
 
-Wiring (W6b.5):
-- Call `scan_group_relief(bases, entities, loader)` in `EngineRunner._assemble_results`
-- Result is a flat list; distribute to each `EntityRecord` whose `entity_id` == `opportunity.income_entity_id`
-- Attach to `EngineRunResult.group_relief_opportunities`
+### 4. Wave 6c — W6c.4: non-unique conflict_id (~10 min)
+Files:
+- `src/tributary/engine/conflict.py` (edit — line 56)
+- `tests/unit/test_conflict.py` (edit — two-entity same-year case)
 
-Unit tests (W6b.7):
-- Pair with GROUP_RELIEF rule → opportunity emitted (use fake entities + fake loader)
-- Pair without rule → no opportunity (correct negative case)
-- Golden scenario integration: zero opportunities (add to test_engine_golden.py)
-
-### 2. Wave 7 — Brief assembly
-Entry gate: Wave 6b complete. See ROADMAP.md Wave 7 tasks.
+### 5. Wave 6c — W6c.5: unguarded [0] index in runner (~10 min)
+Files:
+- `src/tributary/engine/runner.py` (edit — line 210)
+- `tests/unit/test_runner.py` (edit — pack missing CIT rule raises EngineError)
 
 ---
 
 ## Key facts to remember
 
+- **Next ISSUE id:** ISSUE-027. **Next DEC id:** DEC-021.
 - **Layer rule:** `engine/` never imports from `ai/`. Protocols live in `common/`.
 - **DEC-002:** AI emits no figures — all amounts in engine outputs are engine-computed.
 - **Golden figures (EXPECTED.md):** HK HKD 445,500; DE CIT HKD 47,673; DE Trade Tax HKD 42,175; FR CIT HKD 1,030,938.
+- **W6c P1 priority:** fabricated `adapter-placeholder` citations (W6c.6) and `rules/db.py` layer violation (W6c.9) are the two highest-impact fixes after the WHT bug.
+- **W6c.9 (rules/db.py move) is risky** — it deletes a file and touches all its callers. Do not attempt in a long context; start it fresh.
+- **W6b entry gate updated:** Wave 6b remaining tasks (W6b.4+W6b.5+W6b.7) now require Wave 6c complete first (see ROADMAP ordering).
 - **GroupReliefMechanism** enum: GROUP_RELIEF | ORGANSCHAFT | INTEGRATION_FISCALE | TRANSFER_PRICING_NOTE
-- **EngineRunResult.group_relief_opportunities** defaults to `[]` — already in place.
-- **W6b exit gate:** golden scenario produces ZERO GroupReliefOpportunities (HK/DE/FR no bilateral group relief).
-- **EntityBase** — check `engine/aggregator.py` for `net_income_hkd` field name before coding.
-- **Next ISSUE id:** ISSUE-009. **Next DEC id:** DEC-021.
+- **EntityBase** — check `engine/aggregator.py` for `net_income_hkd` field name before coding W6b.4.
+
+---
+
+## Wave 6c task queue (full ordered list)
+
+**P1a — business integrity (regression test first each time):**
+- [ ] W6c.1 — wht_engine.py:98 silent 0% WHT bug
+- [ ] W6c.2 — EU_MEMBER_JURISDICTIONS out of engine/
+- [ ] W6c.3 — Zinsschranke negative EBITDA clamp
+- [ ] W6c.4 — conflict_id collision (include entity_id)
+- [ ] W6c.5 — runner.py unguarded [0] index
+- [ ] W6c.6 — adapter.py fabricated adapter-placeholder citation
+- [ ] W6c.7 — service.py in-place Pydantic mutation
+- [ ] W6c.8 — common/__init__.py missing GroupRelief exports
+
+**P1b — architecture violations:**
+- [ ] W6c.9+10+11 — rules/db.py → ai/retrieval_db.py (move, typed models, error logging — do as one unit)
+- [ ] W6c.12 — ai/protocols.py delete; import from common
+- [ ] W6c.13 — adapter.py _map_citation isinstance guard
+
+**P2 — quality:**
+- [ ] W6c.14 — function extractions (8 engine functions over 40 lines)
+- [ ] W6c.15 — loss_ledger limitation_rule_id audit trail
+- [ ] W6c.16 — runner PE multi-entity limitation (ISSUES.md note or fix)
+- [ ] W6c.17 — qwen_client.py torch import guard
+- [ ] W6c.18 — client.py temperature not passed
+- [ ] W6c.19 — LLMClientProtocol definition
+- [ ] W6c.20 — TransactionContext extra="forbid"
+- [ ] W6c.21 — rag_retriever.py docstring + signature align
+- [ ] W6c.22 — adapter.py rule_type="unknown" magic string
+- [ ] W6c.23 — loader.py broad except Exception
+- [ ] W6c.24 — logging.py merge conflict marker
+- [ ] W6c.25 — FiscalCalendar cross-field date validator
+- [ ] W6c.26 — PromptLoaderError inheritance fix
+- [ ] W6c.27 — ConfigurationError in common/errors.py
+- [ ] W6c.28 — deferred imports hoist (cit_engine, deadlines)
+- [ ] W6c.29 — ruff --fix sweep
+- [ ] W6c.30 — test coverage push to ≥80%
 
 ---
 
 ## Where things live
 
 - Forward roadmap: `project-harness/ROADMAP.md`
+- Audit findings: `project-harness/REVIEW.md`
 - Decisions: `project-harness/DECISIONS.md` (DEC-001–DEC-020)
-- Issues: `project-harness/ISSUES.md` (next: ISSUE-009)
+- Issues: `project-harness/ISSUES.md` (next: ISSUE-027)
 - Features tracker: `project-harness/FEATURES.md`
 - Working rules: `project-harness/CLAUDE.md`

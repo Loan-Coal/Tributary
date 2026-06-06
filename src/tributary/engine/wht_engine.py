@@ -14,7 +14,7 @@ import uuid
 from datetime import date
 from decimal import Decimal
 
-from tributary.common.errors import EngineError
+from tributary.common.errors import EngineError, RulePackError
 from tributary.common.models import (
     ActivityType,
     ComputationStep,
@@ -95,7 +95,11 @@ def get_treaty_rate(
             continue
         if not _holding_qualifies(reader, payment.payer_entity_id, payment.payee_entity_id, rule, as_of):
             continue
-        return rule.parameters.treaty_rate or Decimal("0"), rule
+        if rule.parameters.treaty_rate is None:
+            raise RulePackError(
+                f"Treaty rule {rule.id!r} is missing required 'treaty_rate' parameter"
+            )
+        return rule.parameters.treaty_rate, rule
     return None
 
 

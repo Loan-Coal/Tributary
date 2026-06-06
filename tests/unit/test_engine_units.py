@@ -550,3 +550,62 @@ class TestWhtMissingDomesticRule:
         payment = _payment("T-WHT-FAIL", ActivityType.REVENUE)
         with pytest.raises(EngineError):
             compute_wht(reader, loader_without_wht, payment, period, needs_review=False)
+
+
+# ===========================================================================
+# wht_engine.py — W6c.1: treaty_rate=None must raise RulePackError, not apply 0%
+# ===========================================================================
+
+from tributary.common.errors import RulePackError
+from tributary.engine.wht_engine import get_treaty_rate
+from tributary.rules.models import Rule, RuleCategory, RuleType, RuleParameters
+
+
+def _malformed_treaty_rule() -> Rule:
+    """A treaty rule with treaty_rate=None (simulates a malformed/incomplete pack)."""
+    return Rule(
+        id="BAD-TREATY-NO-RATE",
+        jurisdiction="DE",
+        type=RuleType.TREATY,
+        category=RuleCategory.TREATY_DIVIDEND,
+        parameters=RuleParameters(treaty_rate=None, min_holding_pct=None, requires_eu=None),
+        as_of_date=date(2024, 1, 1),
+        source_citation="Malformed treaty pack — for regression test only",
+    )
+
+
+class _StubLoaderWithBadTreaty:
+    """Loader that returns a single treaty rule with treaty_rate=None."""
+
+    def get_treaty_rules(self, a: str, b: str) -> list[Rule]:
+        return [_malformed_treaty_rule()]
+
+    def get_rules(self, jur: str, cat: RuleCategory) -> list[Rule]:
+        return []
+
+    def get_rule(self, jur: str, rule_id: str) -> Rule:
+        raise KeyError(rule_id)
+
+    def get_fiscal_calendar(self, jur: str):  # type: ignore[return]
+        raise KeyError(jur)
+
+
+class TestWhtTreatyRateMissing:
+    def test_none_treaty_rate_raises_rule_pack_error(self):
+        """RulePackError raised when a treaty rule has treaty_rate=None (W6c.1).
+
+        Before the fix, ``treaty_rate or Decimal("0")`` silently applies 0% WHT.
+        After the fix, the engine fails fast with a typed error.
+        """
+        reader = FakeGraphReader()
+        payment = OutboundPayment(
+            flow_id="T-BAD-TREATY",
+            activity=ActivityType.DIVIDEND,
+            gross_hkd=Decimal("100000"),
+            payer_entity_id="MERID-DE",
+            payee_entity_id="MERID-HK",
+            payer_jurisdiction="DE",
+            payee_jurisdiction="HK",
+        )
+        with pytest.raises(RulePackError, match="treaty_rate"):
+            get_treaty_rate(reader, _StubLoaderWithBadTreaty(), payment, date(2025, 12, 31))
