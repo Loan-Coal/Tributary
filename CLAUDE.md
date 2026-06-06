@@ -1,0 +1,1 @@
+@project-harness/CLAUDE.md
