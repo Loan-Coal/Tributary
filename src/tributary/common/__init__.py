@@ -6,15 +6,35 @@ Public surface: EntityRecord, TransactionRecord, PresenceRecord, PriorPeriodLoss
     CounterpartyRecord, AccountRecord, FiscalPeriod, FiscalCalendar, RuleCitation, ObligationResult,
     ThresholdResult, DeadlineResult, LossCarryforwardRecord, EngineRunResult, ComputationStep,
     ConflictFlag, ConflictType, ReliefMechanism, ActivityType, PresenceActivity,
+    GroupReliefOpportunity, GroupReliefMechanism,
     FlowContext, FlowClassification, FlowAttribution, JurisdictionClaim, RuleRetrievalResult,
     ApplicableRule, ConfidenceLevel, FlowNature, ObligationType, EntityType, JurisdictionCode,
     TributaryError, GraphError, EntityNotFoundError, CounterpartyNotFoundError, GraphWriteError,
     AILayerError, AIModelCallError, AIValidationError, AIContractViolationError,
-    EngineError, RulePackError, IngestionError,
+    EngineError, RulePackError, IngestionError, ConfigurationError,
     get_logger
 """
 from __future__ import annotations
 
+from .errors import (
+    AIClientError,
+    AIContractViolationError,
+    AILayerError,
+    AILayerServiceError,
+    AIModelCallError,
+    AIValidationError,
+    ConfigurationError,
+    CounterpartyNotFoundError,
+    EngineError,
+    EntityNotFoundError,
+    GraphError,
+    GraphWriteError,
+    IngestionError,
+    PromptLoaderError,
+    RulePackError,
+    TributaryError,
+)
+from .logging import get_logger
 from .models import (
     AccountRecord,
     ActivityType,
@@ -34,6 +54,8 @@ from .models import (
     FlowClassification,
     FlowContext,
     FlowNature,
+    GroupReliefMechanism,
+    GroupReliefOpportunity,
     JurisdictionClaim,
     JurisdictionCode,
     LossCarryforwardRecord,
@@ -49,28 +71,8 @@ from .models import (
     ThresholdResult,
     TransactionRecord,
 )
-from .protocols_graph import GraphReader, GraphWriter
 from .protocols_ai import AILayerProtocol
-from .errors import (
-    AIContractViolationError,
-    AILayerError,
-    AIModelCallError,
-    AIValidationError,
-    CounterpartyNotFoundError,
-    EngineError,
-    EntityNotFoundError,
-    GraphError,
-    GraphWriteError,
-    IngestionError,
-    RulePackError,
-    TributaryError,
-)
-from .logging import get_logger
-from .errors import (
-    AIClientError,
-    AILayerServiceError,
-    PromptLoaderError,
-)
+from .protocols_graph import GraphReader, GraphWriter
 
 __all__ = [
     # Models
@@ -82,6 +84,8 @@ __all__ = [
     "ConflictFlag",
     "ConflictType",
     "CounterpartyRecord",
+    "GroupReliefMechanism",
+    "GroupReliefOpportunity",
     "DeadlineResult",
     "EngineRunResult",
     "EntityRecord",
@@ -113,6 +117,7 @@ __all__ = [
     # Errors
     "AIContractViolationError",
     "AILayerError",
+    "ConfigurationError",
     "AIModelCallError",
     "AIValidationError",
     "CounterpartyNotFoundError",

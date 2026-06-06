@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel
 
@@ -20,27 +20,26 @@ from .models_entity import (
     ObligationType,
 )
 
-
 # ---------------------------------------------------------------------------
 # Conflict enums
 # ---------------------------------------------------------------------------
 
 
-class ConflictType(str, Enum):
+class ConflictType(StrEnum):
     """Category of cross-border conflict detected on engine output (Wave 6)."""
 
     SERVICE_PE_DOUBLE_TAX = "service_pe_double_tax"
     WHT_OVER_WITHHELD = "wht_over_withheld"
 
 
-class ReliefMechanism(str, Enum):
+class ReliefMechanism(StrEnum):
     """Treaty mechanism that resolves a double-taxation conflict."""
 
     EXEMPTION = "exemption"
     CREDIT = "credit"
 
 
-class GroupReliefMechanism(str, Enum):
+class GroupReliefMechanism(StrEnum):
     """Mechanism by which group-level profit redistribution can occur (W6b)."""
 
     GROUP_RELIEF = "group_relief"

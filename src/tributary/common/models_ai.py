@@ -61,12 +61,18 @@ class FlowClassification(BaseModel):
 
 
 class JurisdictionClaim(BaseModel):
-    """A single jurisdiction's claim to tax a flow, with confidence and citation."""
+    """A single jurisdiction's claim to tax a flow, with confidence and optional citation.
+
+    Note:
+        rationale_citation is Optional. When the AI abstains or cannot supply a real rule
+        reference, citation is None and needs_human_review is set on the parent FlowAttribution
+        (DEC-022). A None citation must never be silently promoted to a fabricated placeholder.
+    """
 
     jurisdiction: JurisdictionCode
     confidence: ConfidenceLevel
     claim_basis: str
-    rationale_citation: RuleCitation
+    rationale_citation: RuleCitation | None = None
 
 
 class FlowAttribution(BaseModel):

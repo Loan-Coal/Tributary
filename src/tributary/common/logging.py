@@ -1,7 +1,6 @@
 """
 Module: logging
 Layer: common
-<<<<<<< HEAD
 Purpose: Structured logging utility — all layers use get_logger(), never print().
     Emits JSON lines with timestamp, level, name, message, and optional extra fields.
 Dependencies: logging, json, datetime
@@ -11,7 +10,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -42,7 +41,7 @@ class _JsonFormatter(logging.Formatter):
             A single-line JSON string.
         """
         record.message = record.getMessage()
-        timestamp = datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat()
+        timestamp = datetime.fromtimestamp(record.created, tz=UTC).isoformat()
         extra = self._extract_extra(record)
         payload: dict[str, Any] = {
             "timestamp": timestamp,
