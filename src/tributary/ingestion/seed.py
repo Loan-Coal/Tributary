@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Type, TypeVar
+from typing import Any, TypeVar
 
 from pydantic import BaseModel
 
@@ -40,7 +40,7 @@ M = TypeVar("M", bound=BaseModel)
 # ---------------------------------------------------------------------------
 
 
-def _load_json_as(path: Path, model_cls: Type[M]) -> list[M]:
+def _load_json_as(path: Path, model_cls: type[M]) -> list[M]:
     """Load a JSON file and validate each item as model_cls.
 
     Args:
@@ -369,7 +369,7 @@ def run_seed(data_dir: Path | None = None) -> None:
     Raises:
         IngestionError: If Neo4j is unreachable or data validation fails.
     """
-    from neo4j import GraphDatabase
+    from neo4j import GraphDatabase  # noqa: PLC0415
 
     resolved_dir = Path(data_dir) if data_dir is not None else Path(DATA_DIR)
     logger.info("Loading golden data", extra={"data_dir": str(resolved_dir)})
