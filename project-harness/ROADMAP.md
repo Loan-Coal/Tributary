@@ -62,9 +62,9 @@ _Keep under 15 lines. Delete consumed lines._
 Check `engine/runner.py` for the `scan_group_relief` call. The carry-forward notes from W6b.5 suggest it was wired. If already wired and W6b tests pass — mark all tasks done and skip to Wave 7a.
 
 ### Tasks
-- [ ] **W6b.4** — `engine/group_relief.py`: verify cross-entity scanner is complete and correct — for each ordered pair (A has income, B has unused losses), checks `GROUP_RELIEF` rule exists for the jurisdiction pair; emits `GroupReliefOpportunity`; no flag if no rule.
-- [ ] **W6b.5** — verify wiring in `engine/runner.py`: `scan_group_relief(bases, entities, loader)` called after `_assemble_results`; results attached to each `EngineRunResult`.
-- [ ] **W6b.7** — unit tests: income+loss pair with GROUP_RELIEF rule → opportunity emitted; same pair without rule → no flag; golden scenario → zero opportunities (regression guard).
+- [x] **W6b.4** — `engine/group_relief.py`: verify cross-entity scanner is complete and correct — for each ordered pair (A has income, B has unused losses), checks `GROUP_RELIEF` rule exists for the jurisdiction pair; emits `GroupReliefOpportunity`; no flag if no rule.
+- [x] **W6b.5** — verify wiring in `engine/runner.py`: `scan_group_relief(bases, entities, loader)` called after `_assemble_results`; results attached to each `EngineRunResult`.
+- [x] **W6b.7** — unit tests: income+loss pair with GROUP_RELIEF rule → opportunity emitted; same pair without rule → no flag; golden scenario → zero opportunities (regression guard).
 
 ---
 
@@ -96,16 +96,16 @@ Check `engine/runner.py` for the `scan_group_relief` call. The carry-forward not
 
 ### Tasks (execute in this order — avoids rework)
 
-- [ ] **W7a.4** — `brief/assembler.py` + `brief/renderer.py`: load `data/golden/fx_rates.json`; build jurisdiction → `(local_currency, fx_rate)` mapping; extend `render_brief_markdown` signature to accept `local_currency: str` and `fx_rate: Decimal`. Mapping: HK → HKD (rate 1.0), DE → EUR (8.50), FR → EUR (8.50). Make data-driven from fx_rates.json, not hardcoded.
-- [ ] **W7a.0** — investigate and fix ISSUE-027: step through `engine/entity_run.py` for MERID-DE and confirm whether loss-ledger is applied before or after `ObligationResult` is assembled. Fix in the responsible file. Add regression test in `tests/integration/test_engine_golden.py` asserting CIT = HKD 47,673 for MERID-DE.
-- [ ] **W7a.1** — `brief/renderer.py`: replace `_fmt_hkd()` with `_fmt_amount(amount, currency)` that takes the local currency code. Add `_fmt_local(amount_hkd, fx_rate, currency)` for converting from HKD internal representation. Use the local currency + FX rate passed in from W7a.4.
-- [ ] **W7a.2** — `brief/renderer.py` + `common/models_engine.py`: add `unit: str = "HKD"` to `ThresholdResult`. Set `unit = "days"` in `engine/pe.py` for service_pe_days thresholds. Renderer branches on `unit` — "days" renders as `"{value} days"`, otherwise uses `_fmt_local`.
-- [ ] **W7a.3** — `brief/renderer.py`: fix WHT section. Show: `Statutory WHT: {gross} | Treaty relief: -{treaty_relief} | Net obligation: {net}`. Only show the statutory rate from the rule, not the post-treaty effective rate. Verify `ObligationResult` carries `gross_amount_hkd` and `treaty_relief_hkd`; add to `common/models_engine.py` if missing.
-- [ ] **W7a.5** — `brief/renderer.py`: filter `brief.as_of_dates` to only include rule IDs that appear in obligation `rule_id` fields in that brief's sections.
-- [ ] **W7a.7** — `brief/renderer.py`: add FX rate footnote to brief header for non-HKD jurisdictions: `*Amounts shown in EUR at EUR/HKD = 8.50 (ECB reference, 2025-01-01)*`.
-- [ ] **W7a.9** — `common/models_engine.py` + relevant engine files + `brief/renderer.py`: add `review_reason: str | None` to `ObligationResult`. Populate from `engine/vat_engine.py`, `engine/pe.py`, `engine/attribution_stub.py` using the reasons documented in `data/golden/EXPECTED.md` section 8. Render as explanatory text after the `⚠ Needs review` flag.
-- [ ] **W7a.6** — `engine/cli.py` + `brief/assembler.py`: wire AI narrator — construct `BriefNarrator` using `ai/adapter.py` Claude adapter (not "the engine's client" — the engine has no AI client). Inject via `BriefAssembler(narrator=BriefNarrator(client=...))`. Gate behind `TRIBUTARY_AI_ENABLED` env flag (default off) so `make demo` runs offline.
-- [ ] **W7a.8** — regression tests in `tests/unit/test_renderer.py` (new file): DE brief renders EUR amounts; FR brief renders EUR amounts; HK brief renders HKD; PE days threshold renders "185 days vs limit 183 days" with no currency label; WHT section shows gross → relief → net structure; narrator output is non-empty string for each section when AI enabled.
+- [x] **W7a.4** — `brief/assembler.py` + `brief/renderer.py`: load `data/golden/fx_rates.json`; build jurisdiction → `(local_currency, fx_rate)` mapping; extend `render_brief_markdown` signature to accept `local_currency: str` and `fx_rate: Decimal`. Mapping: HK → HKD (rate 1.0), DE → EUR (8.50), FR → EUR (8.50). Make data-driven from fx_rates.json, not hardcoded.
+- [x] **W7a.0** — investigate and fix ISSUE-027: step through `engine/entity_run.py` for MERID-DE and confirm whether loss-ledger is applied before or after `ObligationResult` is assembled. Fix in the responsible file. Add regression test in `tests/integration/test_engine_golden.py` asserting CIT = HKD 47,673 for MERID-DE.
+- [x] **W7a.1** — `brief/renderer.py`: replace `_fmt_hkd()` with `_fmt_amount(amount, currency)` that takes the local currency code. Add `_fmt_local(amount_hkd, fx_rate, currency)` for converting from HKD internal representation. Use the local currency + FX rate passed in from W7a.4.
+- [x] **W7a.2** — `brief/renderer.py` + `common/models_engine.py`: add `unit: str = "HKD"` to `ThresholdResult`. Set `unit = "days"` in `engine/pe.py` for service_pe_days thresholds. Renderer branches on `unit` — "days" renders as `"{value} days"`, otherwise uses `_fmt_local`.
+- [x] **W7a.3** — `brief/renderer.py`: fix WHT section. Show: `Statutory WHT: {gross} | Treaty relief: -{treaty_relief} | Net obligation: {net}`. Only show the statutory rate from the rule, not the post-treaty effective rate. Verify `ObligationResult` carries `gross_amount_hkd` and `treaty_relief_hkd`; add to `common/models_engine.py` if missing.
+- [x] **W7a.5** — `brief/renderer.py`: filter `brief.as_of_dates` to only include rule IDs that appear in obligation `rule_id` fields in that brief's sections.
+- [x] **W7a.7** — `brief/renderer.py`: add FX rate footnote to brief header for non-HKD jurisdictions: `*Amounts shown in EUR at EUR/HKD = 8.50 (ECB reference, 2025-01-01)*`.
+- [x] **W7a.9** — `common/models_engine.py` + relevant engine files + `brief/renderer.py`: add `review_reason: str | None` to `ObligationResult`. Populate from `engine/vat_engine.py`, `engine/pe.py`, `engine/attribution_stub.py` using the reasons documented in `data/golden/EXPECTED.md` section 8. Render as explanatory text after the `⚠ Needs review` flag.
+- [x] **W7a.6** — `engine/cli.py` + `brief/assembler.py`: wire AI narrator — construct `BriefNarrator` using `ai/adapter.py` Claude adapter (not "the engine's client" — the engine has no AI client). Inject via `BriefAssembler(narrator=BriefNarrator(client=...))`. Gate behind `TRIBUTARY_AI_ENABLED` env flag (default off) so `make demo` runs offline.
+- [x] **W7a.8** — regression tests in `tests/unit/test_renderer.py` (new file): DE brief renders EUR amounts; FR brief renders EUR amounts; HK brief renders HKD; PE days threshold renders "185 days vs limit 183 days" with no currency label; WHT section shows gross → relief → net structure; narrator output is non-empty string for each section when AI enabled.
 
 ---
 
@@ -119,10 +119,10 @@ Check `engine/runner.py` for the `scan_group_relief` call. The carry-forward not
 
 ### Tasks
 
-- [ ] **W7b.1** — `engine/vat_engine.py`: when `vat_threshold_check` is breached, also emit an `ObligationResult(obligation_type=VAT)` with `taxable_base_hkd = actual_turnover`, `rate = Decimal("0")`, `net_amount_hkd = Decimal("0")`, `needs_review = True`, `review_reason = "VAT net arithmetic not modelled; filing obligation requires quarterly returns."`.
-- [ ] **W7b.2** — `engine/entity_run.py`: wire `vat_engine` VAT obligation output through into the `EngineRunResult.obligations` list.
-- [ ] **W7b.3** — `brief/renderer.py`: render VAT sections with: `Registration threshold breached — quarterly VAT returns required. Net VAT arithmetic not modelled (scope: Wave 7b+).`
-- [ ] **W7b.4** — unit tests: FR entity above VAT threshold → `ObligationResult(obligation_type=VAT)` emitted; DE entity below threshold → no VAT obligation; brief renderer includes `[VAT]` section for FR.
+- [x] **W7b.1** — `engine/vat_engine.py`: when `vat_threshold_check` is breached, also emit an `ObligationResult(obligation_type=VAT)` with `taxable_base_hkd = actual_turnover`, `rate = Decimal("0")`, `net_amount_hkd = Decimal("0")`, `needs_review = True`, `review_reason = "VAT net arithmetic not modelled; filing obligation requires quarterly returns."`.
+- [x] **W7b.2** — `engine/entity_run.py`: wire `vat_engine` VAT obligation output through into the `EngineRunResult.obligations` list.
+- [x] **W7b.3** — `brief/renderer.py`: render VAT sections with: `Registration threshold breached — quarterly VAT returns required. Net VAT arithmetic not modelled (scope: Wave 7b+).`
+- [x] **W7b.4** — unit tests: FR entity above VAT threshold → `ObligationResult(obligation_type=VAT)` emitted; DE entity below threshold → no VAT obligation; brief renderer includes `[VAT]` section for FR.
 
 ---
 
@@ -136,11 +136,11 @@ Check `engine/runner.py` for the `scan_group_relief` call. The carry-forward not
 
 ### Tasks
 
-- [ ] **W7c.1** — Confirm DEC-023 is logged in DECISIONS.md (done ✅ in pre-wave). No further action.
-- [ ] **W7c.2** — Update `CLAUDE.md` "Jurisdictions" table to list HK + DE + FR + US (US added per DEC-023; Wave 7d adds MERID-US to entities.json).
-- [ ] **W7c.3** — Audit for jurisdiction literals in Python source: `grep -rn '"HK"\|"DE"\|"FR"\|"US"' src/tributary/`. Classify each hit as: (a) reference data (acceptable), (b) config constant (move to settings), (c) logic hardcode (must fix). Log any fixes needed as ISSUES.
-- [ ] **W7c.4** — `engine/money.py`: rename `round_hkd` → `round_amount` and `_HKD_QUANTUM` → `_UNIT_QUANTUM`. Update all callers. Document in ISSUES.md that only renamed, not changed in behaviour.
-- [ ] **W7c.5** — `engine/runner.py`: document why `_BASE_CURRENCY = "HKD"` in DECISIONS.md as DEC-025. Keep value unchanged.
+- [x] **W7c.1** — Confirm DEC-023 is logged in DECISIONS.md (done ✅ in pre-wave). No further action.
+- [x] **W7c.2** — Update `CLAUDE.md` "Jurisdictions" table to list HK + DE + FR + US (US added per DEC-023; Wave 7d adds MERID-US to entities.json).
+- [x] **W7c.3** — Audit for jurisdiction literals in Python source: `grep -rn '"HK"\|"DE"\|"FR"\|"US"' src/tributary/`. Classify each hit as: (a) reference data (acceptable), (b) config constant (move to settings), (c) logic hardcode (must fix). Log any fixes needed as ISSUES.
+- [x] **W7c.4** — `engine/money.py`: rename `round_hkd` → `round_amount` and `_HKD_QUANTUM` → `_UNIT_QUANTUM`. Update all callers. Document in ISSUES.md that only renamed, not changed in behaviour.
+- [x] **W7c.5** — `engine/runner.py`: document why `_BASE_CURRENCY = "HKD"` in DECISIONS.md as DEC-025. Keep value unchanged.
 
 ---
 
@@ -154,14 +154,14 @@ Check `engine/runner.py` for the `scan_group_relief` call. The carry-forward not
 
 ### Tasks
 
-- [ ] **W7d.1** — `data/golden/entities.json`: add MERID-US as a US subsidiary. Resident jurisdiction: `US`. Fiscal year: Jan–Dec 2025. Relationship: subsidiary of MERID-HK or MERID-DE (decide at implementation time based on golden narrative fit).
-- [ ] **W7d.2** — `data/golden/transactions.json`: add at least one US-touching flow — a dividend from MERID-US upward (to MERID-HK or MERID-DE) and optionally an intercompany service fee.
-- [ ] **W7d.3** — `data/rules/us.json`: federal CIT rate 21% (IRC §11), outbound WHT on dividends 30% domestic (IRC §881), FDII deduction flagged `needs_review=True`, GILTI inclusion flagged `needs_review=True`, filing deadline April 15 / extended October 15 (IRC §6072). Source every rule to IRC section.
-- [ ] **W7d.4** — `data/rules/treaties/`: author the applicable DTA for the US flows (e.g. `hk_us.json` for MERID-HK as parent — note: HK-US DTA does not exist; flag as `needs_review=True` with reason "No HK-US DTA in force; domestic 30% WHT applies unless restructured via third country"). If MERID-US is a subsidiary of MERID-DE, author `de_us.json` instead.
-- [ ] **W7d.5** — `data/golden/EXPECTED.md`: hand-compute US obligations (CIT on taxable income, WHT on dividend upward). Mark FDII/GILTI as needs_review. Update totals section.
-- [ ] **W7d.6** — `common/jurisdictions.py`: add `US` constant. Update `CLAUDE.md` jurisdictions table to HK + DE + FR + US.
-- [ ] **W7d.7** — run `make run-golden`; verify 4 briefs generated; fix any engine issues surfaced by MERID-US (all values must match EXPECTED.md).
-- [ ] **W7d.8** — tests: `tests/integration/test_engine_golden.py` — US entity produces expected CIT obligation; US WHT payable correct; golden run produces 4 briefs including conflict report.
+- [x] **W7d.1** — `data/golden/entities.json`: add MERID-US as a US subsidiary. Resident jurisdiction: `US`. Fiscal year: Jan–Dec 2025. Relationship: subsidiary of MERID-HK or MERID-DE (decide at implementation time based on golden narrative fit).
+- [x] **W7d.2** — `data/golden/transactions.json`: add at least one US-touching flow — a dividend from MERID-US upward (to MERID-HK or MERID-DE) and optionally an intercompany service fee.
+- [x] **W7d.3** — `data/rules/us.json`: federal CIT rate 21% (IRC §11), outbound WHT on dividends 30% domestic (IRC §881), FDII deduction flagged `needs_review=True`, GILTI inclusion flagged `needs_review=True`, filing deadline April 15 / extended October 15 (IRC §6072). Source every rule to IRC section.
+- [x] **W7d.4** — `data/rules/treaties/`: author the applicable DTA for the US flows (e.g. `hk_us.json` for MERID-HK as parent — note: HK-US DTA does not exist; flag as `needs_review=True` with reason "No HK-US DTA in force; domestic 30% WHT applies unless restructured via third country"). If MERID-US is a subsidiary of MERID-DE, author `de_us.json` instead.
+- [x] **W7d.5** — `data/golden/EXPECTED.md`: hand-compute US obligations (CIT on taxable income, WHT on dividend upward). Mark FDII/GILTI as needs_review. Update totals section.
+- [x] **W7d.6** — `common/jurisdictions.py`: add `US` constant. Update `CLAUDE.md` jurisdictions table to HK + DE + FR + US.
+- [x] **W7d.7** — run `make run-golden`; verify 4 briefs generated; fix any engine issues surfaced by MERID-US (all values must match EXPECTED.md).
+- [x] **W7d.8** — tests: `tests/integration/test_engine_golden.py` — US entity produces expected CIT obligation; US WHT payable correct; golden run produces 4 briefs including conflict report.
 
 ---
 
@@ -175,11 +175,11 @@ Check `engine/runner.py` for the `scan_group_relief` call. The carry-forward not
 
 ### Tasks
 
-- [ ] **W8.1** — snapshot AI outputs for golden dataset to `data/golden/ai_cache/`
-- [ ] **W8.2** — `make demo` runs entirely on cached AI (never hits Claude live)
-- [ ] **W8.3** — terminal brief output: `make run-golden` output is clean and readable end-to-end in the terminal. No web UI development (terminal is sufficient for demo).
-- [ ] **W8.4** — graph view: document in `DEMO_SCRIPT.md` how to open Neo4j Browser at `localhost:7474` to show entity ownership and fund flows (T001–T009). No new frontend code.
-- [ ] **W8.5** — rehearse demo; document Q&A in `project-harness/DEMO_SCRIPT.md`
+- [x] **W8.1** — snapshot AI outputs for golden dataset to `data/golden/ai_cache/`
+- [x] **W8.2** — `make demo` runs entirely on cached AI (never hits Claude live)
+- [x] **W8.3** — terminal brief output: `make run-golden` output is clean and readable end-to-end in the terminal. No web UI development (terminal is sufficient for demo).
+- [x] **W8.4** — graph view: document in `DEMO_SCRIPT.md` how to open Neo4j Browser at `localhost:7474` to show entity ownership and fund flows (T001–T009). No new frontend code.
+- [x] **W8.5** — rehearse demo; document Q&A in `project-harness/DEMO_SCRIPT.md`
 
 ---
 
