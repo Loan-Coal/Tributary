@@ -22,5 +22,13 @@
     "incorporation_jurisdiction": "FR",
     "resident_jurisdiction": "FR",
     "is_group_member": true
+  },
+  {
+    "entity_id": "MERID-US",
+    "name": "Meridian Americas Inc",
+    "entity_type": "subsidiary",
+    "incorporation_jurisdiction": "US",
+    "resident_jurisdiction": "US",
+    "is_group_member": true
   }
 ]

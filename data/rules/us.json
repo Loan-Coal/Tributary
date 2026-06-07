@@ -1,0 +1,33 @@
+{
+  "jurisdiction": "US",
+  "fiscal_calendar": { "jurisdiction": "US", "period_start_month": 1, "period_start_day": 1 },
+  "rules": [
+    {
+      "id": "US-CIT-RATE",
+      "jurisdiction": "US",
+      "type": "rate",
+      "category": "cit_rate",
+      "parameters": { "rate": "0.21" },
+      "as_of_date": "2024-01-01",
+      "source_citation": "IRC §11 (21% federal corporate tax rate, as amended by TCJA 2017)"
+    },
+    {
+      "id": "US-WHT-DIVIDEND",
+      "jurisdiction": "US",
+      "type": "rate",
+      "category": "wht_dividend",
+      "parameters": { "domestic_rate": "0.30" },
+      "as_of_date": "2024-01-01",
+      "source_citation": "IRC §881 (30% withholding on dividends to foreign corporations without treaty)"
+    },
+    {
+      "id": "US-CIT-DEADLINE",
+      "jurisdiction": "US",
+      "type": "deadline",
+      "category": "cit_deadline",
+      "parameters": { "filing_month": 4, "filing_day": 15, "payment_offset_days": 0 },
+      "as_of_date": "2024-01-01",
+      "source_citation": "IRC §6072(b) (Form 1120 due 15th day of 4th month after year-end)"
+    }
+  ]
+}

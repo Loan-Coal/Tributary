@@ -8,3 +8,5 @@ dist/
 .pytest_cache/
 htmlcov/
 .coverage
+output/
+data/golden/ai_cache/

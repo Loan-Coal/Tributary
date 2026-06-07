@@ -27,9 +27,9 @@ class TestGoldenLoads:
     def test_all_fixtures_validate(self) -> None:
         """Every golden JSON file parses into its model (would fail on schema drift)."""
         data = load_golden_models()
-        assert len(data["entities"]) == 3
-        assert len(data["transactions"]) == 9
-        assert len(data["ownership"]) == 2
+        assert len(data["entities"]) == 4  # HK, DE, FR, US (W7d)
+        assert len(data["transactions"]) == 11  # T001–T009 + T010/T011 US (W7d)
+        assert len(data["ownership"]) == 3  # HK→DE, DE→FR, HK→US (W7d)
         assert len(data["presence"]) == 1
         assert len(data["losses"]) == 1
 
@@ -53,10 +53,10 @@ class TestBooksReconstruction:
     """DEC-016: each entity sees both sides of its intercompany flows."""
 
     def test_hk_sees_all_its_income_flows(self) -> None:
-        """MERID-HK reconstructs T001 + T007 income (and T005/T006 it will exclude)."""
+        """MERID-HK reconstructs T001+T007 income and counterparty flows T005/T006/T011."""
         reader = FakeGraphReader()
         ids = {t.transaction_id for t in reader.get_transactions_involving_entity("MERID-HK", HK_START, HK_END)}
-        assert ids == {"T001", "T005", "T006", "T007"}
+        assert ids == {"T001", "T005", "T006", "T007", "T011"}
 
     def test_de_sees_income_and_expense_flows(self) -> None:
         """MERID-DE sees its revenue, dividend income, and royalty/interest expenses."""

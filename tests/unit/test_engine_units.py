@@ -24,7 +24,7 @@ from tributary.common.models import (
     PriorPeriodLoss,
     ReliefMechanism,
 )
-from tributary.engine.money import effective_rate, round_hkd
+from tributary.engine.money import effective_rate, round_amount
 
 
 # ===========================================================================
@@ -33,22 +33,22 @@ from tributary.engine.money import effective_rate, round_hkd
 
 class TestRoundHkd:
     def test_exact_integer(self):
-        assert round_hkd(Decimal("1000")) == Decimal("1000")
+        assert round_amount(Decimal("1000")) == Decimal("1000")
 
     def test_rounds_half_up(self):
-        assert round_hkd(Decimal("100.5")) == Decimal("101")
+        assert round_amount(Decimal("100.5")) == Decimal("101")
 
     def test_rounds_down_below_half(self):
-        assert round_hkd(Decimal("100.499")) == Decimal("100")
+        assert round_amount(Decimal("100.499")) == Decimal("100")
 
     def test_large_amount(self):
         # 1,023,750 × 0.25 = 255,937.50 → 255,938
-        assert round_hkd(Decimal("1023750") * Decimal("0.25")) == Decimal("255938")
+        assert round_amount(Decimal("1023750") * Decimal("0.25")) == Decimal("255938")
 
     def test_cit_effective_rate_result(self):
         # 1,023,750 × 15.825% = 162,008.4375 → 162,008
         rate = effective_rate(Decimal("0.15"), Decimal("0.055"))
-        assert round_hkd(Decimal("1023750") * rate) == Decimal("162008")
+        assert round_amount(Decimal("1023750") * rate) == Decimal("162008")
 
 
 class TestEffectiveRate:

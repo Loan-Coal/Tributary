@@ -250,3 +250,34 @@ of high cohesion / low coupling. The module-level docstring notes this.
   2. Make `rationale_citation: RuleCitation | None = None` — adapter omits it when AI returned no real reference; sets `abstain=True` on the parent `FlowAttribution` instead.
 **Decision:** Option 2. A missing citation is preferable to a fabricated one. A `None` citation paired with `abstain=True, abstain_reason="No rule citation"` is honest and triggers the human-review path in the brief assembler. The previous hardcoded string would have appeared in production briefs as a citation, which is both incorrect and misleading.
 **Why:** Defensibility principle: every flag cites a real rule or declares uncertainty. A fabricated citation is worse than no citation.
+
+## DEC-023: Golden scenario uses HK + DE + FR + US (four jurisdictions)
+
+**Date:** 2026-06-07
+**Context:** CLAUDE.md originally listed HK + EU member + US + SG/UK. The roadmap converged on HK + DE + FR because the DE-FR PE Triangle (service PE via 185-day employee presence) makes a richer demo conflict. DEC-PENDING-A deferred USA; the hackathon user decision on 2026-06-07 is to add USA back as a 4th entity.
+**Options considered:**
+  1. Keep HK + DE + FR — already implemented, PE Triangle works, no extra work.
+  2. Add USA as 4th entity — requires `data/rules/us.json`, a new MERID-US entity, US-touching golden transactions, and updated EXPECTED.md.
+  3. Replace FR with USA — breaks the PE Triangle. Not viable.
+**Decision:** Option 2. MERID-US is added as a US subsidiary, connected by dividend and/or service flows. `data/rules/us.json` covers federal CIT (21%), outbound WHT on dividends, and FDII/GILTI flags (flagged needs_review). The DE-FR PE Triangle is preserved.
+**Why:** Four jurisdictions makes a stronger demo (territorial HK, EU VAT-heavy DE/FR, worldwide US). FDII/GILTI complexity surfaced as needs_review is honest and demonstrates the system's abstention design correctly.
+
+## DEC-024: Static JSON rule packs for hackathon demo; RAG rule extraction is Wave 9
+
+**Date:** 2026-06-07
+**Context:** DEC-PENDING-B: whether the AI should extract applicable tax rates, thresholds, and deadlines from a corpus of tax documents (RAG), rather than reading from static JSON packs authored by hand.
+**Options considered:**
+  1. Static JSON packs (current) — manually verified, deterministic, auditable. Rates are human-set from authoritative sources with `source_citation` on every rule.
+  2. AI-as-rule-extractor (RAG) — AI reads IRO, KStG, IRC PDFs and extracts applicable rules. `ai/rag_retriever.py` and `ai/retrieval_db.py` provide partial infrastructure.
+**Decision:** Keep static JSON packs for the hackathon demo (high reliability, zero hallucination risk). RAG rule extraction is promoted from E6 expansion to **Wave 9** — the planned implementation session immediately after demo hardening. The evaluation harness built in Wave 9 will compare RAG-extracted figures against JSON packs as ground truth before any production use.
+**Why:** Demo reliability must be deterministic. RAG hallucination on tax rates carries professional liability. The JSON-pack interface is the same one RAG will implement (DEC-001), so the swap is additive and can be validated against the golden scenario ground truth before replacing the hand-authored packs.
+
+## DEC-025: HKD as internal base currency; engine amounts always stored in HKD
+
+**Date:** 2026-06-07
+**Context:** The engine aggregates and rounds amounts across multiple jurisdictions. A single internal base currency is required for cross-entity arithmetic (PE adjustments, loss offsets, group relief comparisons). Brief rendering then converts to local display currency using `fx_rates.json`.
+**Options considered:**
+  1. Store amounts in local currency — each entity keeps EUR, HKD, USD; requires FX conversion inside every cross-entity engine computation.
+  2. Store all amounts in HKD — one conversion at ingestion time; engine arithmetic is purely in HKD; renderers convert HKD → local at display time.
+**Decision:** Option 2. `_BASE_CURRENCY = "HKD"` is the declared constant in `engine/runner.py`. `engine/money.py` provides `round_amount()` (previously `round_hkd()`, renamed W7c to be currency-neutral). The renderer receives `(local_currency, fx_rate)` from the caller and converts at display time.
+**Why:** Simplest arithmetic; all cross-entity comparisons are apples-to-apples; FX conversion is a display concern, not an engine concern. Renaming `round_hkd` → `round_amount` removes the HKD assumption from the public API without changing behaviour.
