@@ -35,7 +35,9 @@ system_prompt: |
       0.20-0.39: tangential applicability; low certainty
       abstain (0.0): genuinely no rule in the pack covers this item
   - NEVER output amounts, rates, thresholds, or specific percentages.
-    Use {{engine:...}} placeholders for ALL numeric references.
+    Use {{engine:...}} placeholders ONLY in the narrative_template field.
+    The `as_of_date` field inside retrieved_rules MUST be a plain YYYY-MM-DD string
+    copied verbatim from the Rule Summaries. Never wrap dates in {{engine:...}}.
 
   FLOW CLASSIFICATION: choose exactly one:
     CAPITAL: equity / share / retained earnings / minority interest

@@ -95,7 +95,7 @@ class TestJurisdictionCode:
     def test_jurisdiction_code_valid(self) -> None:
         """EntityRecord with two-letter uppercase jurisdiction codes validates OK."""
         record = EntityRecord(
-            entity_id="MERID-HK",
+            entity_id="LENOVO-HK",
             name="Meridian HK",
             entity_type=EntityType.HOLDCO,
             incorporation_jurisdiction="HK",
@@ -109,7 +109,7 @@ class TestJurisdictionCode:
         """EntityRecord with lowercase jurisdiction code raises ValidationError."""
         with pytest.raises(ValidationError):
             EntityRecord(
-                entity_id="MERID-HK",
+                entity_id="LENOVO-HK",
                 name="Meridian HK",
                 entity_type=EntityType.HOLDCO,
                 incorporation_jurisdiction="hk",
@@ -121,7 +121,7 @@ class TestJurisdictionCode:
         """EntityRecord with three-letter jurisdiction code raises ValidationError."""
         with pytest.raises(ValidationError):
             EntityRecord(
-                entity_id="MERID-HK",
+                entity_id="LENOVO-HK",
                 name="Meridian HK",
                 entity_type=EntityType.HOLDCO,
                 incorporation_jurisdiction="HKG",
@@ -133,7 +133,7 @@ class TestJurisdictionCode:
         """EntityRecord with empty jurisdiction code raises ValidationError."""
         with pytest.raises(ValidationError):
             EntityRecord(
-                entity_id="MERID-HK",
+                entity_id="LENOVO-HK",
                 name="Meridian HK",
                 entity_type=EntityType.HOLDCO,
                 incorporation_jurisdiction="",
@@ -160,8 +160,8 @@ class TestTransactionRecord:
             fx_rate=Decimal("1.0"),
             fx_date=date(2024, 7, 1),
             source_currency="HKD",
-            source_entity_id="MERID-DE",
-            counterparty_entity_id="MERID-HK",
+            source_entity_id="LENOVO-DE",
+            counterparty_entity_id="LENOVO-HK",
             counterparty_jurisdiction="HK",
             is_intercompany=True,
             activity_type="royalty",
@@ -184,7 +184,7 @@ class TestTransactionRecord:
             fx_rate=Decimal("8.50"),
             fx_date=date(2024, 8, 1),
             source_currency="EUR",
-            source_entity_id="MERID-HK",
+            source_entity_id="LENOVO-HK",
             counterparty_entity_id=None,
             counterparty_jurisdiction=None,
             is_intercompany=False,
@@ -208,7 +208,7 @@ class TestTransactionRecord:
                 fx_rate=Decimal("1.0"),
                 fx_date=date(2024, 8, 1),
                 source_currency="HKD",
-                source_entity_id="MERID-HK",
+                source_entity_id="LENOVO-HK",
                 counterparty_entity_id=None,
                 counterparty_jurisdiction=None,
                 is_intercompany=False,
@@ -229,7 +229,7 @@ class TestPresenceRecord:
         """PresenceRecord for PE scenario (185 days) constructs correctly."""
         record = PresenceRecord(
             presence_id="PRES-001",
-            entity_id="MERID-DE",
+            entity_id="LENOVO-DE",
             jurisdiction="FR",
             period_start=date(2024, 4, 1),
             period_end=date(2024, 10, 2),
@@ -246,7 +246,7 @@ class TestPresenceRecord:
         with pytest.raises(ValidationError):
             PresenceRecord(
                 presence_id="PRES-001",
-                entity_id="MERID-DE",
+                entity_id="LENOVO-DE",
                 jurisdiction="fra",
                 period_start=date(2024, 4, 1),
                 period_end=date(2024, 10, 2),
@@ -303,7 +303,7 @@ class TestEngineRunResult:
         """EngineRunResult with all empty lists validates OK."""
         result = EngineRunResult(
             run_id="run-001",
-            entity_id="MERID-HK",
+            entity_id="LENOVO-HK",
             fiscal_period=_make_fiscal_period("HK"),
             base_currency="HKD",
             obligations=[],
@@ -369,7 +369,7 @@ class TestPriorPeriodLoss:
         """PriorPeriodLoss with valid Decimal amounts constructs correctly."""
         loss = PriorPeriodLoss(
             loss_id="LOSS-001",
-            entity_id="MERID-DE",
+            entity_id="LENOVO-DE",
             jurisdiction="DE",
             loss_period_start=date(2024, 1, 1),
             loss_period_end=date(2024, 12, 31),
@@ -393,7 +393,7 @@ class TestObligationResult:
         step = _make_computation_step()
         result = ObligationResult(
             obligation_id="OBL-HK-001",
-            entity_id="MERID-HK",
+            entity_id="LENOVO-HK",
             jurisdiction="HK",
             obligation_type=ObligationType.CIT,
             fiscal_period=_make_fiscal_period("HK"),
@@ -420,7 +420,7 @@ class TestObligationResult:
         with pytest.raises(ValidationError):
             ObligationResult(
                 obligation_id="OBL-HK-001",
-                entity_id="MERID-HK",
+                entity_id="LENOVO-HK",
                 # jurisdiction missing
                 obligation_type=ObligationType.CIT,
                 fiscal_period=_make_fiscal_period("HK"),
@@ -449,8 +449,8 @@ class TestAdditionalModels:
     def test_ownership_record_valid(self) -> None:
         """OwnershipRecord constructs with valid Decimal ownership."""
         rec = OwnershipRecord(
-            owner_entity_id="MERID-HK",
-            owned_entity_id="MERID-DE",
+            owner_entity_id="LENOVO-HK",
+            owned_entity_id="LENOVO-DE",
             ownership_pct=Decimal("100.00"),
             effective_from=date(2020, 1, 1),
             effective_to=None,
@@ -461,7 +461,7 @@ class TestAdditionalModels:
         """AccountRecord constructs correctly."""
         acc = AccountRecord(
             account_id="ACC-001",
-            entity_id="MERID-HK",
+            entity_id="LENOVO-HK",
             account_name="Revenue",
             account_type="income",
         )
@@ -490,7 +490,7 @@ class TestAdditionalModels:
     def test_threshold_result_valid(self) -> None:
         """ThresholdResult constructs correctly."""
         result = ThresholdResult(
-            entity_id="MERID-DE",
+            entity_id="LENOVO-DE",
             jurisdiction="DE",
             rule_id="DE-WHT-001",
             threshold_name="Zinsschranke",
@@ -505,7 +505,7 @@ class TestAdditionalModels:
     def test_deadline_result_valid(self) -> None:
         """DeadlineResult constructs correctly."""
         result = DeadlineResult(
-            entity_id="MERID-HK",
+            entity_id="LENOVO-HK",
             jurisdiction="HK",
             obligation_type=ObligationType.CIT,
             filing_deadline=date(2025, 11, 30),
@@ -520,7 +520,7 @@ class TestAdditionalModels:
     def test_loss_carryforward_record_valid(self) -> None:
         """LossCarryforwardRecord constructs correctly."""
         record = LossCarryforwardRecord(
-            entity_id="MERID-DE",
+            entity_id="LENOVO-DE",
             jurisdiction="DE",
             loss_period=_make_fiscal_period("DE"),
             original_loss_hkd=Decimal("800000.00"),
@@ -539,9 +539,9 @@ class TestAdditionalModels:
             description="Royalty HK→DE",
             amount_hkd=Decimal("500000.00"),
             flow_date=date(2024, 7, 1),
-            source_entity_id="MERID-HK",
+            source_entity_id="LENOVO-HK",
             source_jurisdiction="HK",
-            counterparty_entity_id="MERID-DE",
+            counterparty_entity_id="LENOVO-DE",
             counterparty_jurisdiction="DE",
             is_intercompany=True,
             activity_type="royalty",
@@ -625,7 +625,7 @@ class TestConflictFlag:
             conflict_id="PE-TRIANGLE-2025",
             conflict_type=ConflictType.SERVICE_PE_DOUBLE_TAX,
             trigger_flow_ids=["T003"],
-            entities=["MERID-DE", "MERID-FR"],
+            entities=["LENOVO-DE", "LENOVO-FR"],
             jurisdictions=["DE", "FR"],
             attributed_base_hkd=Decimal("1023750.00"),
             residence_jurisdiction="DE",
@@ -652,7 +652,7 @@ class TestConflictFlag:
                 conflict_id="X",
                 conflict_type=ConflictType.SERVICE_PE_DOUBLE_TAX,
                 trigger_flow_ids=["T003"],
-                entities=["MERID-DE"],
+                entities=["LENOVO-DE"],
                 jurisdictions=["DEU"],  # invalid — three letters
                 attributed_base_hkd=Decimal("1.00"),
                 residence_jurisdiction="DE",
@@ -678,8 +678,8 @@ def _make_group_relief_opportunity() -> GroupReliefOpportunity:
     """Return a minimal valid GroupReliefOpportunity for reuse."""
     return GroupReliefOpportunity(
         opportunity_id="GRO-DE-FR-2025",
-        income_entity_id="MERID-DE",
-        loss_entity_id="MERID-FR",
+        income_entity_id="LENOVO-DE",
+        loss_entity_id="LENOVO-FR",
         income_jurisdiction="DE",
         loss_jurisdiction="FR",
         available_income_hkd=Decimal("500000.00"),
@@ -699,8 +699,8 @@ class TestGroupReliefOpportunity:
         """GroupReliefOpportunity constructs correctly with all required fields."""
         opp = _make_group_relief_opportunity()
         assert opp.opportunity_id == "GRO-DE-FR-2025"
-        assert opp.income_entity_id == "MERID-DE"
-        assert opp.loss_entity_id == "MERID-FR"
+        assert opp.income_entity_id == "LENOVO-DE"
+        assert opp.loss_entity_id == "LENOVO-FR"
         assert opp.available_income_hkd == Decimal("500000.00")
         assert opp.unused_loss_hkd == Decimal("300000.00")
         assert opp.relief_mechanism == GroupReliefMechanism.ORGANSCHAFT
@@ -743,7 +743,7 @@ class TestEngineRunResultGroupRelief:
         """EngineRunResult.group_relief_opportunities defaults to empty list."""
         result = EngineRunResult(
             run_id="run-001",
-            entity_id="MERID-HK",
+            entity_id="LENOVO-HK",
             fiscal_period=_make_fiscal_period("HK"),
             base_currency="HKD",
             obligations=[],
@@ -760,7 +760,7 @@ class TestEngineRunResultGroupRelief:
         opp = _make_group_relief_opportunity()
         result = EngineRunResult(
             run_id="run-002",
-            entity_id="MERID-DE",
+            entity_id="LENOVO-DE",
             fiscal_period=_make_fiscal_period("DE"),
             base_currency="HKD",
             obligations=[],

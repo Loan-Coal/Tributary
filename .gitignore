@@ -10,3 +10,4 @@ htmlcov/
 .coverage
 output/
 data/golden/ai_cache/
+data/golden/fx_rates.json

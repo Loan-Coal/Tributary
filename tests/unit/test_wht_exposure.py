@@ -98,9 +98,9 @@ def _make_payment(
         flow_id=flow_id,
         activity=activity,
         gross_hkd=gross_hkd,
-        payer_entity_id="MERID-DE",
+        payer_entity_id="LENOVO-DE",
         payer_jurisdiction=payer_jur,
-        payee_entity_id="MERID-HK",
+        payee_entity_id="LENOVO-HK",
         payee_jurisdiction=payee_jur,
     )
 
@@ -109,11 +109,11 @@ class _OwningFakeReader:
     """Minimal GraphReader stub that satisfies DE→HK ownership checks for WHT treaty."""
 
     def get_entity_ownership(self, entity_id: str) -> list[OwnershipRecord]:
-        """Return a 100% holding from MERID-HK in MERID-DE, held since 2020."""
+        """Return a 100% holding from LENOVO-HK in LENOVO-DE, held since 2020."""
         return [
             OwnershipRecord(
-                owner_entity_id="MERID-HK",
-                owned_entity_id="MERID-DE",
+                owner_entity_id="LENOVO-HK",
+                owned_entity_id="LENOVO-DE",
                 ownership_pct=Decimal("100"),
                 effective_from=date(2020, 1, 1),
                 effective_to=None,
@@ -168,7 +168,7 @@ class TestOverWithheldFlag:
         assert set(flags[0].jurisdictions) == {"DE", "HK"}
 
     def test_entities(self, flags):
-        assert set(flags[0].entities) == {"MERID-DE", "MERID-HK"}
+        assert set(flags[0].entities) == {"LENOVO-DE", "LENOVO-HK"}
 
     def test_pe_tax_is_actual_wht(self, flags):
         """pe_tax_hkd holds the actual amount withheld (25% × 1,500,000 = 375,000)."""
@@ -264,9 +264,9 @@ class TestNoFlagWhenNoTreaty:
             flow_id="T-NOTREATY",
             activity=ActivityType.MANAGEMENT_FEE,
             gross_hkd=Decimal("300000"),
-            payer_entity_id="MERID-FR",
+            payer_entity_id="LENOVO-FR",
             payer_jurisdiction=_FR,
-            payee_entity_id="MERID-HK",
+            payee_entity_id="LENOVO-HK",
             payee_jurisdiction=_HK,
         )
         flags = scan_wht_exposure(

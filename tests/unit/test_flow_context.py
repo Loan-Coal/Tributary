@@ -68,7 +68,7 @@ def _attribution(flow_id: str, jur: str, confidence: ConfidenceLevel) -> FlowAtt
     )
 
 
-def _txn(txn_id: str, entity_id: str = "MERID-HK") -> TransactionRecord:
+def _txn(txn_id: str, entity_id: str = "LENOVO-HK") -> TransactionRecord:
     return TransactionRecord(
         transaction_id=txn_id,
         source_entity_id=entity_id,
@@ -104,14 +104,14 @@ class TestBuildFlowContext:
         assert ctx.description == txn.description
         assert ctx.amount_hkd == txn.amount_hkd
         assert ctx.flow_date == txn.transaction_date
-        assert ctx.source_entity_id == "MERID-HK"
+        assert ctx.source_entity_id == "LENOVO-HK"
         assert ctx.is_intercompany is False
         assert ctx.available_jurisdictions == jurisdictions
 
     def test_source_jurisdiction_resolved_from_entity(self):
         """Source jurisdiction is populated from the entity's resident_jurisdiction."""
         reader = FakeGraphReader()
-        txn = _txn("T001", entity_id="MERID-HK")
+        txn = _txn("T001", entity_id="LENOVO-HK")
         ctx = build_flow_context(reader, txn, ["HK"])
         assert ctx.source_jurisdiction == "HK"
 
@@ -127,11 +127,11 @@ class TestBuildFlowContext:
         reader = FakeGraphReader()
         txn = _txn("T001")
         txn = txn.model_copy(update={
-            "counterparty_entity_id": "MERID-DE",
+            "counterparty_entity_id": "LENOVO-DE",
             "counterparty_jurisdiction": "DE",
         })
         ctx = build_flow_context(reader, txn, ["HK", "DE"])
-        assert ctx.counterparty_entity_id == "MERID-DE"
+        assert ctx.counterparty_entity_id == "LENOVO-DE"
         assert ctx.counterparty_jurisdiction == "DE"
 
 

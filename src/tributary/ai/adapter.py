@@ -9,6 +9,7 @@ Used by: engine (injected as AILayerProtocol implementation), tests
 """
 from __future__ import annotations
 
+import re
 from datetime import date
 
 from tributary.ai.models import AILayerOutput, RuleSummary, TransactionContext
@@ -106,6 +107,19 @@ def _confidence(output: AILayerOutput) -> ConfidenceLevel:
     return ConfidenceLevel.HIGH
 
 
+_ENGINE_PLACEHOLDER_RE = re.compile(r"^\{\{engine:([^}]+)\}\}$")
+
+
+def _parse_date(raw: str) -> date:
+    """Parse YYYY-MM-DD, stripping any {{engine:...}} wrapper the LLM may add.
+
+    Qwen models sometimes wrap dates in the engine-placeholder syntax despite
+    prompt instructions. This strips the wrapper before parsing.
+    """
+    m = _ENGINE_PLACEHOLDER_RE.match(raw.strip())
+    return date.fromisoformat(m.group(1).strip() if m else raw.strip())
+
+
 def _map_citation(
     raw: object, fallback_jurisdiction: JurisdictionCode
 ) -> RuleCitation:
@@ -121,7 +135,7 @@ def _map_citation(
     return RuleCitation(
         rule_id=raw.rule_id,
         jurisdiction=fallback_jurisdiction,
-        as_of_date=date.fromisoformat(raw.as_of_date),
+        as_of_date=_parse_date(raw.as_of_date),
         source_citation=raw.source_citation,
     )
 
@@ -200,7 +214,7 @@ def _to_rule_retrieval(
             rule_id=raw.rule_id,
             jurisdiction=jurisdiction,
             rule_type=_UNKNOWN_RULE_TYPE,
-            as_of_date=date.fromisoformat(raw.as_of_date),
+            as_of_date=_parse_date(raw.as_of_date),
             source_citation=raw.source_citation,
             relevance_note=getattr(raw, "reasoning", None),
         ))

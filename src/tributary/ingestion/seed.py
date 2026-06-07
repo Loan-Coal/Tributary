@@ -1,8 +1,11 @@
 """
 Module: seed
 Layer: ingestion
-Purpose: Load golden scenario JSON files into Neo4j for development and integration testing.
-Dependencies: neo4j, json, pathlib, tributary.common, tributary.config
+Purpose: Seed Neo4j from normalised Lenovo CSV data (primary path) or golden JSON files
+    (legacy fallback). The primary path calls csv_normalizer.build_models() and writes
+    all records directly to Neo4j — no intermediate JSON files.
+Dependencies: neo4j, json, pathlib, tributary.common, tributary.config,
+    tributary.ingestion.csv_normalizer
 Used by: tributary.ingestion.cli (via make ingest), integration tests
 
 File length note (see DEC-014): This module is 389 total lines but only ~257 non-blank,
@@ -358,22 +361,58 @@ def seed_prior_losses(session: Any, losses: list[PriorPeriodLoss]) -> None:
 # ---------------------------------------------------------------------------
 
 
-def run_seed(data_dir: Path | None = None) -> None:
-    """Orchestrate the full golden data seed. Entry point for CLI.
+def seed_all(session: Any, models: dict[str, Any]) -> None:
+    """Seed all entity types from a pre-built models dict into Neo4j.
 
-    Loads all golden JSON files, validates them, then writes to Neo4j
-    using MERGE (idempotent — safe to re-run).
+    Accepts the output of csv_normalizer.build_models() directly,
+    bypassing JSON file loading.
+
+    Args:
+        session: Active Neo4j driver session.
+        models: Dict with keys entities, accounts, ownership, transactions,
+            presence_records, prior_losses (each a list of validated Pydantic models).
+    """
+    seed_entities(session, models["entities"])
+    seed_accounts(session, models["accounts"])
+    seed_ownership(session, models["ownership"])
+    seed_transactions(session, models["transactions"])
+    seed_presence_records(session, models["presence_records"])
+    seed_prior_losses(session, models["prior_losses"])
+
+
+def run_seed(data_dir: Path | None = None) -> None:
+    """Orchestrate the full data seed from Lenovo CSVs into Neo4j.
+
+    Normalises the raw balance-sheet CSVs into canonical engine models
+    via csv_normalizer.build_models(), then writes to Neo4j using MERGE
+    (idempotent — safe to re-run). Also writes data/golden/fx_rates.json
+    for the engine CLI's FileFXRateProvider.
 
     Args:
         data_dir: Root data directory. Defaults to the DATA_DIR config value.
+            The raw CSVs are expected at {data_dir}/../data/raw/ relative to
+            the config DATA_DIR, or at data/raw/ relative to cwd.
     Raises:
-        IngestionError: If Neo4j is unreachable or data validation fails.
+        IngestionError: If Neo4j is unreachable or CSV normalisation fails.
     """
     from neo4j import GraphDatabase  # noqa: PLC0415
 
+    from tributary.ingestion.csv_normalizer import build_models, write_fx_rates_file  # noqa: PLC0415
+
     resolved_dir = Path(data_dir) if data_dir is not None else Path(DATA_DIR)
-    logger.info("Loading golden data", extra={"data_dir": str(resolved_dir)})
-    golden = load_golden_data(resolved_dir)
+
+    # Resolve the raw CSV directory: try data/raw/ next to the data/ dir.
+    raw_dir = (resolved_dir / "raw").resolve()
+    if not raw_dir.exists():
+        # Fallback: look for data/raw/ relative to cwd.
+        raw_dir = Path("data/raw").resolve()
+
+    logger.info("Normalising Lenovo CSVs", extra={"raw_dir": str(raw_dir)})
+    models = build_models(raw_dir)
+
+    # Write fx_rates.json so the engine CLI's FileFXRateProvider can read it.
+    fx_dest = resolved_dir / "golden" / "fx_rates.json"
+    write_fx_rates_file(models["fx_rates"], fx_dest)
 
     try:
         driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
@@ -382,14 +421,15 @@ def run_seed(data_dir: Path | None = None) -> None:
         logger.error("Neo4j unreachable", extra={"error": str(exc)})
         raise IngestionError("Start Neo4j with 'docker-compose up -d' before seeding") from exc
 
-    logger.info("Neo4j connected — seeding golden scenario")
+    logger.info("Neo4j connected — seeding Lenovo data")
     with driver.session() as session:
-        seed_entities(session, golden["entities"])
-        seed_accounts(session, golden["accounts"])
-        seed_ownership(session, golden["ownership"])
-        seed_transactions(session, golden["transactions"])
-        seed_presence_records(session, golden["presence_records"])
-        seed_prior_losses(session, golden["prior_losses"])
+        seed_all(session, models)
 
     driver.close()
-    logger.info("Golden seed complete")
+    logger.info(
+        "Seed complete",
+        extra={
+            "entities": len(models["entities"]),
+            "transactions": len(models["transactions"]),
+        },
+    )

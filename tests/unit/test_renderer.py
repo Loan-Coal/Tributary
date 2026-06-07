@@ -56,7 +56,7 @@ def _obligation(
 ) -> ObligationResult:
     return ObligationResult(
         obligation_id=str(uuid.uuid4()),
-        entity_id="MERID-HK",
+        entity_id="LENOVO-HK",
         jurisdiction="HK",
         obligation_type=obligation_type,
         fiscal_period=_PERIOD,
@@ -104,7 +104,7 @@ def _brief(
     secs = sections or [_section()]
     return FilingBrief(
         brief_id=str(uuid.uuid4()),
-        entity_id="MERID-HK",
+        entity_id="LENOVO-HK",
         entity_name="Meridian HK",
         jurisdiction=jurisdiction,
         fiscal_period=_PERIOD,
@@ -358,7 +358,7 @@ class TestRenderBriefMarkdownAsOfDateFilter:
 class TestRenderBriefMarkdownPEDays:
     def test_pe_days_threshold_shows_days_not_currency(self):
         t = ThresholdResult(
-            entity_id="MERID-HK",
+            entity_id="LENOVO-HK",
             jurisdiction="HK",
             rule_id="HK-PE-DAYS",
             threshold_name="PE Day Count",

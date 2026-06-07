@@ -1,16 +1,16 @@
 [
   {
-    "from_currency": "EUR",
-    "to_currency": "HKD",
-    "rate": "8.50",
-    "rate_date": "2025-01-01",
-    "source": "ECB reference rate (illustrative)"
-  },
-  {
     "from_currency": "USD",
     "to_currency": "HKD",
     "rate": "7.78",
     "rate_date": "2025-01-01",
-    "source": "HKMA reference rate (illustrative)"
+    "source": "hardcoded-demo"
+  },
+  {
+    "from_currency": "EUR",
+    "to_currency": "HKD",
+    "rate": "8.50",
+    "rate_date": "2025-01-01",
+    "source": "hardcoded-demo"
   }
 ]

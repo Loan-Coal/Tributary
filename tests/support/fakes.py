@@ -1,21 +1,18 @@
 """
 Module: fakes
 Layer: test-support
-Purpose: In-memory test doubles for the graph layer (FakeGraphReader / CollectingGraphWriter)
-    backed by the golden JSON fixtures. They implement the GraphReader / GraphWriter protocols
-    so the engine can be tested as if a real Neo4j-backed graph were present. The golden JSON
-    also stands in for the ingestion layer's normalised output.
-Dependencies: json, pathlib, tributary.common
+Purpose: In-memory test doubles for the graph layer (FakeGraphReader / CollectingGraphWriter).
+    Data is sourced from csv_normalizer.build_models() — the same normaliser used in production
+    — so unit tests run against the same Lenovo-derived scenario as the real pipeline.
+    No static JSON fixtures are loaded; the CSVs in data/raw/ are the single source of truth.
+Dependencies: pathlib, tributary.common, tributary.ingestion.csv_normalizer
 Used by: engine unit + integration tests
 """
 from __future__ import annotations
 
-import json
 from datetime import date
 from pathlib import Path
-from typing import Any, TypeVar
-
-from pydantic import BaseModel
+from typing import Any
 
 from tributary.common.errors import CounterpartyNotFoundError, EntityNotFoundError
 from tributary.common.models import (
@@ -32,44 +29,42 @@ from tributary.common.models import (
     TransactionRecord,
 )
 
-_M = TypeVar("_M", bound=BaseModel)
-
-GOLDEN_DIR = Path(__file__).resolve().parents[2] / "data" / "golden"
+_DEFAULT_RAW_DIR = Path(__file__).resolve().parents[2] / "data" / "raw"
 
 
-def _load(path: Path, model_cls: type[_M]) -> list[_M]:
-    """Load a JSON array file and validate each item as model_cls."""
-    raw = json.loads(path.read_text(encoding="utf-8"))
-    return [model_cls.model_validate(item) for item in raw]
+def load_golden_models(raw_dir: Path = _DEFAULT_RAW_DIR) -> dict[str, list[Any]]:
+    """Load canonical models from the CSV normaliser.
 
-
-def load_golden_models(golden_dir: Path = GOLDEN_DIR) -> dict[str, list[Any]]:
-    """Load and validate the golden fixtures into Pydantic models.
+    Calls csv_normalizer.build_models() so tests use the same Lenovo-derived
+    data as the production ingestion pipeline.
 
     Args:
-        golden_dir: Directory containing the golden JSON files.
+        raw_dir: Directory containing the Lenovo balance-sheet CSVs.
     Returns:
         Dict of model lists keyed by data type.
     """
+    from tributary.ingestion.csv_normalizer import build_models  # noqa: PLC0415
+
+    models = build_models(raw_dir)
     return {
-        "entities": _load(golden_dir / "entities.json", EntityRecord),
-        "ownership": _load(golden_dir / "ownership.json", OwnershipRecord),
-        "transactions": _load(golden_dir / "transactions.json", TransactionRecord),
-        "presence": _load(golden_dir / "presence_records.json", PresenceRecord),
-        "losses": _load(golden_dir / "prior_losses.json", PriorPeriodLoss),
+        "entities": models["entities"],
+        "ownership": models["ownership"],
+        "transactions": models["transactions"],
+        "presence": models["presence_records"],
+        "losses": models["prior_losses"],
     }
 
 
 class FakeGraphReader:
-    """In-memory GraphReader backed by golden fixtures (implements the GraphReader protocol)."""
+    """In-memory GraphReader backed by csv_normalizer data (implements the GraphReader protocol)."""
 
-    def __init__(self, golden_dir: Path = GOLDEN_DIR) -> None:
-        """Load the golden fixtures into memory.
+    def __init__(self, raw_dir: Path = _DEFAULT_RAW_DIR) -> None:
+        """Load Lenovo-derived models into memory.
 
         Args:
-            golden_dir: Directory containing the golden JSON files.
+            raw_dir: Directory containing the Lenovo balance-sheet CSVs.
         """
-        data = load_golden_models(golden_dir)
+        data = load_golden_models(raw_dir)
         self._entities: list[EntityRecord] = data["entities"]
         self._ownership: list[OwnershipRecord] = data["ownership"]
         self._transactions: list[TransactionRecord] = data["transactions"]

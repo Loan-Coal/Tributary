@@ -150,14 +150,14 @@ class TestScanGroupRelief:
         """Regression guard: HK/DE/FR have no bilateral GROUP_RELIEF rules → zero opportunities."""
         loader = JSONRulePackLoader(RULES_DIR)
         entities = [
-            _make_entity("MERID-HK", "HK"),
-            _make_entity("MERID-DE", "DE"),
-            _make_entity("MERID-FR", "FR"),
+            _make_entity("LENOVO-HK", "HK"),
+            _make_entity("LENOVO-DE", "DE"),
+            _make_entity("LENOVO-US", "FR"),
         ]
         bases = {
-            "MERID-HK": _make_base("MERID-HK", "HK", Decimal("2700000")),
-            "MERID-DE": _make_base("MERID-DE", "DE", Decimal("300000")),
-            "MERID-FR": _make_base("MERID-FR", "FR", Decimal("-150000")),
+            "LENOVO-HK": _make_base("LENOVO-HK", "HK", Decimal("2700000")),
+            "LENOVO-DE": _make_base("LENOVO-DE", "DE", Decimal("300000")),
+            "LENOVO-US": _make_base("LENOVO-US", "FR", Decimal("-150000")),
         }
 
         opportunities = scan_group_relief(bases, entities, loader)

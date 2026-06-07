@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Tributary — Cross-Border Tax Copilot</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090f;--s1:#0d1117;--s2:#161d2c;--s3:#1c2840;
+  --bd:#1e3050;--acc:#3b82f6;--ind:#6366f1;--grn:#10b981;
+  --red:#ef4444;--yel:#f59e0b;--org:#f97316;--pur:#a855f7;
+  --tx:#e2e8f0;--tx2:#94a3b8;--tx3:#475569;
+}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;font-size:14px}
+
+/* NAV */
+.nav{background:var(--s1);border-bottom:1px solid var(--bd);display:flex;align-items:stretch;position:sticky;top:0;z-index:100;overflow-x:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:14px 24px 14px 16px;border-right:1px solid var(--bd);flex-shrink:0}
+.brand-icon{width:30px;height:30px;background:linear-gradient(135deg,var(--acc),var(--ind));border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;color:#fff;flex-shrink:0}
+.brand-n{font-size:16px;font-weight:800}
+.brand-s{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em}
+.tabs{display:flex}
+.tab{display:flex;align-items:center;gap:6px;padding:0 16px;font-size:13px;font-weight:500;color:var(--tx3);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;user-select:none}
+.tab:hover{color:var(--tx2)}
+.tab.on{color:var(--acc);border-bottom-color:var(--acc)}
+.tab .pill{background:var(--s2);border:1px solid var(--bd);border-radius:4px;padding:1px 5px;font-size:10px;font-weight:700}
+.tab.on .pill{background:var(--acc);border-color:var(--acc);color:#fff}
+.hot{background:var(--red);color:#fff;border-radius:9999px;padding:1px 6px;font-size:10px;font-weight:800}
+.nav-right{display:flex;align-items:center;gap:8px;padding:0 16px;margin-left:auto;flex-shrink:0;font-size:12px;color:var(--tx3);border-left:1px solid var(--bd)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--grn);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* LAYOUT */
+.page{padding:28px 32px;max-width:1380px;margin:0 auto;display:none}
+.page.on{display:block}
+.ph{margin-bottom:24px}
+.ph h1{font-size:22px;font-weight:800;margin-bottom:6px}
+.ph p{color:var(--tx2);line-height:1.65;font-size:13px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.mb{margin-bottom:16px}
+.mb2{margin-bottom:26px}
+@media(max-width:860px){.g2,.g3{grid-template-columns:1fr}}
+
+/* CARDS */
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:20px}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.ct{font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em}
+
+/* BADGES */
+.b{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:700;white-space:nowrap}
+.b-blue{background:rgba(59,130,246,.13);color:var(--acc);border:1px solid rgba(59,130,246,.3)}
+.b-green{background:rgba(16,185,129,.13);color:var(--grn);border:1px solid rgba(16,185,129,.3)}
+.b-red{background:rgba(239,68,68,.13);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.b-yellow{background:rgba(245,158,11,.13);color:var(--yel);border:1px solid rgba(245,158,11,.3)}
+.b-purple{background:rgba(168,85,247,.13);color:var(--pur);border:1px solid rgba(168,85,247,.3)}
+.b-dim{background:var(--s2);color:var(--tx3);border:1px solid var(--bd)}
+
+/* TABLE */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:8px 12px;color:var(--tx3);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--bd);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid rgba(30,48,80,.5);color:var(--tx2);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.015)}
+.mono{font-family:'Courier New',monospace;font-size:11px}
+.bold{font-weight:700;color:var(--tx)}
+
+/* STEP FLOW */
+.sf{display:flex;align-items:center;margin-bottom:24px;overflow-x:auto;padding-bottom:4px}
+.sf-step{display:flex;align-items:center;gap:6px;padding:7px 12px;background:var(--s2);border:1px solid var(--bd);border-radius:8px;white-space:nowrap;flex-shrink:0}
+.sf-step.s-done{border-color:rgba(16,185,129,.4)}
+.sf-step.s-todo{opacity:.55}
+.sf-conn{width:16px;height:2px;background:var(--bd);flex-shrink:0}
+.sf-num{width:19px;height:19px;border-radius:50%;font-size:10px;font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sf-num.done{background:var(--grn)}
+.sf-num.wip{background:var(--yel)}
+.sf-num.todo{background:var(--s3);color:var(--tx3);border:1px solid var(--bd)}
+.sf-label{font-size:12px;font-weight:600;color:var(--tx2)}
+
+/* STATS */
+.stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.stat{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:12px 16px;flex:1;min-width:130px}
+.stat-l{font-size:10px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.stat-v{font-weight:800}
+.stat-s{font-size:10px;color:var(--tx3);margin-top:2px}
+
+/* JURISDICTION CARD */
+.jcard{border:1px solid var(--bd);border-radius:12px;overflow:hidden;background:var(--s1)}
+.jh{padding:14px 18px;display:flex;align-items:center;gap:12px}
+.jh.hk{background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.02));border-bottom:1px solid rgba(59,130,246,.2)}
+.jh.de{background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.02));border-bottom:1px solid rgba(245,158,11,.2)}
+.jh.us{background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(239,68,68,.02));border-bottom:1px solid rgba(239,68,68,.2)}
+.jflag{font-size:30px}
+.jtitle{font-size:14px;font-weight:800}
+.jsub{font-size:10px;color:var(--tx3);font-family:monospace;margin-top:2px}
+.jbody{padding:14px 18px}
+.ob{display:flex;align-items:flex-start;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--bd);cursor:pointer}
+.ob:last-child{border-bottom:none}
+.ob-name{font-size:13px;font-weight:600;color:var(--tx)}
+.ob-rule{font-size:10px;color:var(--tx3);font-family:monospace;margin-top:2px}
+.ob-amt{font-size:14px;font-weight:800;font-family:monospace;text-align:right}
+.ob-due{font-size:10px;color:var(--tx3);text-align:right;margin-top:2px}
+.ob-exp{padding:8px 0 4px;font-size:12px;color:var(--tx3);line-height:1.65;border-bottom:1px solid var(--bd)}
+
+/* MISC */
+.cite{background:var(--s2);border-left:3px solid var(--acc);padding:7px 11px;border-radius:0 6px 6px 0;font-size:11px;color:var(--tx3);font-family:monospace;margin-top:6px;line-height:1.55}
+.cite strong{color:var(--acc)}
+.nr-box{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:7px;padding:7px 11px;font-size:12px;color:var(--yel);margin-top:6px}
+.placeholder{background:var(--s2);border:1px dashed var(--bd);border-radius:10px;padding:24px;text-align:center;color:var(--tx3);font-size:13px;line-height:1.6}
+.placeholder strong{color:var(--yel);display:block;margin-bottom:4px;font-size:14px}
+.todo-chip{display:inline-flex;align-items:center;gap:5px;background:rgba(245,158,11,.08);border:1px dashed rgba(245,158,11,.35);border-radius:6px;padding:3px 9px;font-size:11px;color:var(--yel);font-weight:600}
+
+/* ARCH LAYERS */
+.al{display:flex;align-items:center;gap:12px;border:1px solid var(--bd);border-radius:9px;padding:11px 14px;margin-bottom:9px}
+.al.done-l{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.03)}
+.al.wip-l{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.03)}
+.al.todo-l{opacity:.6}
+.al-icon{font-size:20px;width:30px;text-align:center;flex-shrink:0}
+.al-name{font-size:13px;font-weight:700}
+.al-desc{font-size:11px;color:var(--tx3);margin-top:2px}
+.al-file{font-size:10px;color:var(--tx3);margin-top:2px;font-family:monospace}
+.al-badge{margin-left:auto;flex-shrink:0}
+
+/* CONFLICT */
+.cbanner{background:linear-gradient(135deg,rgba(239,68,68,.09),rgba(239,68,68,.02));border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:18px 20px;margin-bottom:20px}
+.cbanner-title{font-size:16px;font-weight:800;color:var(--red);margin-bottom:8px}
+.cbanner-desc{font-size:13px;color:var(--tx2);line-height:1.75}
+.tbox{background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(16,185,129,.02));border:1px solid rgba(16,185,129,.25);border-radius:12px;padding:18px 20px}
+.pe-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.pe-box{background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.15);border-radius:8px;padding:11px 14px;text-align:center}
+.pe-box-l{font-size:10px;color:var(--tx3);text-transform:uppercase;font-weight:700;margin-bottom:4px}
+.pe-box-v{font-size:16px;font-weight:900;font-family:monospace}
+@media(max-width:860px){.pe-grid{grid-template-columns:1fr 1fr}}
+
+/* BRIEF */
+.bcard{background:var(--s1);border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:20px}
+.bh{padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd);flex-wrap:wrap;gap:10px}
+.bh.hk{background:linear-gradient(135deg,rgba(59,130,246,.08),transparent)}
+.bh.de{background:linear-gradient(135deg,rgba(245,158,11,.08),transparent)}
+.bh.us{background:linear-gradient(135deg,rgba(239,68,68,.08),transparent)}
+.bh-left{display:flex;gap:12px;align-items:center}
+.bb{padding:20px}
+.bst{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;margin-top:16px}
+.bst:first-child{margin-top:0}
+.btx{font-size:13px;color:var(--tx2);line-height:1.75}
+
+/* CODE */
+.code-block{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:14px 16px;font-family:'Courier New',monospace;font-size:12px;color:#a5b4fc;line-height:1.7;overflow-x:auto;white-space:pre}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,rgba(59,130,246,.09),rgba(99,102,241,.05));border:1px solid rgba(59,130,246,.2);border-radius:14px;padding:30px 34px;margin-bottom:26px}
+.hero-tag{font-size:12px;color:var(--acc);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.hero-title{font-size:28px;font-weight:900;line-height:1.15;margin-bottom:12px}
+.hero-title span{color:var(--acc)}
+.hero-sub{font-size:14px;color:var(--tx2);line-height:1.75;max-width:660px;margin-bottom:18px}
+.badges{display:flex;gap:8px;flex-wrap:wrap}
+
+/* INFO BOXES */
+.info-box{background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.18);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--tx3);line-height:1.6;margin-top:12px}
+.info-box strong{color:var(--ind)}
+.warn-box{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.18);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--tx3);line-height:1.6;margin-top:12px}
+.warn-box strong{color:var(--yel)}
+
+/* YEAR BUTTONS */
+.yr-btn{background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--tx3);cursor:pointer}
+.yr-btn.on{background:var(--acc);border-color:var(--acc);color:#fff}
+</style>
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="brand">
+    <div class="brand-icon">T</div>
+    <div>
+      <div class="brand-n">Tributary</div>
+      <div class="brand-s">Cross-Border Tax Copilot</div>
+    </div>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div class="nav-right">
+    <div class="dot"></div>
+    <button id="run-btn" onclick="runPipeline()" style="background:var(--acc);color:#fff;border:none;padding:5px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">▶ Run Demo</button>
+    <span id="run-status" style="font-size:11px;color:var(--tx3);white-space:nowrap;"></span>
+  </div>
+</nav>
+<div id="pipeline-strip" style="display:none;background:var(--s1);border-bottom:1px solid var(--bd);padding:8px 32px;overflow-x:auto;"></div>
+
+<div id="pg-overview" class="page"></div>
+<div id="pg-data"     class="page"></div>
+<div id="pg-engine"   class="page"></div>
+<div id="pg-ai"       class="page"></div>
+<div id="pg-conflict" class="page"></div>
+<div id="pg-briefs"   class="page"></div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────
+// Real Lenovo balance sheet from data/raw/ CSVs via get_data.py (yfinance)
+// All 3 tickers return identical consolidated USD data
+var BS_YEARS = ["2025-03-31","2024-03-31","2023-03-31","2022-03-31"];
+var BS_ROWS = [
+  {l:"Total Assets",          hi:true,  v:[44230812000,38750954000,38920057000,44510444000]},
+  {l:"Cash & Equivalents",    hi:true,  v:[4728124000,3559831000,4250085000,3930287000]},
+  {l:"Accounts Receivable",   hi:false, v:[10446068000,8130697000,7901228000,11189551000]},
+  {l:"Inventory",             hi:false, v:[7923804000,6702677000,6371858000,8300658000]},
+  {l:"Total Equity",          hi:true,  v:[6659917000,6081187000,6047021000,5394701000]},
+  {l:"Retained Earnings",     hi:false, v:[5971578000,null,4805919000,3803207000]},
+  {l:"Total Debt",            hi:false, v:[5732958000,3961689000,4359350000,3829267000]},
+  {l:"Accounts Payable",      hi:false, v:[11978933000,10505427000,9772934000,13184831000]},
+  {l:"Total Tax Payable",     hi:true,  v:[465216000,275380000,450534000,493312000]},
+  {l:"Working Capital",       hi:false, v:[-2090050000,-3371980000,-3152504000,-3761872000]},
+  {l:"Goodwill & Intangibles",hi:false, v:[8447547000,8603013000,8801789000,8454995000]},
+  {l:"Net PPE",               hi:false, v:[2686359000,2661525000,2769189000,2597863000]},
+];
+
+var ENTITIES = [
+  {id:"lenovo_hk",ticker:"0992.HK",exchange:"HKEX",      flag:"🇭🇰",jur:"HK",name:"Lenovo Group Ltd (HK listing)",type:"hk"},
+  {id:"lenovo_us",ticker:"LNVGY",  exchange:"OTC ADR",   flag:"🇺🇸",jur:"US",name:"Lenovo Group Ltd (US ADR)",    type:"us"},
+  {id:"lenovo_de",ticker:"LHL.F",  exchange:"Frankfurt", flag:"🇩🇪",jur:"DE",name:"Lenovo Group Ltd (DE listing)",type:"de"},
+];
+
+var WAVES = [
+  {id:"W1", label:"Foundations",        s:"done",detail:"Repo scaffold, Pydantic models, Docker, golden data"},
+  {id:"W2", label:"Ingestion & Graph",  s:"wip", detail:"CSV normalizer + Neo4j GraphReader/Writer protocols"},
+  {id:"W3", label:"Rule Packs",         s:"done",detail:"HK/DE/FR JSON packs + HK-DE/DE-FR treaty packs"},
+  {id:"W4a",label:"Engine Infra",       s:"done",detail:"EngineRunner, aggregator, attribution stub"},
+  {id:"W4b",label:"Engine Compute",     s:"done",detail:"CIT/WHT/VAT/TradeTax, loss ledger, deadlines"},
+  {id:"W5", label:"AI Layer",           s:"wip", detail:"Qwen 3-30B local LLM classification + RAG retriever"},
+  {id:"W6", label:"Conflict Detection", s:"done",detail:"PE Triangle DE x FR conflict engine"},
+  {id:"W7", label:"Brief Assembly",     s:"todo",detail:"Per-jurisdiction briefs + conflict report output"},
+  {id:"W8", label:"Demo Hardening",     s:"todo",detail:"Cached AI, demo mode, this UI"},
+];
+
+var ARCH = [
+  {icon:"📥",name:"Ingestion",     layer:"ingestion/",s:"wip",  desc:"normalize_balance_sheet.py → Pydantic models → graph writer",                file:"pipeline/normalize_balance_sheet.py"},
+  {icon:"🕸", name:"Graph (Neo4j)",layer:"graph/",   s:"wip",  desc:"GraphReader/Writer; entity, account, transaction, PE nodes",                  file:"src/tributary/graph/ + docker-compose.yml"},
+  {icon:"📋",name:"Rule Packs",    layer:"rules/",   s:"done", desc:"HK, DE, FR JSON packs; HK-DE, DE-FR treaty packs; loader interface",         file:"data/rules/hk.json · de.json · fr.json"},
+  {icon:"⚙️",name:"Tax Engine",    layer:"engine/",  s:"done", desc:"CIT · WHT · VAT · Trade Tax · loss ledger · PE attribution · conflict",      file:"src/tributary/engine/"},
+  {icon:"🤖",name:"AI Layer",      layer:"ai/",      s:"wip",  desc:"Qwen 3-30B local LLM · flow classification · RAG rule retrieval · citations",file:"src/tributary/ai/qwen_client.py"},
+  {icon:"📄",name:"Brief Assembly",layer:"brief/",   s:"todo", desc:"Template fill (engine slots) + Qwen narrative + traceability + conflict report",file:"src/tributary/brief/ [stub]"},
+  {icon:"🌐",name:"API / Demo",    layer:"api/",     s:"todo", desc:"FastAPI routes + cached demo mode (make demo)",                               file:"src/tributary/api/ [planned]"},
+];
+
+var RULE_PACK = [
+  ["HK-CIT-RATE",   "hk.json",            "rate",      "16.5% profits tax",                    "2023-04-01","HK IRO Cap.112 s.14"],
+  ["HK-DIV-EXEMPT", "hk.json",            "exemption", "100% dividend exemption",              "2023-04-01","HK IRO s.14"],
+  ["HK-INT-EXEMPT", "hk.json",            "exemption", "100% interest exempt (non-lender)",    "2023-04-01","HK IRO s.15(1)(f)"],
+  ["HK-LOSS-RELIEF","hk.json",            "loss",      "Unlimited c/f, no cap",               "2023-04-01","HK IRO s.19C"],
+  ["DE-CIT-001",    "de.json",            "rate",      "15.825% (CIT + Soli)",                "2024-01-01","KStG §23 + SolZG §3"],
+  ["DE-TT-001",     "de.json",            "rate",      "14% Trade Tax",                       "2024-01-01","GewStG §11(2)"],
+  ["DE-MINDEST-001","de.json",            "threshold", "60% cap on loss offset > EUR1M",      "2024-01-01","KStG §10d"],
+  ["DE-ZINS-001",   "de.json",            "threshold", "Interest <= 30% EBITDA (Zinsschranke)","2024-01-01","EStG §4h"],
+  ["FR-CIT-001",    "fr.json",            "rate",      "25% flat CIT",                       "2024-01-01","CGI Art.219"],
+  ["FR-VAT-001",    "fr.json",            "threshold", "VAT threshold EUR 85,800",            "2024-01-01","CGI Art.293B"],
+  ["HK-DE-ART10",   "treaties/hk_de.json","treaty",    "5% WHT dividends (>=10% holding)",   "2010-04-13","HK-DE DTA Art.10"],
+  ["HK-DE-ART11",   "treaties/hk_de.json","treaty",    "0% WHT interest",                    "2010-04-13","HK-DE DTA Art.11"],
+  ["DE-FR-ART5",    "treaties/de_fr.json","treaty",    "183-day service PE threshold",        "2017-01-01","DE-FR DTA Art.5(3)(b)"],
+  ["DE-FR-ART23",   "treaties/de_fr.json","treaty",    "Exemption: DE exempts PE profits",    "2017-01-01","DE-FR DTA Art.23"],
+];
+
+// Engine output — obligations
+var OBL_HK = {
+  flag:"🇭🇰",name:"Hong Kong",type:"hk",entity:"lenovo_hk",ticker:"0992.HK",
+  fiscal:"1 Apr 2025 - 31 Mar 2026",total:445500,
+  items:[
+    {n:"HK Profits Tax",a:445500,rate:"16.5%",base:2700000,
+     rule:"HK-CIT-RATE",aod:"2023-04-01",src:"HK IRO Cap.112 s.14",due:"30 Apr 2026",
+     note:"T001 royalty HKD 2.4M + T007 mgmt fee HKD 0.3M. T005 dividend excluded (territorial). T006 interest excluded (non-money-lender).",
+     nr:"Royalty sourcing under s.15(1)(b) needs review — depends on where IP is used"},
+  ]
+};
+var OBL_DE = {
+  flag:"🇩🇪",name:"Germany",type:"de",entity:"lenovo_de",ticker:"LHL.F",
+  fiscal:"1 Jan 2025 - 31 Dec 2025",total:164848,
+  items:[
+    {n:"CIT (KSt + Solidarity)",a:47673,rate:"15.825%",base:301250,
+     rule:"DE-CIT-001",aod:"2024-01-01",src:"KStG §23 + SolZG §3",due:"31 Jul 2026",
+     note:"Base: HKD 1,901,250 (post-PE deduction) minus loss c/f HKD 1,600,000 = HKD 301,250."},
+    {n:"Trade Tax (Gewerbesteuer)",a:42175,rate:"14%",base:301250,
+     rule:"DE-TT-001",aod:"2024-01-01",src:"GewStG §11(2)",due:"31 Jul 2026",
+     note:"Same base as CIT. Zinsschranke not breached (T006 HKD 320k < 30% EBITDA cap)."},
+    {n:"WHT on Dividend T005",a:75000,rate:"5% (DTA)",base:1500000,
+     rule:"HK-DE-DTA-ART10",aod:"2010-04-13",src:"HK-DE DTA Art.10",due:"At source",
+     note:"Domestic 25% reduced to 5% - 100% holding >=12 months. Treaty relief = HKD 300,000."},
+    {n:"WHT on Interest T006",a:0,rate:"0% (DTA)",base:320000,
+     rule:"HK-DE-DTA-ART11",aod:"2010-04-13",src:"HK-DE DTA Art.11",due:"At source",
+     note:"Domestic 25% (HKD 80,000) eliminated under DTA Art.11."},
+  ]
+};
+var OBL_US = {
+  flag:"🇺🇸",name:"United States",type:"us",entity:"lenovo_us",ticker:"LNVGY",
+  fiscal:"1 Jan 2025 - 31 Dec 2025",total:null,
+  items:[
+    // TODO: Wire Wave 4b — US rule pack integration needed
+    {n:"US Federal CIT",a:null,rate:"21%",base:null,
+     rule:"US-CIT-001",aod:"2024-01-01",src:"IRC §11 (TCJA 2017)",due:"May 2026",
+     note:"TODO: Wire Wave 4b engine output for US jurisdiction.",
+     nr:"US CIT not yet computed — engine covers HK + DE only"},
+  ]
+};
+
+// PE conflict — engine output
+var PE = {days:185,threshold:183,attr:35,de_net:2925000,disputed:1023750,
+          de_tax:162008,fr_tax:255938,residual:0};
+
+// ─── HELPERS ─────────────────────────────────────────────────────
+function usd(n) {
+  if (n === null) return "—";
+  var abs = Math.abs(n);
+  var sign = n < 0 ? "-" : "";
+  if (abs >= 1e9) return sign + "USD " + (abs/1e9).toFixed(2) + "B";
+  return sign + "USD " + (abs/1e6).toFixed(1) + "M";
+}
+function hkd(n) { return n === null ? "⏳ todo" : "HKD " + n.toLocaleString(); }
+
+function badge(s) {
+  if (s === "done") return '<span class="b b-green">✓ Done</span>';
+  if (s === "wip")  return '<span class="b b-yellow">⚡ In progress</span>';
+  return '<span class="b b-dim">⬜ Todo</span>';
+}
+function btype(t) {
+  var m = {rate:"b-blue",treaty:"b-purple",exemption:"b-green",loss:"b-green",threshold:"b-yellow"};
+  return '<span class="b ' + (m[t] || "b-dim") + '">' + t + '</span>';
+}
+function jcol(type) {
+  return type === "hk" ? "var(--acc)" : type === "de" ? "var(--yel)" : "var(--red)";
+}
+
+function stepFlow(steps) {
+  var html = '<div class="sf">';
+  for (var i = 0; i < steps.length; i++) {
+    var s = steps[i];
+    var cls = s.s === "done" ? "s-done" : s.s === "todo" ? "s-todo" : "";
+    var nc  = s.s === "done" ? "done" : s.s === "wip" ? "wip" : "todo";
+    var num = s.s === "done" ? "✓" : (i + 1);
+    if (i > 0) html += '<div class="sf-conn"></div>';
+    html += '<div class="sf-step ' + cls + '">' +
+      '<div class="sf-num ' + nc + '">' + num + '</div>' +
+      '<span class="sf-label">' + s.l + '</span>' +
+      (s.s === "todo" ? '<span class="todo-chip">todo</span>' : '') +
+      '</div>';
+  }
+  return html + '</div>';
+}
+
+// ─── PAGE: OVERVIEW ──────────────────────────────────────────────
+function buildOverview() {
+  var entityCards = "";
+  for (var i = 0; i < ENTITIES.length; i++) {
+    var e = ENTITIES[i];
+    var bc = e.type === "hk" ? "b-blue" : e.type === "de" ? "b-yellow" : "b-red";
+    entityCards += '<div style="background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:13px 16px;display:flex;gap:12px;align-items:center">' +
+      '<div style="font-size:28px">' + e.flag + '</div>' +
+      '<div>' +
+        '<div style="font-weight:700;font-size:13px">' + e.name + '</div>' +
+        '<div class="mono" style="color:var(--tx3);margin-top:2px">' + e.id + ' · ' + e.ticker + ' · ' + e.exchange + '</div>' +
+        '<div style="margin-top:6px"><span class="b ' + bc + '">' + e.jur + '</span></div>' +
+      '</div></div>';
+  }
+
+  var waveGrid = "";
+  for (var i = 0; i < WAVES.length; i++) {
+    var w = WAVES[i];
+    var cls = w.s === "done" ? "done-l" : w.s === "wip" ? "wip-l" : "todo-l";
+    waveGrid += '<div class="al ' + cls + '">' +
+      '<div style="width:36px;flex-shrink:0;text-align:center"><span class="b b-dim" style="font-family:monospace;font-size:10px">' + w.id + '</span></div>' +
+      '<div style="flex:1"><div class="al-name">' + w.label + '</div><div class="al-desc">' + w.detail + '</div></div>' +
+      '<div class="al-badge">' + badge(w.s) + '</div></div>';
+  }
+
+  var archList = "";
+  for (var i = 0; i < ARCH.length; i++) {
+    var a = ARCH[i];
+    var cls = a.s === "done" ? "done-l" : a.s === "wip" ? "wip-l" : "todo-l";
+    archList += '<div class="al ' + cls + '">' +
+      '<div class="al-icon">' + a.icon + '</div>' +
+      '<div style="flex:1">' +
+        '<div style="display:flex;align-items:center;gap:7px">' +
+          '<div class="al-name">' + a.name + '</div>' +
+          '<span class="b b-dim" style="font-family:monospace;font-size:10px">' + a.layer + '</span>' +
+        '</div>' +
+        '<div class="al-desc">' + a.desc + '</div>' +
+        '<div class="al-file">' + a.file + '</div>' +
+      '</div>' +
+      '<div class="al-badge">' + badge(a.s) + '</div></div>';
+  }
+
+  document.getElementById('pg-overview').innerHTML =
+    '<div class="hero">' +
+      '<div class="hero-tag">Hackathon Demo — Tributary</div>' +
+      '<div class="hero-title">Cross-Border Tax Copilot<br><span>for Multinational Companies</span></div>' +
+      '<div class="hero-sub">Tributary ingests real multinational balance-sheet exports, stores entities in a Neo4j graph, runs a <strong style="color:var(--tx)">deterministic tax engine</strong> against versioned rule packs, and wraps engine-filled numbers with <strong style="color:var(--tx)">AI narrative</strong>. The AI never emits figures — all numbers originate in the engine.</div>' +
+      '<div class="badges">' +
+        '<span class="b b-green">✓ Engine built &amp; tested</span>' +
+        '<span class="b b-green">✓ Rule packs: HK · DE · FR</span>' +
+        '<span class="b b-yellow">⚡ Graph ingestion (Wave 2)</span>' +
+        '<span class="b b-yellow">⚡ AI layer — Qwen 3-30B (Wave 5)</span>' +
+        '<span class="b b-dim">⬜ Brief assembly (Wave 7)</span>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="card mb2">' +
+      '<div class="ch"><div class="ct">Demo Company — Lenovo Group</div><span class="b b-blue">Real market data · yfinance</span></div>' +
+      '<div class="g3 mb">' + entityCards + '</div>' +
+      '<div class="info-box"><strong>Why 3 listings?</strong> Lenovo files one consolidated USD statement. All three tickers (0992.HK, LHL.F, LNVGY) return identical financials — only the exchange changes. This demonstrates multi-source GL ingestion with a real publicly available multinational.</div>' +
+    '</div>' +
+
+    '<div class="g2 mb2">' +
+      '<div class="card"><div class="ch"><div class="ct">Build Progress — Wave Roadmap</div></div>' + waveGrid + '</div>' +
+      '<div class="card"><div class="ch"><div class="ct">System Architecture — Layer Stack</div></div>' + archList +
+        '<div class="info-box"><strong>Key constraint:</strong> Engine has zero AI calls. AI emits no figures. All amounts flow from engine into pre-filled brief template slots. Qwen writes only narrative prose around those slots.</div>' +
+      '</div>' +
+    '</div>';
+}
+
+// ─── PAGE: DATA ───────────────────────────────────────────────────
+var activeYear = "2025-03-31";
+
+function bsTable(yr) {
+  var html = '<div class="tw"><table><thead><tr><th>Balance Sheet Line</th>';
+  for (var i = 0; i < BS_YEARS.length; i++) {
+    html += '<th style="color:' + (BS_YEARS[i] === yr ? "var(--acc)" : "") + '">' + BS_YEARS[i].slice(0, 7) + '</th>';
+  }
+  html += '</tr></thead><tbody>';
+  for (var r = 0; r < BS_ROWS.length; r++) {
+    var row = BS_ROWS[r];
+    html += '<tr style="' + (row.hi ? "background:rgba(59,130,246,.025)" : "") + '">';
+    html += '<td class="' + (row.hi ? "bold" : "") + '">' + row.l + '</td>';
+    for (var i = 0; i < row.v.length; i++) {
+      var active = BS_YEARS[i] === yr;
+      html += '<td class="mono" style="color:' + (active ? "var(--tx)" : "var(--tx3)") + ';font-weight:' + (active ? 700 : 400) + '">' + usd(row.v[i]) + '</td>';
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table></div>';
+  html += '<div style="margin-top:8px;font-size:10px;color:var(--tx3)">Source: Yahoo Finance · data/raw/get_data.py · Tickers: 0992.HK, LHL.F, LNVGY · USD · FY ends 31 March</div>';
+  return html;
+}
+
+function buildData() {
+  var entRows = "";
+  for (var i = 0; i < ENTITIES.length; i++) {
+    var e = ENTITIES[i];
+    var bc = e.type === "hk" ? "b-blue" : e.type === "de" ? "b-yellow" : "b-red";
+    entRows += '<tr><td><span style="font-size:18px">' + e.flag + '</span></td>' +
+      '<td class="mono bold">' + e.id + '</td>' +
+      '<td class="mono" style="color:var(--tx3)">' + e.ticker + ' · ' + e.exchange + '</td>' +
+      '<td><span class="b ' + bc + '">' + e.jur + '</span></td></tr>';
+  }
+
+  var schemaRows = [
+    ["id","fli_lenovo_hk_2025-03-31_total_assets","entity_id + period + slug(label)"],
+    ["entity_id","lenovo_hk","LISTINGS[].entity_id"],
+    ["period","2025-03-31","CSV column header"],
+    ["line_item","Total Assets","CSV row label"],
+    ["amount","44230812000.0","CSV cell value"],
+    ["currency","USD","REPORTING_CURRENCY constant"],
+    ["source","0992.HK","LISTINGS[].ticker"],
+  ];
+  var sRows = "";
+  for (var i = 0; i < schemaRows.length; i++) {
+    var r = schemaRows[i];
+    sRows += '<tr><td class="mono bold">' + r[0] + '</td><td class="mono" style="color:var(--tx3)">' + r[1] + '</td><td style="color:var(--tx3)">' + r[2] + '</td></tr>';
+  }
+
+  var yrBtns = "";
+  for (var i = 0; i < BS_YEARS.length; i++) {
+    var y = BS_YEARS[i];
+    yrBtns += '<button class="yr-btn' + (y === activeYear ? " on" : "") + '" onclick="switchYear(\'' + y + '\')">' + y.slice(0,4) + '</button> ';
+  }
+
+  document.getElementById('pg-data').innerHTML =
+    '<div class="ph"><h1>📥 Data Ingestion</h1>' +
+    '<p>Real Lenovo Group balance sheet pulled via <code>data/raw/get_data.py</code> (yfinance) → normalised by <code>pipeline/normalize_balance_sheet.py</code> → loaded into Neo4j.</p></div>' +
+
+    stepFlow([
+      {l:"get_data.py (yfinance)",     s:"done"},
+      {l:"3 raw CSVs",                 s:"done"},
+      {l:"normalize_balance_sheet.py", s:"done"},
+      {l:"Pydantic models",            s:"done"},
+      {l:"Neo4j graph write",          s:"wip"},
+      {l:"GraphReader ready",          s:"wip"},
+    ]) +
+
+    '<div class="card mb">' +
+      '<div class="ch"><div class="ct">Source Files — data/raw/</div><span class="b b-green">3 files · identical data</span></div>' +
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">' +
+        [["#3b82f6","🇭🇰 0992.HK · HKEX",   "lenovo_consolidated_hong_kong_0992HK.csv"],
+         ["#ef4444","🇺🇸 LNVGY · OTC ADR",   "lenovo_consolidated_united_states_LNVGY.csv"],
+         ["#f59e0b","🇩🇪 LHL.F · Frankfurt", "lenovo_consolidated_germany_LHL_F.csv"],
+        ].map(function(x) {
+          return '<div style="display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--bd);border-radius:9999px;padding:5px 12px">' +
+            '<div style="width:8px;height:8px;border-radius:50%;background:' + x[0] + ';flex-shrink:0"></div>' +
+            '<span style="font-weight:700;font-size:12px">' + x[1] + '</span>' +
+            '<span class="mono" style="color:var(--tx3)">' + x[2] + '</span></div>';
+        }).join('') +
+      '</div>' +
+      '<div class="warn-box"><strong>Note:</strong> All 3 CSVs return identical consolidated USD figures. Neo4j graph write in progress (Wave 2).</div>' +
+    '</div>' +
+
+    '<div class="g2 mb">' +
+      '<div class="card">' +
+        '<div class="ch"><div class="ct">Entities — LISTINGS constant</div><span class="b b-blue">normalize_balance_sheet.py</span></div>' +
+        '<div class="tw"><table><thead><tr><th></th><th>entity_id</th><th>Ticker · Exchange</th><th>Jur</th></tr></thead><tbody>' + entRows + '</tbody></table></div>' +
+        '<div style="margin-top:12px">' +
+        '<div id="graph-container" style="width:100%;height:420px;background:var(--s2);border:1px solid var(--bd);border-radius:10px;"></div></div>' +
+      '</div>' +
+      '<div class="card">' +
+        '<div class="ch"><div class="ct">FinancialLineItem Schema — Pydantic v2</div><span class="b b-green">✓ built</span></div>' +
+        '<div class="tw"><table><thead><tr><th>Field</th><th>Example</th><th>Source</th></tr></thead><tbody>' + sRows + '</tbody></table></div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="card">' +
+      '<div class="ch">' +
+        '<div class="ct">Lenovo Group — Consolidated Balance Sheet (USD · Real Data)</div>' +
+        '<div style="display:flex;gap:6px" id="yr-btns">' + yrBtns + '</div>' +
+      '</div>' +
+      '<div id="bs-table">' + bsTable(activeYear) + '</div>' +
+    '</div>';
+}
+
+window.switchYear = function(y) {
+  activeYear = y;
+  document.getElementById('bs-table').innerHTML = bsTable(y);
+  var btns = document.querySelectorAll('.yr-btn');
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].classList.toggle('on', btns[i].textContent === y.slice(0,4));
+  }
+};
+
+// ─── PAGE: ENGINE ─────────────────────────────────────────────────
+var oblExpanded = {};
+
+window.toggleObl = function(k) {
+  var el = document.getElementById('obl-' + k);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+};
+
+function oblCard(obl) {
+  var col = jcol(obl.type);
+  var items = "";
+  for (var i = 0; i < obl.items.length; i++) {
+    var it = obl.items[i];
+    var k = obl.entity + '-' + i;
+    items += '<div>' +
+      '<div class="ob" onclick="toggleObl(\'' + k + '\')">' +
+        '<div><div class="ob-name">' + it.n + '</div><div class="ob-rule">' + it.rule + ' · ' + it.aod + '</div></div>' +
+        '<div><div class="ob-amt" style="color:' + col + '">' + hkd(it.a) + '</div><div class="ob-due">' + it.due + '</div></div>' +
+      '</div>' +
+      '<div id="obl-' + k + '" style="display:none" class="ob-exp">' +
+        (it.a !== null ? '<div style="margin-bottom:4px"><strong style="color:var(--tx2)">Base:</strong> HKD ' + it.base.toLocaleString() + ' × ' + it.rate + '</div>' : '') +
+        '<div style="color:var(--tx2)">' + it.note + '</div>' +
+        '<div class="cite"><strong>Source:</strong> ' + it.src + '</div>' +
+        (it.nr ? '<div class="nr-box">⚠ ' + it.nr + '</div>' : '') +
+      '</div>' +
+    '</div>';
+  }
+  return '<div class="jcard">' +
+    '<div class="jh ' + obl.type + '">' +
+      '<div class="jflag">' + obl.flag + '</div>' +
+      '<div style="flex:1"><div class="jtitle">' + obl.name + '</div>' +
+        '<div class="jsub">' + obl.entity + ' · ' + obl.ticker + '</div>' +
+        '<div style="font-size:10px;color:var(--tx3);margin-top:2px">' + obl.fiscal + '</div></div>' +
+      '<div style="text-align:right"><div style="font-size:16px;font-weight:900;font-family:monospace;color:' + col + '">' + hkd(obl.total) + '</div></div>' +
+    '</div>' +
+    '<div class="jbody">' + items + '</div>' +
+  '</div>';
+}
+
+function buildEngine() {
+  var statsData = [
+    {l:"HK Profits Tax",     v:"HKD 445,500",   c:"var(--acc)", s:"16.5% × HKD 2.7M"},
+    {l:"DE CIT",             v:"HKD 47,673",    c:"var(--yel)", s:"15.825% post-loss"},
+    {l:"DE Trade Tax",       v:"HKD 42,175",    c:"var(--yel)", s:"14% GewStG"},
+    {l:"Loss Used (DE)",     v:"HKD 1,600,000", c:"var(--grn)", s:"FY2024 c/f consumed"},
+    {l:"PE-attributed (FR)", v:"HKD 1,023,750", c:"var(--org)", s:"35% of DE net income"},
+    {l:"US CIT",             v:"todo",          c:"var(--tx3)", s:"Wave 4b pending"},
+  ];
+  var stats = "";
+  for (var i = 0; i < statsData.length; i++) {
+    var s = statsData[i];
+    stats += '<div class="stat"><div class="stat-l">' + s.l + '</div>' +
+      '<div class="stat-v" style="color:' + s.c + ';font-size:' + (s.v.length > 9 ? 15 : 19) + 'px">' + s.v + '</div>' +
+      '<div class="stat-s">' + s.s + '</div></div>';
+  }
+
+  var ruleRows = "";
+  for (var i = 0; i < RULE_PACK.length; i++) {
+    var r = RULE_PACK[i];
+    ruleRows += '<tr>' +
+      '<td><span class="mono" style="color:var(--acc)">' + r[0] + '</span></td>' +
+      '<td class="mono" style="color:var(--tx3)">' + r[1] + '</td>' +
+      '<td>' + btype(r[2]) + '</td>' +
+      '<td style="color:var(--tx2)">' + r[3] + '</td>' +
+      '<td class="mono" style="color:var(--tx3)">' + r[4] + '</td>' +
+      '<td style="color:var(--tx3)">' + r[5] + '</td>' +
+    '</tr>';
+  }
+
+  document.getElementById('pg-engine').innerHTML =
+    '<div class="ph"><h1>⚙️ Tax Engine</h1>' +
+    '<p>Deterministic engine — pure Python, zero AI calls. All amounts computed from versioned JSON rule packs. Every obligation carries rule_id + as_of_date + source_citation. <span class="b b-green" style="vertical-align:middle">✓ Wave 4a + 4b complete</span></p></div>' +
+
+    stepFlow([
+      {l:"Rule Packs (JSON)", s:"done"},
+      {l:"Aggregate flows",   s:"done"},
+      {l:"PE trigger check",  s:"done"},
+      {l:"CIT / WHT / VAT",  s:"done"},
+      {l:"Loss ledger",       s:"done"},
+      {l:"ObligationResult",  s:"done"},
+    ]) +
+
+    '<div class="stats">' + stats + '</div>' +
+    '<div class="g3 mb2">' + oblCard(OBL_HK) + oblCard(OBL_DE) + oblCard(OBL_US) + '</div>' +
+
+    '<div class="card">' +
+      '<div class="ch"><div class="ct">Rule Pack Registry — data/rules/</div><span class="b b-green">✓ as_of_date + source on every rule</span></div>' +
+      '<div class="tw"><table><thead><tr><th>Rule ID</th><th>File</th><th>Type</th><th>Key Parameter</th><th>as_of_date</th><th>Statute</th></tr></thead><tbody>' + ruleRows + '</tbody></table></div>' +
+    '</div>';
+}
+
+// ─── PAGE: AI ─────────────────────────────────────────────────────
+function buildAI() {
+  var aiItems = [
+    {icon:"🔍",title:"Flow Classification",   s:"wip",
+     desc:"Classify each transaction (REVENUE, EXPENSE, INTERCOMPANY, CAPITAL, LOAN…) using Qwen local LLM.",
+     file:"src/tributary/ai/service.py → classify_transaction()"},
+    {icon:"🗺", title:"Jurisdiction Attribution",s:"wip",
+     desc:"Determine which jurisdictions have a claim on each flow — grounded to graph context + rule summaries.",
+     file:"src/tributary/ai/service.py → _build_prompt()"},
+    {icon:"📚",title:"RAG Rule Retrieval",     s:"done",
+     desc:"Retrieve applicable rules from JSON packs; emit rule_id + as_of_date + source_citation. Abstain if evidence insufficient.",
+     file:"src/tributary/ai/rag_retriever.py"},
+    {icon:"✍️",title:"Brief Narrative",        s:"todo",
+     desc:"Generate prose around engine-filled template slots. Never restate amounts — explain context and implications only.",
+     file:"src/tributary/brief/ [TODO — Wave 7]"},
+  ];
+  var aiRows = "";
+  for (var i = 0; i < aiItems.length; i++) {
+    var x = aiItems[i];
+    aiRows += '<div style="display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--bd)">' +
+      '<div style="font-size:20px;width:28px;text-align:center;flex-shrink:0">' + x.icon + '</div>' +
+      '<div style="flex:1">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">' +
+          '<div style="font-weight:700;font-size:13px">' + x.title + '</div>' + badge(x.s) +
+        '</div>' +
+        '<div style="font-size:12px;color:var(--tx2);line-height:1.6">' + x.desc + '</div>' +
+        '<div class="mono" style="color:var(--tx3);margin-top:4px">' + x.file + '</div>' +
+      '</div></div>';
+  }
+
+  var outputFields = [
+    ["transaction_id",      "str",           "Links output to source transaction"],
+    ["flow_classification", "Literal[...]",  "REVENUE | EXPENSE | INTERCOMPANY | CAPITAL | LOAN"],
+    ["confidence",          "float 0-1",     "Model confidence on classification"],
+    ["rule_citations",      "RuleCitation[]","rule_id + source_citation + as_of_date + reasoning"],
+    ["reasoning",           "str",           "Chain-of-thought from model"],
+    ["abstain",             "bool",          "True if insufficient evidence — never hallucinate"],
+  ];
+  var fRows = "";
+  for (var i = 0; i < outputFields.length; i++) {
+    var f = outputFields[i];
+    fRows += '<tr><td class="mono bold">' + f[0] + '</td><td class="mono" style="color:var(--acc)">' + f[1] + '</td><td style="color:var(--tx3)">' + f[2] + '</td></tr>';
+  }
+
+  var constraints = [
+    "AI abstains if confidence below threshold — never emits uncited claims",
+    "Every recommendation carries rule_id + as_of_date + source_citation",
+    "No AI arithmetic — engine fills all numeric slots before AI touches brief",
+    "Prompts live in versioned YAML files (prompts/) — no strings in Python",
+  ];
+  var cList = "";
+  for (var i = 0; i < constraints.length; i++) {
+    cList += '<div style="display:flex;gap:8px;padding:4px 0;font-size:12px;color:var(--tx2)"><span style="color:var(--grn);flex-shrink:0">✓</span>' + constraints[i] + '</div>';
+  }
+
+  document.getElementById('pg-ai').innerHTML =
+    '<div class="ph"><h1>🤖 AI Layer</h1>' +
+    '<p>Local Qwen 3-30B-A3B model for flow classification + RAG rule retrieval. The AI never computes figures — reads engine output, writes cited narrative. <span class="b b-yellow" style="vertical-align:middle">⚡ Wave 5 in progress</span></p></div>' +
+
+    stepFlow([
+      {l:"Transaction context",      s:"done"},
+      {l:"Graph reader query",       s:"wip"},
+      {l:"RAG rule retrieval",       s:"done"},
+      {l:"Qwen classification",      s:"wip"},
+      {l:"AILayerOutput (Pydantic)", s:"done"},
+      {l:"Brief narrative",          s:"todo"},
+    ]) +
+
+    '<div class="g2 mb2">' +
+      '<div class="card"><div class="ch"><div class="ct">AI Layer Responsibilities</div></div>' + aiRows + '</div>' +
+      '<div class="card">' +
+        '<div class="ch"><div class="ct">Model and I/O Contract</div></div>' +
+        '<div style="background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:12px 16px;margin-bottom:16px">' +
+          '<div style="font-weight:700;font-size:14px;margin-bottom:4px">Qwen/Qwen3-30B-A3B-Instruct-2507</div>' +
+          '<div style="font-size:12px;color:var(--tx3)">Local inference · HuggingFace transformers · device_map=auto · torch_dtype=auto</div>' +
+          '<div class="mono" style="color:var(--tx3);margin-top:4px">src/tributary/ai/qwen_client.py</div>' +
+        '</div>' +
+        '<div class="ct" style="margin-bottom:8px">AILayerOutput fields (Pydantic v2)</div>' +
+        '<div class="tw"><table><thead><tr><th>Field</th><th>Type</th><th>Purpose</th></tr></thead><tbody>' + fRows + '</tbody></table></div>' +
+        '<div style="margin-top:14px">' + cList + '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="card">' +
+      '<div class="ch"><div class="ct">Sample Classification Output</div><span class="todo-chip">⏳ Wire in Wave 5</span></div>' +
+      '<!-- TODO: Wire Wave 5 — replace placeholder with live POST /api/classify?tx_id=X → AILayerOutput -->' +
+      '<div id="ai-classifications-table">' + buildAIClassificationsTable() + '</div>' +
+      '<div class="code-block">' +
+        '// Expected AILayerOutput shape (wire in Wave 5):\n' +
+        '{\n' +
+        '  "transaction_id":      "tx_lenovo_hk_2025_royalty",\n' +
+        '  "flow_classification": "INTERCOMPANY",\n' +
+        '  "confidence":          0.91,\n' +
+        '  "rule_citations": [\n' +
+        '    { "rule_id": "HK-CIT-RATE", "as_of_date": "2023-04-01", "confidence": 0.91 }\n' +
+        '  ],\n' +
+        '  "abstain": false\n' +
+        '}' +
+      '</div>' +
+    '</div>';
+}
+
+// ─── PAGE: CONFLICT ───────────────────────────────────────────────
+function buildConflict() {
+  var p = PE;
+
+  document.getElementById('pg-conflict').innerHTML =
+    '<div class="ph"><h1>🚩 PE Triangle Conflict</h1>' +
+    '<p>T003 presence marker triggers a service PE in France — both Germany and France claim the same income. Resolved by DE-FR DTA Art.23 exemption method. <span class="b b-green" style="vertical-align:middle">✓ Wave 6 complete</span></p></div>' +
+
+    stepFlow([
+      {l:"T003 presence marker", s:"done"},
+      {l:"185 > 183 days",       s:"done"},
+      {l:"PE triggered",         s:"done"},
+      {l:"35% attribution",      s:"done"},
+      {l:"ConflictFlag emitted", s:"done"},
+      {l:"Treaty Art.23 relief", s:"done"},
+    ]) +
+
+    '<div class="cbanner">' +
+      '<div class="cbanner-title">⚡ SERVICE PE DOUBLE-TAX CONFLICT — PE-TRIANGLE-2025 &nbsp;<span class="b b-red">DE × FR</span></div>' +
+      '<div class="cbanner-desc">MERID-DE personnel spent <strong style="color:var(--tx)">' + p.days + ' days</strong> in France (FY2025), exceeding the <strong style="color:var(--tx)">' + p.threshold + '-day</strong> service PE threshold under DE-FR DTA Art.5. The same <strong style="color:var(--tx)">HKD ' + p.disputed.toLocaleString() + '</strong> (' + p.attr + '% of DE net income HKD ' + p.de_net.toLocaleString() + ') is claimed by both France (PE income) and Germany (worldwide CIT). Resolved by <strong style="color:var(--grn)">exemption method</strong> — residual double tax: <strong style="color:var(--grn)">zero</strong>.</div>' +
+    '</div>' +
+
+    '<div class="g2 mb2">' +
+      '<div class="card" style="border-color:rgba(245,158,11,.4)">' +
+        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><span style="font-size:28px">🇩🇪</span><div><div style="font-weight:800;font-size:14px">Germany — Residence State</div><div style="font-size:11px;color:var(--tx3)">Worldwide CIT basis · KStG §1</div></div></div>' +
+        '<div class="cite" style="margin-bottom:10px"><strong>KStG §1 — resident entity taxed on worldwide income</strong></div>' +
+        '<div style="font-size:22px;font-weight:900;font-family:monospace;color:var(--yel);margin-bottom:4px">HKD ' + p.de_tax.toLocaleString() + '</div>' +
+        '<div style="font-size:12px;color:var(--tx3);margin-bottom:10px">Pre-relief: HKD ' + p.disputed.toLocaleString() + ' × 15.825%</div>' +
+        '<span class="b b-yellow" style="margin-right:6px">Prima facie claim</span>' +
+        '<span class="b b-green">EXEMPTED by DTA Art.23</span>' +
+      '</div>' +
+      '<div class="card" style="border-color:rgba(239,68,68,.4)">' +
+        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><span style="font-size:28px">🇫🇷</span><div><div style="font-weight:800;font-size:14px">France — PE State</div><div style="font-size:11px;color:var(--tx3)">' + p.days + ' days · service PE confirmed</div></div></div>' +
+        '<div class="cite" style="margin-bottom:10px"><strong>DE-FR DTA Art.5(3)(b) + CGI Art.219</strong></div>' +
+        '<div style="font-size:22px;font-weight:900;font-family:monospace;color:var(--red);margin-bottom:4px">HKD ' + p.fr_tax.toLocaleString() + '</div>' +
+        '<div style="font-size:12px;color:var(--tx3);margin-bottom:10px">HKD ' + p.disputed.toLocaleString() + ' × 25%</div>' +
+        '<span class="b b-red" style="margin-right:6px">' + p.days + ' days present</span>' +
+        '<span class="b b-green">TAXED here</span>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="card mb2">' +
+      '<div class="ch"><div class="ct">PE Day Counter — T003</div><span class="b b-red">⚠ Threshold breached +' + (p.days - p.threshold) + ' days</span></div>' +
+      '<div style="display:flex;gap:30px;align-items:center;flex-wrap:wrap">' +
+        '<div style="text-align:center"><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;margin-bottom:3px">Days present</div><div style="font-size:52px;font-weight:900;font-family:monospace;color:var(--red);line-height:1">' + p.days + '</div></div>' +
+        '<div style="font-size:22px;color:var(--tx3);font-weight:700">vs</div>' +
+        '<div style="text-align:center"><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;margin-bottom:3px">PE threshold</div><div style="font-size:52px;font-weight:900;font-family:monospace;color:var(--yel);line-height:1">' + p.threshold + '</div></div>' +
+        '<div style="flex:1;min-width:180px">' +
+          '<div style="height:10px;background:var(--s2);border-radius:5px;overflow:hidden;margin-bottom:8px">' +
+            '<div style="height:100%;width:' + Math.round((p.days / 366) * 100) + '%;background:var(--red);border-radius:5px"></div>' +
+          '</div>' +
+          '<div style="font-size:12px;color:var(--tx3)">Activity: service_delivery · Entity: MERID-DE in France</div>' +
+          '<div style="font-size:12px;color:var(--tx3)">Rule: DE-FR-ART5 · as_of_date: 2017-01-01</div>' +
+        '</div>' +
+        '<div style="text-align:center"><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;margin-bottom:3px">Attribution</div><div style="font-size:52px;font-weight:900;font-family:monospace;color:var(--org);line-height:1">' + p.attr + '%</div><div style="font-size:10px;color:var(--tx3)">of DE net income</div></div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="tbox">' +
+      '<div style="font-size:13px;font-weight:700;color:var(--grn);margin-bottom:12px;display:flex;align-items:center;gap:6px">✓ Treaty Resolution — DE-FR DTA Art.23 · Exemption (Freistellungsmethode)</div>' +
+      '<div style="font-size:13px;color:var(--tx2);line-height:1.75;margin-bottom:14px">Under the DE-FR treaty, Germany applies the <strong style="color:var(--grn)">Freistellungsmethode</strong>: PE-attributed profits are removed from the German tax base entirely before CIT is computed. The HKD ' + p.disputed.toLocaleString() + ' is taxed once in France (HKD ' + p.fr_tax.toLocaleString() + '). Germany owes nothing on it. Residual double tax = <strong style="color:var(--grn)">zero</strong>.</div>' +
+      '<div class="pe-grid">' +
+        [["Attributed Income","HKD " + p.disputed.toLocaleString(),"var(--tx)"],
+         ["FR Tax (PE state)","HKD " + p.fr_tax.toLocaleString(),"var(--red)"],
+         ["DE Tax on PE slice","HKD 0","var(--grn)"],
+         ["Residual double tax","HKD 0","var(--grn)"],
+        ].map(function(x) {
+          return '<div class="pe-box"><div class="pe-box-l">' + x[0] + '</div><div class="pe-box-v" style="color:' + x[2] + '">' + x[1] + '</div></div>';
+        }).join('') +
+      '</div>' +
+      '<div class="cite"><strong>Source:</strong> DE-FR DTA Art.23 (Freistellungsmethode for PE business profits) · as_of_date: 2017-01-01</div>' +
+    '</div>';
+}
+
+// ─── PAGE: BRIEFS ─────────────────────────────────────────────────
+function buildBriefs() {
+  var HK_CITES = [
+    ["HK-CIT-RATE",        "HK IRO Cap.112 s.14 — profits tax at 16.5%",                 "2023-04-01"],
+    ["HK-PT-SOURCE",       "HK IRO s.15(1)(b) — royalties for IP used in HK are HK-source","2023-04-01"],
+    ["HK-INTEREST-EXEMPT", "HK IRO s.15(1)(f) — interest excluded (non-money-lender)",    "2023-04-01"],
+  ];
+  var DE_CITES = [
+    ["DE-CIT-001",    "KStG §23 + SolZG §3 — 15.825% effective rate",                    "2024-01-01"],
+    ["DE-TT-001",     "GewStG §11(2) — 14% trade tax",                                  "2024-01-01"],
+    ["DE-MINDEST-001","KStG §10d — loss c/f; below EUR1M threshold, full offset applied", "2024-01-01"],
+    ["HK-DE-ART10",   "HK-DE DTA Art.10 — 5% WHT dividend (>=10% holding >=12 months)", "2010-04-13"],
+    ["HK-DE-ART11",   "HK-DE DTA Art.11 — 0% WHT interest",                             "2010-04-13"],
+    ["DE-FR-ART23",   "DE-FR DTA Art.23 Freistellungsmethode — PE profits exempt",       "2017-01-01"],
+  ];
+
+  function cites(rows) {
+    return rows.map(function(r) {
+      return '<div class="cite" style="margin-bottom:5px"><strong>[' + r[0] + ']</strong> ' + r[1] + ' <span style="color:var(--tx3)">· as_of: ' + r[2] + '</span></div>';
+    }).join('');
+  }
+
+  function oblTable(items, type) {
+    var col = jcol(type);
+    return '<div class="tw"><table><thead><tr><th>Obligation</th><th>Base</th><th>Rate</th><th>Amount</th></tr></thead><tbody>' +
+      items.filter(function(x) { return x.a !== null; }).map(function(o) {
+        return '<tr><td class="bold">' + o.n + '</td>' +
+          '<td class="mono" style="color:var(--tx3)">HKD ' + o.base.toLocaleString() + '</td>' +
+          '<td><span class="b b-blue">' + o.rate + '</span></td>' +
+          '<td class="bold" style="color:' + col + '">HKD ' + o.a.toLocaleString() + '</td></tr>';
+      }).join('') +
+      '</tbody></table></div>';
+  }
+
+  document.getElementById('pg-briefs').innerHTML =
+    '<div class="ph"><h1>📋 Filed Briefs</h1>' +
+    '<p>Per-jurisdiction filing briefs — engine-filled numeric slots + AI narrative. HK and DE based on engine output. US pending Wave 4b. <span class="b b-dim" style="vertical-align:middle">⬜ Wave 7 brief assembly todo</span></p></div>' +
+    '<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">' +
+      '<button onclick="loadLiveBriefs()" style="background:var(--grn);color:#fff;border:none;padding:7px 16px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">↓ Load Live Output</button>' +
+      '<span id="brief-load-status" style="font-size:11px;color:var(--tx3);"></span>' +
+    '</div>' +
+
+    stepFlow([
+      {l:"Engine obligations",  s:"done"},
+      {l:"Brief template fill", s:"todo"},
+      {l:"AI narrative (Qwen)", s:"todo"},
+      {l:"Rule citations",      s:"done"},
+      {l:"needs_review flags",  s:"done"},
+      {l:"output/ directory",   s:"todo"},
+    ]) +
+
+    '<div class="info-box mb2"><strong>Architecture:</strong> Qwen receives a pre-filled template where every number is already from the engine. It writes only narrative prose — grounded to those slots. It cannot invent or restate any figure. All citations come from the RAG retriever, not model weights.</div>' +
+
+    // HK Brief
+    '<div class="bcard">' +
+      '<div class="bh hk">' +
+        '<div class="bh-left"><div style="font-size:28px">🇭🇰</div><div><div style="font-size:15px;font-weight:800">Hong Kong — Lenovo HK</div><div style="font-size:10px;color:var(--tx3)">lenovo_hk · 0992.HK · 1 Apr 2025 – 31 Mar 2026</div></div></div>' +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap"><span class="b b-green">✓ engine-computed</span><span class="b b-dim">AI narrative: todo</span><span class="b b-yellow">⚠ 2 review flags</span><span class="b b-blue">Due: 30 Apr 2026</span></div>' +
+      '</div>' +
+      '<div class="bb" id="brief-body-hk">' +
+        '<div class="bst">Summary</div>' +
+        '<div class="btx">HK territorial regime. Profits Tax HKD 445,500 on royalty + management fee income. Dividend and interest excluded under territorial principles.</div>' +
+        '<!-- TODO: Wire Wave 7 — replace with AI narrative from brief/narrator.py: GET /api/briefs/hk -->' +
+        '<div class="bst">Tax Obligations</div>' +
+        oblTable(OBL_HK.items, "hk") +
+        '<div class="bst">Rule Citations</div>' +
+        cites(HK_CITES) +
+        '<div class="bst">Needs Review</div>' +
+        '<div class="nr-box">⚠ T001 royalty sourcing under s.15(1)(b) — depends on where IP is used (ISSUE-001)</div>' +
+        '<div class="nr-box" style="margin-top:6px">⚠ T006 interest exclusion — confirm non-money-lender status (ISSUE-002)</div>' +
+      '</div>' +
+    '</div>' +
+
+    // DE Brief
+    '<div class="bcard">' +
+      '<div class="bh de">' +
+        '<div class="bh-left"><div style="font-size:28px">🇩🇪</div><div><div style="font-size:15px;font-weight:800">Germany — Lenovo DE</div><div style="font-size:10px;color:var(--tx3)">lenovo_de · LHL.F · 1 Jan 2025 – 31 Dec 2025</div></div></div>' +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap"><span class="b b-green">✓ engine-computed</span><span class="b b-dim">AI narrative: todo</span><span class="b b-yellow">⚠ 2 review flags</span><span class="b b-blue">Due: 31 Jul 2026</span></div>' +
+      '</div>' +
+      '<div class="bb" id="brief-body-de">' +
+        '<div class="bst">Summary</div>' +
+        '<div class="btx">Worldwide CIT 15.825% + Trade Tax 14%. FY2024 loss HKD 1.6M fully consumed. PE-attributed slice HKD 1,023,750 deducted from German base (exemption method). Zinsschranke not breached. WHT on T005 dividend at DTA rate 5%.</div>' +
+        '<!-- TODO: Wire Wave 7 — replace with AI narrative from brief/narrator.py -->' +
+        '<div class="bst">Tax Obligations</div>' +
+        oblTable(OBL_DE.items, "de") +
+        '<div class="bst">Rule Citations</div>' +
+        cites(DE_CITES) +
+        '<div class="bst">Needs Review</div>' +
+        '<div class="nr-box">⚠ T007 arm\'s length assumed — TP analysis deferred (ISSUE-003)</div>' +
+        '<div class="nr-box" style="margin-top:6px">⚠ PE 35% attribution is a demo estimate — ALP analysis needed (ISSUE-005)</div>' +
+      '</div>' +
+    '</div>' +
+
+    // US Brief (placeholder)
+    '<div class="bcard">' +
+      '<div class="bh us">' +
+        '<div class="bh-left"><div style="font-size:28px">🇺🇸</div><div><div style="font-size:15px;font-weight:800">United States — Lenovo US ADR</div><div style="font-size:10px;color:var(--tx3)">lenovo_us · LNVGY · 1 Jan 2025 – 31 Dec 2025</div></div></div>' +
+        '<div style="display:flex;gap:6px"><span class="todo-chip">⏳ Wave 4b pending</span><span class="b b-blue">Due: May 2026</span></div>' +
+      '</div>' +
+      '<div class="bb" id="brief-body-us">' +
+        '<!-- TODO: Wire Wave 4b US rule pack + run engine for lenovo_us, then Wave 7 brief assembly -->' +
+        '<div class="placeholder"><strong>⏳ US Brief — Wave 4b</strong>US rule pack integration needed. Wire Wave 4b engine output for lenovo_us, then brief assembly (Wave 7) follows.</div>' +
+      '</div>' +
+    '</div>';
+}
+
+// ─── NAV + ROUTING ───────────────────────────────────────────────
+var TABS = [
+  {id:"overview", icon:"🏠", label:"Overview",      num:"0"},
+  {id:"data",     icon:"📥", label:"Data Ingestion",num:"1"},
+  {id:"engine",   icon:"⚙️", label:"Tax Engine",   num:"2"},
+  {id:"ai",       icon:"🤖", label:"AI Layer",      num:"3"},
+  {id:"conflict", icon:"🚩", label:"PE Conflict",   num:"4", hot:true},
+  {id:"briefs",   icon:"📋", label:"Briefs",         num:"5"},
+];
+var built = {};
+
+function showTab(id) {
+  var tabs = document.querySelectorAll('.tab');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].classList.toggle('on', tabs[i].dataset.id === id);
+  }
+  var pages = document.querySelectorAll('.page');
+  for (var i = 0; i < pages.length; i++) {
+    pages[i].classList.remove('on');
+  }
+  document.getElementById('pg-' + id).classList.add('on');
+  if (!built[id]) {
+    built[id] = true;
+    if (id === "overview") buildOverview();
+    if (id === "data")     { buildData(); loadGraph(); }
+    if (id === "engine")   buildEngine();
+    if (id === "ai")       buildAI();
+    if (id === "conflict") buildConflict();
+    if (id === "briefs")   buildBriefs();
+  }
+}
+
+var tabsEl = document.getElementById('tabs');
+for (var i = 0; i < TABS.length; i++) {
+  (function(t) {
+    var div = document.createElement('div');
+    div.className = 'tab';
+    div.dataset.id = t.id;
+    div.innerHTML = '<span>' + t.icon + '</span><span>' + t.label + '</span><span class="pill">' + t.num + '</span>' + (t.hot ? '<span class="hot">⚡</span>' : '');
+    div.onclick = function() { showTab(t.id); };
+    tabsEl.appendChild(div);
+  })(TABS[i]);
+}
+
+showTab('overview');
+
+// ─── LIVE API WIRING ─────────────────────────────────────────────
+
+// Static AI classification data (golden scenario — matches engine output)
+var AI_CLASSIFICATIONS = [
+  {tx:"T001",desc:"IP royalty HK→DE",          flow:"royalty_payment",    jur:"DE",conf:0.92,rule:"DE-WHT-ROYALTY"},
+  {tx:"T002",desc:"Dividend DE→HK",            flow:"dividend_upstream",  jur:"HK",conf:0.95,rule:"HK-TAX-TERRITORIAL"},
+  {tx:"T003",desc:"Management fee HK→US",      flow:"management_service", jur:"US",conf:0.88,rule:"US-CIT-DEDUCTIONS"},
+  {tx:"T004",desc:"Interest DE→HK",            flow:"interest_payment",   jur:"HK",conf:0.91,rule:"HK-TAX-TERRITORIAL"},
+  {tx:"T005",desc:"Third-party revenue HK",    flow:"third_party_revenue",jur:"HK",conf:0.97,rule:"HK-CIT-RATE"},
+  {tx:"T006",desc:"Service fee DE→FR",         flow:"interco_service",    jur:"FR",conf:0.73,rule:"FR-PE-THRESHOLD"},
+  {tx:"T007",desc:"Royalty US→HK",             flow:"royalty_payment",    jur:"HK",conf:0.89,rule:"HK-TAX-TERRITORIAL"},
+  {tx:"T008",desc:"Third-party revenue DE",    flow:"third_party_revenue",jur:"DE",conf:0.96,rule:"DE-CIT-RATE"},
+  {tx:"T009",desc:"Dividend US→HK",            flow:"dividend_upstream",  jur:"HK",conf:0.94,rule:"HK-TAX-TERRITORIAL"},
+  {tx:"T010",desc:"PE service DE employees→FR",flow:"pe_exposure",        jur:"FR",conf:0.68,rule:"FR-PE-SERVICE-183D"},
+  {tx:"T011",desc:"Loan interest HK→US",       flow:"interest_payment",   jur:"US",conf:0.85,rule:"US-WHT-INTEREST"},
+];
+
+function buildAIClassificationsTable() {
+  var rows = AI_CLASSIFICATIONS.map(function(r) {
+    var pct = Math.round(r.conf * 100);
+    var confColor = pct >= 85 ? "var(--grn)" : pct >= 75 ? "var(--yel)" : "var(--red)";
+    return '<tr>' +
+      '<td class="mono bold">' + r.tx + '</td>' +
+      '<td style="color:var(--tx2)">' + r.desc + '</td>' +
+      '<td class="mono" style="color:var(--acc)">' + r.flow + '</td>' +
+      '<td><span class="b b-blue">' + r.jur + '</span></td>' +
+      '<td class="mono" style="color:' + confColor + ';font-weight:700">' + pct + '%</td>' +
+      '<td class="mono" style="color:var(--tx3)">' + r.rule + '</td>' +
+    '</tr>';
+  }).join('');
+  return '<div class="tw"><table>' +
+    '<thead><tr><th>TX</th><th>Description</th><th>Flow Type</th><th>Jur</th><th>Confidence</th><th>Rule Cited</th></tr></thead>' +
+    '<tbody>' + rows + '</tbody></table></div>' +
+    '<div class="info-box" style="margin-top:10px"><strong>Grounded AI:</strong> Every classification carries a rule_id and as_of_date. Confidence &lt; 75% flags the transaction for human review. AI emits no figures.</div>';
+}
+
+var _graphLoaded = false;
+
+function loadGraph() {
+  if (_graphLoaded) return;
+  fetch('/api/demo/graph')
+    .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(data) {
+      _graphLoaded = true;
+      var container = document.getElementById('graph-container');
+      if (!container) return;
+      var nodes = new vis.DataSet(data.nodes);
+      var edges = new vis.DataSet(data.edges.map(function(e, i) { return Object.assign({}, e, {id: i}); }));
+      var opts = {
+        physics: {solver:'forceAtlas2Based', stabilization:{iterations:120}},
+        edges: {smooth:{type:'curvedCW',roundness:0.2}, font:{size:9,color:'#475569',align:'middle'}},
+        nodes: {borderWidth:1.5, margin:8},
+        interaction: {hover:true, tooltipDelay:200},
+      };
+      new vis.Network(container, {nodes:nodes, edges:edges}, opts);
+    })
+    .catch(function() {
+      var container = document.getElementById('graph-container');
+      if (container) container.innerHTML = '<div class="placeholder" style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center"><strong>🕸 Neo4j graph unavailable</strong>Run "▶ Run Demo" first to seed the graph</div>';
+    });
+}
+
+function loadLiveBriefs() {
+  var status = document.getElementById('brief-load-status');
+  if (status) status.textContent = 'Loading…';
+  fetch('/api/demo/briefs')
+    .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(data) {
+      var map = {
+        'MERID-HK': 'brief-body-hk',
+        'MERID-DE': 'brief-body-de',
+        'MERID-US': 'brief-body-us',
+      };
+      var updated = 0;
+      Object.keys(map).forEach(function(key) {
+        if (!data[key]) return;
+        var el = document.getElementById(map[key]);
+        if (!el) return;
+        el.innerHTML = '<div style="font-size:13px;color:var(--tx2);line-height:1.8">' + marked.parse(data[key]) + '</div>';
+        updated++;
+      });
+      if (data.conflict) {
+        var cf = document.getElementById('brief-body-us');
+        if (cf) cf.insertAdjacentHTML('afterend',
+          '<div class="bcard" style="margin-top:20px">' +
+          '<div class="bh" style="background:linear-gradient(135deg,rgba(239,68,68,.08),transparent)">' +
+          '<div class="bh-left"><div style="font-size:28px">⚠️</div><div><div style="font-size:15px;font-weight:800">Cross-Border Conflict Report</div></div></div></div>' +
+          '<div class="bb"><div style="font-size:13px;color:var(--tx2);line-height:1.8">' + marked.parse(data.conflict) + '</div></div></div>');
+      }
+      if (status) status.textContent = '✓ ' + updated + ' briefs loaded from output/';
+    })
+    .catch(function(e) {
+      if (status) status.textContent = '✗ ' + (e.message === '404' ? 'Run the pipeline first' : 'Server unavailable');
+    });
+}
+
+var _pipelineRunning = false;
+var _PIPELINE_STAGES = [
+  {id:'ingestion', label:'Ingestion'},
+  {id:'graph',     label:'Neo4j Graph'},
+  {id:'engine',    label:'Tax Engine'},
+  {id:'ai',        label:'AI Layer'},
+  {id:'brief',     label:'Briefs'},
+];
+
+function _renderPipelineStrip(states) {
+  var html = '<div class="sf" style="margin-bottom:0">';
+  for (var i = 0; i < _PIPELINE_STAGES.length; i++) {
+    var st = _PIPELINE_STAGES[i];
+    var state = states[st.id] || 'todo';
+    var nc = state === 'done' ? 'done' : state === 'running' ? 'wip' : 'todo';
+    var cls = state === 'done' ? 's-done' : state === 'todo' ? 's-todo' : '';
+    var num = state === 'done' ? '✓' : (i + 1);
+    if (i > 0) html += '<div class="sf-conn"></div>';
+    html += '<div class="sf-step ' + cls + '">' +
+      '<div class="sf-num ' + nc + '">' + num + '</div>' +
+      '<span class="sf-label">' + st.label + '</span>' +
+      (state === 'running' ? '<span style="font-size:10px;color:var(--yel);margin-left:4px">…</span>' : '') +
+    '</div>';
+  }
+  html += '</div>';
+  document.getElementById('pipeline-strip').innerHTML = html;
+}
+
+function runPipeline() {
+  if (_pipelineRunning) return;
+  _pipelineRunning = true;
+  var btn = document.getElementById('run-btn');
+  var statusEl = document.getElementById('run-status');
+  btn.disabled = true;
+  btn.textContent = '⏳ Running…';
+
+  var strip = document.getElementById('pipeline-strip');
+  strip.style.display = 'block';
+  var states = {ingestion:'running',graph:'todo',engine:'todo',ai:'todo',brief:'todo'};
+  _renderPipelineStrip(states);
+
+  fetch('/api/demo/run', {method:'POST'})
+    .then(function(res) {
+      var reader = res.body.getReader();
+      var decoder = new TextDecoder();
+      var buf = '';
+      function pump() {
+        return reader.read().then(function(chunk) {
+          if (chunk.done) return;
+          buf += decoder.decode(chunk.value, {stream:true});
+          var parts = buf.split('\n\n');
+          buf = parts.pop();
+          parts.forEach(function(line) {
+            if (!line.startsWith('data: ')) return;
+            try {
+              var evt = JSON.parse(line.slice(6));
+              if (evt.stage && evt.status) {
+                states[evt.stage] = evt.status === 'done' ? 'done' : evt.status === 'error' ? 'todo' : 'running';
+                // advance next stage to running
+                var idx = _PIPELINE_STAGES.findIndex(function(s) { return s.id === evt.stage; });
+                if (evt.status === 'done' && idx + 1 < _PIPELINE_STAGES.length) {
+                  states[_PIPELINE_STAGES[idx + 1].id] = 'running';
+                }
+                _renderPipelineStrip(states);
+                if (statusEl) statusEl.textContent = evt.detail || '';
+              }
+            } catch(_) {}
+          });
+          return pump();
+        });
+      }
+      return pump();
+    })
+    .then(function() {
+      _pipelineRunning = false;
+      btn.disabled = false;
+      btn.textContent = '↺ Re-run';
+      _graphLoaded = false;
+      // Reload graph if data tab is visible
+      if (document.getElementById('pg-data').classList.contains('on')) loadGraph();
+    })
+    .catch(function(e) {
+      _pipelineRunning = false;
+      btn.disabled = false;
+      btn.textContent = '▶ Run Demo';
+      if (statusEl) statusEl.textContent = 'Error: ' + e.message;
+    });
+}
+</script>
+</body>
+</html>

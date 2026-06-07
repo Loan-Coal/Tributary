@@ -59,15 +59,15 @@ class TestAdapterRunProducesResults:
 
     def test_hk_entity_present(self, adapter_results):
         entity_ids = {r.entity_id for r in adapter_results}
-        assert "MERID-HK" in entity_ids
+        assert "LENOVO-HK" in entity_ids
 
     def test_de_entity_present(self, adapter_results):
         entity_ids = {r.entity_id for r in adapter_results}
-        assert "MERID-DE" in entity_ids
+        assert "LENOVO-DE" in entity_ids
 
     def test_fr_entity_present(self, adapter_results):
         entity_ids = {r.entity_id for r in adapter_results}
-        assert "MERID-FR" in entity_ids
+        assert "LENOVO-FR" in entity_ids
 
 
 class TestAdapterStructurallyMatchesStub:
