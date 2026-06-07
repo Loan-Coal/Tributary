@@ -1,7 +1,7 @@
 """
 Module: app
 Layer: api
-Purpose: FastAPI application instance for the Tributary demo UI. Mounts static files
+Purpose: FastAPI application instance for the Turtle Tax demo UI. Mounts static files
     and registers the demo API router.
 Dependencies: fastapi, tributary.api.routes
 Used by: uvicorn entry point (uvicorn tributary.api.app:app)
@@ -19,7 +19,7 @@ from tributary.api.routes import router
 
 _STATIC_DIR = Path(__file__).parent.parent.parent.parent / "static"
 
-app = FastAPI(title="Tributary Demo", version="0.1.0")
+app = FastAPI(title="Turtle Tax Demo", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,

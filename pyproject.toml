@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "tributary"
 version = "0.1.0"
-description = "Cross-border tax copilot — deterministic engine with grounded AI narrative."
+description = "Turtle Tax — cross-border tax copilot with deterministic engine and grounded AI narrative."
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115",
