@@ -14,7 +14,7 @@ import json
 from tributary.common.errors import AILayerError
 from tributary.common.logging import get_logger
 from tributary.common.models_entity import JurisdictionCode
-from tributary.common.protocols_ai import LLMClientProtocol
+from tributary.common.protocols_ai import NarratorClientProtocol
 from tributary.prompts.loader import load_brief_narrative_prompts
 from .models import BriefSection, ConflictExplanation
 
@@ -108,11 +108,11 @@ class BriefNarrator:
     safe fallback message so the brief still renders from engine data alone.
     """
 
-    def __init__(self, llm_client: LLMClientProtocol) -> None:
-        """Wire the LLM client.
+    def __init__(self, llm_client: NarratorClientProtocol) -> None:
+        """Wire the narrator LLM client.
 
         Args:
-            llm_client: LLM client implementing the LLMClientProtocol.
+            llm_client: Client implementing NarratorClientProtocol (generate returns str).
         """
         self._client = llm_client
         self._prompts = load_brief_narrative_prompts()
