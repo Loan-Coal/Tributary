@@ -6,18 +6,16 @@ Built for the HKTE Euro Hackathon Munich 2026.
 
 ---
 
-## AI Layer Demo
+# AI Layer Demo
 
 ```bash
 cd /Tributary
 
-python3 examples/run_ai_layer.py          # deterministic (default)
+# Qwen backend
+python examples/run_ai_layer.py --backend qwen --limit 5
 
-
-python3 examples/run_ai_layer.py  -b qwen    # local LLM
-
-python3 examples/run_ai_layer.py            # deterministic (default)
-python3 examples/run_ai_layer.py -b qwen    # local LLM
+# Deterministic backend
+python examples/run_ai_layer.py --backend deterministic --limit 10
 ```
 
 ---

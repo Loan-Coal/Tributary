@@ -28,6 +28,10 @@ class RuleCitation(BaseModel):
     source_citation: str = Field(..., description="Authoritative public source text")
     as_of_date: str = Field(..., description="YYYY-MM-DD of the rule")
     confidence: float = Field(..., ge=0.0, le=1.0)
+    taxing_jurisdiction: str = Field(
+        default="",
+        description="ISO-3166-1 alpha-2 code of the jurisdiction whose tax authority administers this rule",
+    )
     reasoning: str = Field(..., description="Why this rule applies")
 
 
