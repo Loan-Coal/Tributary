@@ -12,3 +12,77 @@ Loading Qwen model 'Qwen/Qwen3-4B-Instruct-2507' [bfloat16 (no quantization)] (o
 Loading Qwen model in bfloat16 (~60 GB VRAM) ...
   [1/72] Net Tangible Assets: UNCLASSIFIED, taxing_jur=HK, top_conf=0.92 
   [2/72] Capital Lease Obligations: LOAN, taxing_jur=DE, top_conf=0.85 ⚠ CONFLICT
+  [3/72] Common Stock Equity: CAPITAL, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [4/72] Total Capitalization: CAPITAL, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [5/72] Total Equity Gross Minority Interest: CAPITAL, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [6/72] Minority Interest: CAPITAL, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [7/72] Stockholders Equity: CAPITAL, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [8/72] Other Equity Interest: CAPITAL, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [9/72] Fixed Assets Revaluation Reserve: CAPITAL, taxing_jur=HK, top_conf=0.92 
+  [10/72] Retained Earnings: CAPITAL, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [11/72] Capital Stock: CAPITAL, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [12/72] Common Stock: CAPITAL, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [13/72] Total Liabilities Net Minority Interest: LOAN, taxing_jur=DE, top_conf=0.85 ⚠ CONFLICT
+  [14/72] Total Non Current Liabilities Net Minority Interest: LOAN, taxing_jur=DE, top_conf=0.85 ⚠ CONFLICT
+  [15/72] Other Non Current Liabilities: LOAN, taxing_jur=DE, top_conf=0.85 ⚠ CONFLICT
+  [16/72] Derivative Product Liabilities: LOAN, taxing_jur=DE, top_conf=0.85 ⚠ CONFLICT
+  [17/72] Non Current Pension And Other Postretirement Benefit Plans: CAPITAL, taxing_jur=HK, top_conf=0.85 ⚠ CONFLICT
+  [18/72] Non Current Deferred Revenue: REVENUE, taxing_jur=abstain, top_conf=0.00 
+  [19/72] Non Current Deferred Taxes Liabilities: UNCLASSIFIED, taxing_jur=HK, top_conf=0.85 
+  [20/72] Long Term Debt And Capital Lease Obligation: LOAN, taxing_jur=DE, top_conf=0.90 ⚠ CONFLICT
+  [21/72] Long Term Capital Lease Obligation: LOAN, taxing_jur=DE, top_conf=0.90 ⚠ CONFLICT
+  [22/72] Long Term Debt: LOAN, taxing_jur=DE, top_conf=0.90 ⚠ CONFLICT
+  [23/72] Long Term Provisions: CAPITAL, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [24/72] Current Liabilities: LOAN, taxing_jur=DE, top_conf=0.85 ⚠ CONFLICT
+  [25/72] Other Current Liabilities: LOAN, taxing_jur=DE, top_conf=0.85 ⚠ CONFLICT
+  [26/72] Current Debt And Capital Lease Obligation: LOAN, taxing_jur=DE, top_conf=0.90 ⚠ CONFLICT
+  [27/72] Current Capital Lease Obligation: LOAN, taxing_jur=DE, top_conf=0.85 ⚠ CONFLICT
+  [28/72] Current Debt: LOAN, taxing_jur=DE, top_conf=0.90 ⚠ CONFLICT
+  [29/72] Current Provisions: UNCLASSIFIED, taxing_jur=abstain, top_conf=0.00 
+  [30/72] Payables: LOAN, taxing_jur=DE, top_conf=0.85 ⚠ CONFLICT
+  [31/72] Other Payable: LOAN, taxing_jur=DE, top_conf=0.85 ⚠ CONFLICT
+  [32/72] Total Tax Payable: UNCLASSIFIED, taxing_jur=abstain, top_conf=0.00 
+  [33/72] Accounts Payable: LOAN, taxing_jur=DE, top_conf=0.85 ⚠ CONFLICT
+  [34/72] Total Assets: UNCLASSIFIED, taxing_jur=HK, top_conf=0.85 
+  [35/72] Total Non Current Assets: UNCLASSIFIED, taxing_jur=HK, top_conf=0.92 
+  [36/72] Other Non Current Assets: UNCLASSIFIED, taxing_jur=HK, top_conf=0.85 
+  [37/72] Non Current Deferred Taxes Assets: UNCLASSIFIED, taxing_jur=HK, top_conf=0.85 
+  [38/72] Investmentin Financial Assets: CAPITAL, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [39/72] Available For Sale Securities: CAPITAL, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [40/72] Financial Assets Designatedas Fair Value Through Profitor Loss Total: UNCLASSIFIED, taxing_jur=HK, top_conf=0.85 
+  [41/72] Long Term Equity Investment: CAPITAL, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [42/72] Investmentsin Joint Venturesat Cost: CAPITAL, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [43/72] Investmentsin Associatesat Cost: CAPITAL, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [44/72] Goodwill And Other Intangible Assets: CAPITAL, taxing_jur=HK, top_conf=0.92 
+  [45/72] Other Intangible Assets: CAPITAL, taxing_jur=HK, top_conf=0.85 ⚠ CONFLICT
+  [46/72] Net PPE: UNCLASSIFIED, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [47/72] Accumulated Depreciation: UNCLASSIFIED, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [48/72] Gross PPE: UNCLASSIFIED, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [49/72] Construction In Progress: CAPITAL, taxing_jur=HK, top_conf=0.90 
+  [50/72] Other Properties: UNCLASSIFIED, taxing_jur=HK, top_conf=0.85 
+  [51/72] Machinery Furniture Equipment: UNCLASSIFIED, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [52/72] Buildings And Improvements: UNCLASSIFIED, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [53/72] Land And Improvements: CAPITAL, taxing_jur=HK, top_conf=0.92 
+  [54/72] Properties: CAPITAL, taxing_jur=HK, top_conf=0.92 ⚠ CONFLICT
+  [55/72] Current Assets: UNCLASSIFIED, taxing_jur=abstain, top_conf=0.00 
+  [56/72] Hedging Assets Current: LOAN, taxing_jur=HK, top_conf=0.40 ⚠ CONFLICT
+  [57/72] Restricted Cash: UNCLASSIFIED, taxing_jur=abstain, top_conf=0.00 
+  [58/72] Prepaid Assets: UNCLASSIFIED, taxing_jur=abstain, top_conf=0.00 
+  [59/72] Inventory: UNCLASSIFIED, taxing_jur=abstain, top_conf=0.00 
+  [60/72] Other Inventories: UNCLASSIFIED, taxing_jur=abstain, top_conf=0.00 
+  [61/72] Finished Goods: UNCLASSIFIED, taxing_jur=HK, top_conf=0.85 
+  [62/72] Raw Materials: UNCLASSIFIED, taxing_jur=abstain, top_conf=0.00 
+  [63/72] Other Receivables: LOAN, taxing_jur=HK, top_conf=0.40 ⚠ CONFLICT
+  [64/72] Taxes Receivable: UNCLASSIFIED, taxing_jur=abstain, top_conf=0.00 
+  [65/72] Accounts Receivable: LOAN, taxing_jur=abstain, top_conf=0.00 
+  [66/72] Allowance For Doubtful Accounts Receivable: EXPENSE, taxing_jur=abstain, top_conf=0.00 
+  [67/72] Gross Accounts Receivable: REVENUE, taxing_jur=abstain, top_conf=0.00 
+  [68/72] Cash Cash Equivalents And Short Term Investments: UNCLASSIFIED, taxing_jur=abstain, top_conf=0.00 
+  [69/72] Other Short Term Investments: CAPITAL, taxing_jur=HK, top_conf=0.85 ⚠ CONFLICT
+  [70/72] Cash And Cash Equivalents: UNCLASSIFIED, taxing_jur=abstain, top_conf=0.00 
+  [71/72] Cash Equivalents: UNCLASSIFIED, taxing_jur=abstain, top_conf=0.00 
+  [72/72] Cash Financial: UNCLASSIFIED, taxing_jur=abstain, top_conf=0.00 
+Grounded a rule for 62/80 line items; 49 rule conflicts; 15 cross-border base conflicts.
+Wrote AI layer report to: /mnt/disk2/zeyu/Hackathon/Tributary/examples/ai_layer_output.json
+
+Finished: 2026-06-07 09:16:32
