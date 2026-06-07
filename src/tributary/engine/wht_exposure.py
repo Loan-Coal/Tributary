@@ -23,7 +23,7 @@ from tributary.common.models import (
     ReliefMechanism,
 )
 from tributary.engine.aggregator import OutboundPayment
-from tributary.engine.money import round_hkd
+from tributary.engine.money import round_amount
 from tributary.engine.wht_engine import get_treaty_rate
 from tributary.rules.models import Rule, RulePackLoader
 
@@ -102,7 +102,7 @@ def _build_flag(
         residence_tax_before_relief_hkd → treaty-entitled WHT (lower rate × base)
         relieved_amount_hkd    → over-withheld amount (actual − treaty)
     """
-    treaty_wht = round_hkd(payment.gross_hkd * treaty_rate)
+    treaty_wht = round_amount(payment.gross_hkd * treaty_rate)
     actual_wht = obligation.net_amount_hkd
     over_withheld = actual_wht - treaty_wht
     return ConflictFlag(

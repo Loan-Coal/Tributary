@@ -78,4 +78,5 @@ def pe_days_check(
         breached=total_days > day_count,
         as_of_date=rule.as_of_date,
         source_citation=rule.source_citation,
+        unit="days",
     )
