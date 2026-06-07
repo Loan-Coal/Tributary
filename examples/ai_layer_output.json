@@ -5,16 +5,16 @@
     "rule_pack_as_of": "2012-07-01",
     "backend": "qwen",
     "total_line_item_nodes": 909,
-    "analysed_line_items": 60,
+    "analysed_line_items": 10,
     "jurisdictions": [
       "DE",
       "HK",
       "US"
     ],
-    "grounded_matches": 0,
-    "items_needing_review": 60,
-    "items_with_rule_conflict": 0,
-    "cross_border_conflicts": 12,
+    "grounded_matches": 9,
+    "items_needing_review": 1,
+    "items_with_rule_conflict": 8,
+    "cross_border_conflicts": 1,
     "note": "Monetary amounts ignored by design. Output is regulation matching, confidence, abstention, and conflict judgment only; numeric values stay as engine placeholders for the deterministic engine downstream."
   },
   "classifications": [
@@ -45,18 +45,61 @@
       "flow_classification": "CAPITAL",
       "candidate_jurisdictions": [
         "HK",
-        "DE",
-        "US"
+        "US",
+        "DE"
       ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
+      "primary_taxing_jurisdiction": "US",
+      "taxing_jurisdictions_summary": {
+        "US": [
+          "US_IRC_1032_CAPITAL_TRANSACTIONS"
+        ],
+        "HK": [
+          "HK_FSIE_EQUITY_HOLDING",
+          "HK_SDO_SHARE_TRANSFER"
+        ]
+      },
+      "retrieved_rules": [
+        {
+          "rule_id": "US_IRC_1032_CAPITAL_TRANSACTIONS",
+          "source_citation": "US Internal Revenue Code (IRC) Section 1032 - Exchange of stock for property",
+          "as_of_date": "2024-01-01",
+          "confidence": 0.92,
+          "taxing_jurisdiction": "US",
+          "reasoning": "The line item 'Treasury Shares Number' relates directly to the issuance or reacquisition of a company's own shares. US IRC Section 1032 explicitly states that a US corporation recognizes no gain or loss on the receipt of money or other property in exchange for its own stock, including Treasury Shares and Share Issued. This rule directly governs capital account fluctuations from treasury share transactions and applies to the balance sheet item as a capital equity position."
+        },
+        {
+          "rule_id": "HK_FSIE_EQUITY_HOLDING",
+          "source_citation": "Hong Kong Inland Revenue Ordinance (Cap. 112) Sections 15H-15Z - Foreign-sourced Income Exemption",
+          "as_of_date": "2024-01-01",
+          "confidence": 0.85,
+          "taxing_jurisdiction": "HK",
+          "reasoning": "The line item reflects a balance sheet equity component — treasury shares — which are part of the equity structure. HK FSIE Equity Holding applies to equity components such as Invested Capital or Ordinary Shares, and specifically addresses the tax treatment of gains from disposal of such equity balances. While the rule focuses on gains, the existence of the equity balance is directly governed by this rule's scope, especially in the context of foreign-sourced equity holdings and economic substance requirements."
+        },
+        {
+          "rule_id": "HK_SDO_SHARE_TRANSFER",
+          "source_citation": "Hong Kong Stamp Duty Ordinance (Cap. 117) First Schedule, Head 2 - Hong Kong Stock",
+          "as_of_date": "2023-11-17",
+          "confidence": 0.7,
+          "taxing_jurisdiction": "HK",
+          "reasoning": "The transfer of Treasury Shares is a share transaction that triggers stamp duty under the Hong Kong Stamp Duty Ordinance. While this rule governs a transactional tax (stamp duty) rather than a profits tax, it directly relates to the movement and recording of treasury shares on the balance sheet. The rule applies to the subsequent transfer of treasury shares registered on a Hong Kong branch register, indicating a direct link to the balance sheet item."
+        }
+      ],
+      "top_confidence": 0.92,
+      "abstain": false,
+      "needs_human_review": false,
       "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
+        "has_conflict": true,
+        "conflict_type": "cross_jurisdiction_conflict",
+        "taxing_jurisdictions": [
+          "HK",
+          "US"
+        ],
+        "details": "Rules from multiple taxing authorities (HK, US) apply to this item. Requires treaty analysis or transfer-pricing reconciliation.",
+        "rule_ids": [
+          "US_IRC_1032_CAPITAL_TRANSACTIONS",
+          "HK_FSIE_EQUITY_HOLDING",
+          "HK_SDO_SHARE_TRANSFER"
+        ]
       },
       "cross_border_conflict": {
         "is_flagged": false,
@@ -64,10 +107,12 @@
         "note": ""
       },
       "evidence_requests": [
-        "Confirm whether the treasury shares number reflects an active capital transaction with profit-generating activity, or is purely a balance-sheet reclassification without economic substance.",
-        "Determine if the treasury shares are held for resale or reissuance, and if so, whether any profit or loss arises from such activity."
+        "What is the nature of the treasury shares — are they held for investment, reacquisition, or as a result of share buybacks?",
+        "Are any gains or losses recognized on the disposal or revaluation of treasury shares in the current fiscal year?",
+        "Is there a transfer or reclassification of treasury shares between entities within the group that may trigger stamp duty under HK_SDO_SHARE_TRANSFER?",
+        "Does the entity meet the economic substance requirements under HK_FSIE_EQUITY_HOLDING to qualify for exemption from profits tax on equity-related gains?"
       ],
-      "narrative_template": "This capital position of {{engine:amount}} is not associated with any active profit-generating activity under DIPN 21; no source-of-profits rule applies."
+      "narrative_template": "The balance sheet line item 'Treasury Shares Number' is a capital equity position. Under {{engine:US_IRC_1032_CAPITAL_TRANSACTIONS}}, no gain or loss is recognized for the issuance or reacquisition of treasury shares in the US. Under {{engine:HK_FSIE_EQUITY_HOLDING}}, gains from disposal of equity balances, including treasury shares, may be exempt from Profits Tax if the entity meets economic substance requirements. Under {{engine:HK_SDO_SHARE_TRANSFER}}, the transfer of treasury shares registered in Hong Kong attracts stamp duty. The taxing jurisdiction for each rule is specified as US, HK, and HK respectively."
     },
     {
       "line_item": "Ordinary Shares Number",
@@ -108,18 +153,51 @@
       "flow_classification": "CAPITAL",
       "candidate_jurisdictions": [
         "HK",
-        "DE",
-        "US"
+        "US",
+        "DE"
       ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
+      "primary_taxing_jurisdiction": "HK",
+      "taxing_jurisdictions_summary": {
+        "HK": [
+          "HK_FSIE_EQUITY_HOLDING"
+        ],
+        "US": [
+          "US_IRC_1032_CAPITAL_TRANSACTIONS"
+        ]
+      },
+      "retrieved_rules": [
+        {
+          "rule_id": "HK_FSIE_EQUITY_HOLDING",
+          "source_citation": "Hong Kong Inland Revenue Ordinance (Cap. 112) Sections 15H-15Z - Foreign-sourced Income Exemption",
+          "as_of_date": "2024-01-01",
+          "confidence": 0.92,
+          "taxing_jurisdiction": "HK",
+          "reasoning": "The line item 'Ordinary Shares Number' represents a capital equity position. The rule HK_FSIE_EQUITY_HOLDING specifically addresses equity components such as Ordinary Shares or Invested Capital, and applies to foreign-sourced dividend income and disposal gains when the entity meets economic substance requirements. This rule directly governs the tax treatment of equity balances in a foreign-sourced holding entity, making it the most specific applicable rule."
+        },
+        {
+          "rule_id": "US_IRC_1032_CAPITAL_TRANSACTIONS",
+          "source_citation": "US Internal Revenue Code (IRC) Section 1032 - Exchange of stock for property",
+          "as_of_date": "2024-01-01",
+          "confidence": 0.85,
+          "taxing_jurisdiction": "US",
+          "reasoning": "The US IRC Section 1032 explicitly states that a US corporation recognizes no gain or loss on the receipt of money or other property in exchange for its own stock, including Treasury Shares and Share Issued. This rule applies to the creation or transfer of ordinary shares and directly addresses capital transactions involving equity, making it a relevant rule for the 'Ordinary Shares Number' balance sheet item."
+        }
+      ],
+      "top_confidence": 0.92,
+      "abstain": false,
       "needs_human_review": true,
       "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
+        "has_conflict": true,
+        "conflict_type": "cross_jurisdiction_conflict",
+        "taxing_jurisdictions": [
+          "HK",
+          "US"
+        ],
+        "details": "Rules from multiple taxing authorities (HK, US) apply to this item. Requires treaty analysis or transfer-pricing reconciliation.",
+        "rule_ids": [
+          "HK_FSIE_EQUITY_HOLDING",
+          "US_IRC_1032_CAPITAL_TRANSACTIONS"
+        ]
       },
       "cross_border_conflict": {
         "is_flagged": false,
@@ -127,11 +205,11 @@
         "note": ""
       },
       "evidence_requests": [
-        "Confirm whether the 'Ordinary Shares Number' represents a capital account or a transactional position.",
-        "Determine if there is any active trading or profit-generating activity associated with this shareholding.",
-        "Clarify whether the shares are held for investment purposes or as part of an operational business."
+        "What is the nature of the ordinary shares (e.g., issued to employees, shareholders, or as part of a financing transaction)?",
+        "Does Lenovo Group Limited meet the economic substance requirement under HK_FSIE_EQUITY_HOLDING, including maintaining adequate human resources and premises in Hong Kong?",
+        "Are the ordinary shares held as a pure equity-holding entity or are they actively involved in operations or trading activities?"
       ],
-      "narrative_template": "This capital position of {{engine:amount}} is not linked to any active profit-generating activity and does not reflect a transactional flow subject to DIPN 21 source-of-profits rules."
+      "narrative_template": "The Ordinary Shares Number is a capital equity item governed by {{engine:HK_FSIE_EQUITY_HOLDING}} in Hong Kong and {{engine:US_IRC_1032_CAPITAL_TRANSACTIONS}} in the United States. Under HK_FSIE_EQUITY_HOLDING, gains from disposal of such shares may be exempt from Profits Tax if the entity meets the economic substance requirement. Under US_IRC_1032, no gain or loss is recognized on the issuance or transfer of shares. The tax treatment of this item in Hong Kong and the United States is distinct and may result in differing tax outcomes depending on the entity's substance and operations."
     },
     {
       "line_item": "Share Issued",
@@ -172,18 +250,51 @@
       "flow_classification": "CAPITAL",
       "candidate_jurisdictions": [
         "HK",
-        "DE",
-        "US"
+        "US",
+        "DE"
       ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
+      "primary_taxing_jurisdiction": "HK",
+      "taxing_jurisdictions_summary": {
+        "HK": [
+          "HK_FSIE_EQUITY_HOLDING"
+        ],
+        "US": [
+          "US_IRC_1032_CAPITAL_TRANSACTIONS"
+        ]
+      },
+      "retrieved_rules": [
+        {
+          "rule_id": "HK_FSIE_EQUITY_HOLDING",
+          "source_citation": "Hong Kong Inland Revenue Ordinance (Cap. 112) Sections 15H-15Z - Foreign-sourced Income Exemption",
+          "as_of_date": "2024-01-01",
+          "confidence": 0.92,
+          "taxing_jurisdiction": "HK",
+          "reasoning": "The line item 'Share Issued' relates to equity components such as Invested Capital. The HK_FSIE_EQUITY_HOLDING rule explicitly addresses foreign-sourced equity holdings and applies to equity balances like ordinary shares or invested capital, including the exemption of gains from disposal if economic substance requirements are met. This is the most specific rule matching the capital nature of share issuance."
+        },
+        {
+          "rule_id": "US_IRC_1032_CAPITAL_TRANSACTIONS",
+          "source_citation": "US Internal Revenue Code (IRC) Section 1032 - Exchange of stock for property",
+          "as_of_date": "2024-01-01",
+          "confidence": 0.95,
+          "taxing_jurisdiction": "US",
+          "reasoning": "The US_IRC_1032_CAPITAL_TRANSACTIONS rule explicitly states that a US corporation recognizes no gain or loss on the receipt of money or other property in exchange for its own stock, including Treasury Shares and Share Issued. This directly applies to the issuance of shares as a capital transaction, establishing that such events are non-taxable for the corporate issuer under US tax law."
+        }
+      ],
+      "top_confidence": 0.92,
+      "abstain": false,
+      "needs_human_review": false,
       "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
+        "has_conflict": true,
+        "conflict_type": "cross_jurisdiction_conflict",
+        "taxing_jurisdictions": [
+          "HK",
+          "US"
+        ],
+        "details": "Rules from multiple taxing authorities (HK, US) apply to this item. Requires treaty analysis or transfer-pricing reconciliation.",
+        "rule_ids": [
+          "HK_FSIE_EQUITY_HOLDING",
+          "US_IRC_1032_CAPITAL_TRANSACTIONS"
+        ]
       },
       "cross_border_conflict": {
         "is_flagged": false,
@@ -191,10 +302,11 @@
         "note": ""
       },
       "evidence_requests": [
-        "Confirm whether the issuance of shares involves any profit-generating activity or is purely a capital transaction without income flow.",
-        "Determine if the share issuance was conducted in connection with a trading, service, or financing activity that could generate taxable profits under DIPN 21."
+        "Confirm whether the share issuance was conducted by Lenovo Group Limited as a pure equity-holding entity or involved active business operations in Hong Kong to assess economic substance under HK_FSIE_EQUITY_HOLDING.",
+        "Verify if the share issuance was directly to a US shareholder or occurred in a transaction involving a US entity to determine applicability of US_IRC_1032_CAPITAL_TRANSACTIONS.",
+        "Determine the nature of the shares issued (e.g., ordinary shares, treasury shares, or shares issued in exchange for property) to confirm alignment with the capital transaction definition in US_IRC_1032_CAPITAL_TRANSACTIONS."
       ],
-      "narrative_template": "This capital position of {{engine:amount}} arises from share issuance and does not reflect an income-generating activity under DIPN 21; no source-of-profits rule applies."
+      "narrative_template": "The issuance of shares is a capital event governed by {{engine:HK_FSIE_EQUITY_HOLDING}} in Hong Kong and {{engine:US_IRC_1032_CAPITAL_TRANSACTIONS}} in the United States. Under Hong Kong law, gains from disposal of equity balances may be exempt if the entity meets the economic substance test. Under US law, no gain or loss is recognized on the issuance of shares. No tax is imposed on the share issuance under either jurisdiction."
     },
     {
       "line_item": "Net Debt",
@@ -228,21 +340,54 @@
         "2024-03-31",
         "2025-03-31"
       ],
-      "flow_classification": "UNCLASSIFIED",
+      "flow_classification": "LOAN",
       "candidate_jurisdictions": [
         "HK",
-        "DE",
-        "US"
+        "US",
+        "DE"
       ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
+      "primary_taxing_jurisdiction": "DE",
+      "taxing_jurisdictions_summary": {
+        "DE": [
+          "DE_KSTG_8A_ZINSSCHRANKE"
+        ],
+        "US": [
+          "US_IRC_163J_INTEREST_LIMIT"
+        ]
+      },
+      "retrieved_rules": [
+        {
+          "rule_id": "DE_KSTG_8A_ZINSSCHRANKE",
+          "source_citation": "German Corporate Income Tax Act (KStG) Section 8a & Income Tax Act (EStG) Section 4h; summary: [Jurisdiction: DE] Under the German interest barrier rules (Zinsschranke), interest expenses arising from Total Debt or Net Debt are fully deductible up to the amount of interest income. Net interest expense exceeding €3 million is deductible only up to 30% of taxable EBITDA. Exceptions apply if the German entity's equity ratio is not lower than the worldwide group's equity ratio (Equity Escape Clause).",
+          "as_of_date": "2024-01-01",
+          "confidence": 0.9,
+          "taxing_jurisdiction": "DE",
+          "reasoning": "The line item 'Net Debt' is a debt-based balance sheet position, and the rule directly addresses interest expenses arising from Net Debt or Total Debt in the context of German tax law, including deductibility limits and the equity ratio exception. This is a direct and specific match for a debt position under German tax rules."
+        },
+        {
+          "rule_id": "US_IRC_163J_INTEREST_LIMIT",
+          "source_citation": "US Internal Revenue Code (IRC) Section 163(j) - Limitation on business interest; summary: [Jurisdiction: US] The deduction for business interest expense generated by Total Debt or Net Debt is limited to the sum of business interest income plus 30% of Adjusted Taxable Income (ATI). Disallowed interest associated with these debt positions is not permanently lost but carried forward indefinitely.",
+          "as_of_date": "2024-01-01",
+          "confidence": 0.92,
+          "taxing_jurisdiction": "US",
+          "reasoning": "The line item 'Net Debt' is directly referenced in the rule as a basis for interest expense deduction limitations under US tax law. The rule governs the deductibility of interest expenses derived from debt positions, making it a specific and highly relevant application to Net Debt as a debt flow."
+        }
+      ],
+      "top_confidence": 0.9,
+      "abstain": false,
+      "needs_human_review": false,
       "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
+        "has_conflict": true,
+        "conflict_type": "cross_jurisdiction_conflict",
+        "taxing_jurisdictions": [
+          "DE",
+          "US"
+        ],
+        "details": "Rules from multiple taxing authorities (DE, US) apply to this item. Requires treaty analysis or transfer-pricing reconciliation.",
+        "rule_ids": [
+          "DE_KSTG_8A_ZINSSCHRANKE",
+          "US_IRC_163J_INTEREST_LIMIT"
+        ]
       },
       "cross_border_conflict": {
         "is_flagged": false,
@@ -250,10 +395,13 @@
         "note": ""
       },
       "evidence_requests": [
-        "Confirm whether 'Net Debt' represents a financial instrument with active interest accrual or is merely a static balance-sheet aggregation.",
-        "Determine if the debt instruments underlying 'Net Debt' are actively managed or serviced in any jurisdiction, including HK, DE, or US."
+        "What is the nature of the debt (e.g., intercompany, bank loan, secured)?",
+        "Is the debt incurred for business purposes or for non-business activities?",
+        "What is the level of interest income generated from the debt position?",
+        "What is the Adjusted Taxable Income (ATI) for the US entity reporting this debt?",
+        "What is the equity ratio of the German entity compared to the worldwide group's equity ratio?"
       ],
-      "narrative_template": "This line item is a balance-sheet position with no clear income-generating activity; no DIPN 21 source-of-profits rule applies without further evidence of operational or profit-generating activity."
+      "narrative_template": "The interest expense associated with {{engine:net_debt}} is deductible under {{engine:taxing_jurisdiction}} rules, subject to a cap of interest income plus 30% of Adjusted Taxable Income (ATI) under US IRC Section 163(j). In {{engine:taxing_jurisdiction}}, interest expenses from {{engine:net_debt}} are deductible up to the amount of interest income, with excess expenses deductible only up to 30% of taxable EBITDA under DE KStG Section 8a."
     },
     {
       "line_item": "Total Debt",
@@ -294,18 +442,51 @@
       "flow_classification": "LOAN",
       "candidate_jurisdictions": [
         "HK",
-        "DE",
-        "US"
+        "US",
+        "DE"
       ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
+      "primary_taxing_jurisdiction": "DE",
+      "taxing_jurisdictions_summary": {
+        "DE": [
+          "DE_KSTG_8A_ZINSSCHRANKE"
+        ],
+        "US": [
+          "US_IRC_163J_INTEREST_LIMIT"
+        ]
+      },
+      "retrieved_rules": [
+        {
+          "rule_id": "DE_KSTG_8A_ZINSSCHRANKE",
+          "source_citation": "German Corporate Income Tax Act (KStG) Section 8a & Income Tax Act (EStG) Section 4h; summary: [Jurisdiction: DE] Under the German interest barrier rules (Zinsschranke), interest expenses arising from Total Debt or Net Debt are fully deductible up to the amount of interest income. Net interest expense exceeding €3 million is deductible only up to 30% of taxable EBITDA. Exceptions apply if the German entity's equity ratio is not lower than the worldwide group's equity ratio (Equity Escape Clause).",
+          "as_of_date": "2024-01-01",
+          "confidence": 0.9,
+          "taxing_jurisdiction": "DE",
+          "reasoning": "The line item 'Total Debt' is a debt position directly relevant to interest expenses, and the rule explicitly references interest expenses arising from Total Debt or Net Debt. This matches the flow classification of LOAN and applies directly to the balance-sheet item."
+        },
+        {
+          "rule_id": "US_IRC_163J_INTEREST_LIMIT",
+          "source_citation": "US Internal Revenue Code (IRC) Section 163(j) - Limitation on business interest; summary: [Jurisdiction: US] The deduction for business interest expense generated by Total Debt or Net Debt is limited to the sum of business interest income plus 30% of Adjusted Taxable Income (ATI). Disallowed interest associated with these debt positions is not permanently lost but carried forward indefinitely.",
+          "as_of_date": "2024-01-01",
+          "confidence": 0.92,
+          "taxing_jurisdiction": "US",
+          "reasoning": "The rule explicitly addresses interest expense generated by Total Debt or Net Debt, which directly corresponds to the balance-sheet line item. The rule governs the deductibility of interest on debt, making it directly applicable to Total Debt as a LOAN item."
+        }
+      ],
+      "top_confidence": 0.9,
+      "abstain": false,
+      "needs_human_review": false,
       "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
+        "has_conflict": true,
+        "conflict_type": "cross_jurisdiction_conflict",
+        "taxing_jurisdictions": [
+          "DE",
+          "US"
+        ],
+        "details": "Rules from multiple taxing authorities (DE, US) apply to this item. Requires treaty analysis or transfer-pricing reconciliation.",
+        "rule_ids": [
+          "DE_KSTG_8A_ZINSSCHRANKE",
+          "US_IRC_163J_INTEREST_LIMIT"
+        ]
       },
       "cross_border_conflict": {
         "is_flagged": false,
@@ -313,11 +494,12 @@
         "note": ""
       },
       "evidence_requests": [
-        "Confirm whether the debt is part of a financing arrangement with a HK-based entity or subsidiary.",
-        "Determine the location where the loan agreements were negotiated, approved, and funded.",
-        "Clarify if the debt is held by a financial institution and whether it qualifies as an offshore loan under DIPN 21."
+        "What is the nature of the debt (e.g., intercompany, external, secured, unsecured)?",
+        "Is the debt incurred for business purposes or for non-business activities?",
+        "What is the breakdown of interest income and interest expense for the period?",
+        "Is the debt structured as a loan from a related party or from an independent third party?"
       ],
-      "narrative_template": "This loan position of {{engine:amount}} is assessed under the applicable DIPN 21 rules; the source of profits depends on the location of key financing activities."
+      "narrative_template": "The interest expense related to {{engine:total_debt}} is subject to tax rules in {{engine:taxing_jurisdiction}}. In {{engine:taxing_jurisdiction}}, the deduction for interest expense is limited to {{engine:interest_income}} plus 30% of Adjusted Taxable Income (ATI) under {{engine:rule_id}}. In {{engine:taxing_jurisdiction}}, interest expenses exceeding the barrier are limited to 30% of taxable EBITDA under {{engine:rule_id}}."
     },
     {
       "line_item": "Tangible Book Value",
@@ -358,18 +540,48 @@
       "flow_classification": "UNCLASSIFIED",
       "candidate_jurisdictions": [
         "HK",
-        "DE",
-        "US"
+        "US",
+        "DE"
       ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
+      "primary_taxing_jurisdiction": "HK",
+      "taxing_jurisdictions_summary": {
+        "HK": [
+          "HK_IRO_14_CAPITAL_ASSETS",
+          "HK_IRO_PART6_DEPRECIATION"
+        ]
+      },
+      "retrieved_rules": [
+        {
+          "rule_id": "HK_IRO_14_CAPITAL_ASSETS",
+          "source_citation": "Hong Kong Inland Revenue Ordinance (Cap. 112) Section 14(1) - Profits Tax",
+          "as_of_date": "2024-01-01",
+          "confidence": 0.92,
+          "taxing_jurisdiction": "HK",
+          "reasoning": "The line item 'Tangible Book Value' is explicitly mentioned in the rule as a balance sheet item reflecting long-term investments or capital assets. The rule states that such items are not subject to Profits Tax upon disposal, and profits from their sale are excluded. This directly governs the treatment of tangible book value as a capital asset in Hong Kong."
+        },
+        {
+          "rule_id": "HK_IRO_PART6_DEPRECIATION",
+          "source_citation": "Hong Kong Inland Revenue Ordinance (Cap. 112) Part 6 - Depreciation, etc.",
+          "as_of_date": "2024-01-01",
+          "confidence": 0.85,
+          "taxing_jurisdiction": "HK",
+          "reasoning": "The rule specifies that 'Tangible Book Value' forms the qualifying expenditure base for statutory depreciation allowances. While this relates to depreciation treatment rather than direct taxation of the balance sheet item, it confirms that tangible book value is a foundational asset value used in tax computations in Hong Kong, indicating its relevance under HK tax rules."
+        }
+      ],
+      "top_confidence": 0.92,
+      "abstain": false,
+      "needs_human_review": false,
       "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
+        "has_conflict": true,
+        "conflict_type": "ambiguous_classification",
+        "taxing_jurisdictions": [
+          "HK"
+        ],
+        "details": "Two rules match with near-equal confidence; scope is ambiguous.",
+        "rule_ids": [
+          "HK_IRO_14_CAPITAL_ASSETS",
+          "HK_IRO_PART6_DEPRECIATION"
+        ]
       },
       "cross_border_conflict": {
         "is_flagged": false,
@@ -377,10 +589,11 @@
         "note": ""
       },
       "evidence_requests": [
-        "Confirm whether the 'Tangible Book Value' line item represents an active business asset generating profits or is purely a balance-sheet residual.",
-        "Clarify if any profit-generating activity (e.g., trading, manufacturing, services) is associated with the tangible assets reflected in this line item."
+        "What is the nature of the tangible assets underlying the tangible book value (e.g., plant, machinery, equipment)?",
+        "Are these assets classified as trading stock or capital assets based on the 'badges of trade' under HK IRO Section 14?",
+        "Is there any intercompany transfer or revaluation affecting the tangible book value that may trigger a transfer pricing review under OECD TP Chapter X?"
       ],
-      "narrative_template": "The line item 'Tangible Book Value' is a balance-sheet position without an identifiable income-generating activity. No DIPN 21 source-of-profits rule applies as it does not reflect profits from trading, services, financing, or other taxable activities."
+      "narrative_template": "The tangible book value is treated as a capital asset under {{engine:HK_IRO_14_CAPITAL_ASSETS}} and is not subject to Profits Tax upon disposal. Depreciation is calculated based on the tangible book value under {{engine:HK_IRO_PART6_DEPRECIATION}}. No profit is recognized from the sale of such assets in Hong Kong. If the assets are deemed trading stock, gains may be taxable under HK IRO Section 14. Cross-border implications may arise if the capital structure or intercompany arrangements affect the classification in other jurisdictions."
     },
     {
       "line_item": "Invested Capital",
@@ -421,18 +634,48 @@
       "flow_classification": "CAPITAL",
       "candidate_jurisdictions": [
         "HK",
-        "DE",
-        "US"
+        "US",
+        "DE"
       ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
+      "primary_taxing_jurisdiction": "HK",
+      "taxing_jurisdictions_summary": {
+        "HK": [
+          "HK_FSIE_EQUITY_HOLDING",
+          "HK_IRO_14_CAPITAL_ASSETS"
+        ]
+      },
+      "retrieved_rules": [
+        {
+          "rule_id": "HK_FSIE_EQUITY_HOLDING",
+          "source_citation": "Hong Kong Inland Revenue Ordinance (Cap. 112) Sections 15H-15Z - Foreign-sourced Income Exemption",
+          "as_of_date": "2024-01-01",
+          "confidence": 0.92,
+          "taxing_jurisdiction": "HK",
+          "reasoning": "The line item 'Invested Capital' is explicitly identified as an equity component in the rule. The rule addresses foreign-sourced dividend income and disposal gains related to equity balances, including 'Invested Capital', and specifies that such gains are exempt from Profits Tax if the entity meets the economic substance requirement. This directly governs the taxation of invested capital as a capital equity item."
+        },
+        {
+          "rule_id": "HK_IRO_14_CAPITAL_ASSETS",
+          "source_citation": "Hong Kong Inland Revenue Ordinance (Cap. 112) Section 14(1) - Profits Tax",
+          "as_of_date": "2024-01-01",
+          "confidence": 0.9,
+          "taxing_jurisdiction": "HK",
+          "reasoning": "The rule explicitly references 'Invested Capital' and 'Tangible Book Value' as balance sheet items reflecting long-term investments held as capital assets. It states that profits arising from the sale of such capital assets are excluded from Profits Tax. This directly applies to the line item 'Invested Capital' as a capital asset held on the balance sheet."
+        }
+      ],
+      "top_confidence": 0.92,
+      "abstain": false,
+      "needs_human_review": false,
       "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
+        "has_conflict": true,
+        "conflict_type": "ambiguous_classification",
+        "taxing_jurisdictions": [
+          "HK"
+        ],
+        "details": "Two rules match with near-equal confidence; scope is ambiguous.",
+        "rule_ids": [
+          "HK_FSIE_EQUITY_HOLDING",
+          "HK_IRO_14_CAPITAL_ASSETS"
+        ]
       },
       "cross_border_conflict": {
         "is_flagged": true,
@@ -444,10 +687,11 @@
         "note": "Same tax-relevant base reported in multiple jurisdictions."
       },
       "evidence_requests": [
-        "Confirm whether 'Invested Capital' represents a permanent equity stake or a temporary financing arrangement.",
-        "Clarify if this capital position is linked to active business operations or merely a balance-sheet entry without income-generating activity."
+        "Does the entity meet the economic substance requirements under HK_FSIE_EQUITY_HOLDING (e.g., maintaining adequate human resources and premises in HK)?",
+        "Is the 'Invested Capital' position primarily representing equity holdings or long-term investments with commercial use that might trigger 'badges of trade' under HK_IRO_14_CAPITAL_ASSETS?",
+        "What is the nature of the underlying assets in the invested capital (e.g., shares, property, intangible assets)?"
       ],
-      "narrative_template": "This capital position of {{engine:amount}} is not associated with any active profit-generating activity and thus falls outside the scope of DIPN 21 source-of-profits rules."
+      "narrative_template": "Under HK law, the balance sheet item 'Invested Capital' is treated as a capital asset under {{engine:HK_IRO_14_CAPITAL_ASSETS}} and is not subject to Profits Tax upon disposal. If the entity qualifies under {{engine:HK_FSIE_EQUITY_HOLDING}}, gains from disposal of such equity balances are exempt from tax. Any gains arising from trading-like activities may be taxable if the 'badges of trade' are present. No tax is due under US or DE rules for this item as they do not directly govern balance sheet equity positions."
     },
     {
       "line_item": "Working Capital",
@@ -488,16 +732,19 @@
       "flow_classification": "UNCLASSIFIED",
       "candidate_jurisdictions": [
         "HK",
-        "DE",
-        "US"
+        "US",
+        "DE"
       ],
+      "primary_taxing_jurisdiction": null,
+      "taxing_jurisdictions_summary": {},
       "retrieved_rules": [],
       "top_confidence": 0.0,
       "abstain": true,
-      "needs_human_review": true,
+      "needs_human_review": false,
       "rule_conflict": {
         "has_conflict": false,
         "conflict_type": null,
+        "taxing_jurisdictions": [],
         "details": "",
         "rule_ids": []
       },
@@ -507,10 +754,12 @@
         "note": ""
       },
       "evidence_requests": [
-        "Confirm whether the 'Working Capital' line item represents a balance-sheet position with no active profit-generating activity, such as cash, receivables, or inventory, rather than a realized or ongoing operational profit.",
-        "Clarify if any component of working capital is associated with active trading, services, or financing operations that would trigger a DIPN 21 source-of-profits rule."
+        "What is the specific composition of Working Capital (e.g., current assets minus current liabilities) in this balance sheet?",
+        "Is Working Capital derived from intercompany transactions or internal accounting adjustments?",
+        "Are there any related debt or equity positions that may be linked to the calculation of Working Capital?",
+        "Does the balance sheet item 'Working Capital' represent a standalone line item or a derived aggregate from other balance sheet components (e.g., inventory, receivables, payables)?"
       ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} does not reflect an active profit-generating activity and is therefore not governed by any DIPN 21 source-of-profits rule."
+      "narrative_template": "Working Capital is calculated as current assets minus current liabilities. The tax treatment of this line item is not directly governed by any specific rule in the provided rule pack. However, if Working Capital reflects a component of total debt or equity, it may be subject to rules such as {{engine:DE_KSTG_8A_ZINSSCHRANKE}} or {{engine:US_IRC_163J_INTEREST_LIMIT}} depending on the nature of the underlying debt or capital structure. For a full assessment, further details on the composition and sources of the components are required."
     },
     {
       "line_item": "Net Tangible Assets",
@@ -551,16 +800,41 @@
       "flow_classification": "UNCLASSIFIED",
       "candidate_jurisdictions": [
         "HK",
-        "DE",
-        "US"
+        "US",
+        "DE"
       ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
+      "primary_taxing_jurisdiction": "HK",
+      "taxing_jurisdictions_summary": {
+        "HK": [
+          "HK_IRO_14_CAPITAL_ASSETS",
+          "HK_IRO_PART6_DEPRECIATION"
+        ]
+      },
+      "retrieved_rules": [
+        {
+          "rule_id": "HK_IRO_14_CAPITAL_ASSETS",
+          "source_citation": "Hong Kong Inland Revenue Ordinance (Cap. 112) Section 14(1) - Profits Tax",
+          "as_of_date": "2024-01-01",
+          "confidence": 0.92,
+          "taxing_jurisdiction": "HK",
+          "reasoning": "The line item 'Net Tangible Assets' reflects long-term tangible investments and book value, which aligns with the definition of 'Tangible Book Value' or 'Invested Capital' under HK IRO Section 14(1). This rule explicitly excludes profits from the sale of capital assets from Profits Tax, indicating that the balance sheet item itself is not subject to taxation upon disposal and is treated as a capital asset."
+        },
+        {
+          "rule_id": "HK_IRO_PART6_DEPRECIATION",
+          "source_citation": "Hong Kong Inland Revenue Ordinance (Cap. 112) Part 6 - Depreciation, etc.",
+          "as_of_date": "2024-01-01",
+          "confidence": 0.75,
+          "taxing_jurisdiction": "HK",
+          "reasoning": "While this rule governs depreciation allowances on tangible assets, it establishes that 'Tangible Book Value' forms the base for statutory depreciation. This implies that the valuation of tangible assets is directly tied to the balance sheet item, reinforcing its treatment as a capital asset under HK tax law, even if indirectly."
+        }
+      ],
+      "top_confidence": 0.92,
+      "abstain": false,
+      "needs_human_review": false,
       "rule_conflict": {
         "has_conflict": false,
         "conflict_type": null,
+        "taxing_jurisdictions": [],
         "details": "",
         "rule_ids": []
       },
@@ -570,10 +844,11 @@
         "note": ""
       },
       "evidence_requests": [
-        "Confirm whether the net tangible assets represent an active business asset or a passive balance-sheet residual.",
-        "Determine if any profit-generating activities (e.g., manufacturing, trading, services) are directly attributable to these assets."
+        "Is the 'Net Tangible Assets' figure derived from a standalone valuation or from a specific accounting policy that differentiates between trading stock and capital assets?",
+        "Does the entity have any policy or documentation indicating that tangible assets are classified as trading stock based on 'badges of trade'?",
+        "Are there intercompany transfers or revaluations of tangible assets that could affect the reported net tangible assets?"
       ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} does not reflect an active profit-generating activity and therefore does not fall under any DIPN 21 source-of-profits rule."
+      "narrative_template": "The balance sheet item 'Net Tangible Assets' is treated as a capital asset under {{engine:HK_IRO_14_CAPITAL_ASSETS}} and is not subject to Profits Tax upon disposal. The valuation basis is derived from the 'Tangible Book Value' as defined in {{engine:HK_IRO_PART6_DEPRECIATION}}. No tax is recognized on changes in value unless the asset is deemed trading stock based on 'badges of trade'."
     },
     {
       "line_item": "Capital Lease Obligations",
@@ -611,1172 +886,54 @@
         "2024-03-31",
         "2025-03-31"
       ],
-      "flow_classification": "CAPITAL",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the capital lease obligations represent a financing arrangement with commercial substance or are merely a balance-sheet reclassification without active profit-generating activity.",
-        "Determine if the lease arrangements involve the performance of services or economic risk transfer that could give rise to taxable profits under DIPN 21.",
-        "Verify whether the lease obligations are associated with tangible assets located in HK, DE, or US, and whether the lease operations are conducted in any of these jurisdictions."
-      ],
-      "narrative_template": "This capital position of {{engine:amount}} is assessed under the cited rule; locality follows the place of the relevant operations."
-    },
-    {
-      "line_item": "Common Stock Equity",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_common_stock_equity",
-          "fli_lenovo_de_2024-03-31_common_stock_equity",
-          "fli_lenovo_de_2023-03-31_common_stock_equity",
-          "fli_lenovo_de_2022-03-31_common_stock_equity"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_common_stock_equity",
-          "fli_lenovo_hk_2024-03-31_common_stock_equity",
-          "fli_lenovo_hk_2023-03-31_common_stock_equity",
-          "fli_lenovo_hk_2022-03-31_common_stock_equity"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_common_stock_equity",
-          "fli_lenovo_us_2024-03-31_common_stock_equity",
-          "fli_lenovo_us_2023-03-31_common_stock_equity",
-          "fli_lenovo_us_2022-03-31_common_stock_equity"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "CAPITAL",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": true,
-        "jurisdictions": [
-          "DE",
-          "HK",
-          "US"
-        ],
-        "note": "Same tax-relevant base reported in multiple jurisdictions."
-      },
-      "evidence_requests": [
-        "Confirm whether the Common Stock Equity line item reflects a capital contribution, retained earnings, or a revaluation reserve, and whether any profit-generating activity (e.g., equity trading, capital allocation) underlies it.",
-        "Determine if this equity position is linked to a profit-generating operation (e.g., investment in subsidiaries, share issuance, or capital restructuring) that may trigger source-of-profits rules."
-      ],
-      "narrative_template": "This capital position of {{engine:amount}} is not directly attributable to a profit-generating activity covered under DIPN 21; no applicable source-of-profits rule applies without further evidence of operational or trading activity."
-    },
-    {
-      "line_item": "Total Capitalization",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_total_capitalization",
-          "fli_lenovo_de_2024-03-31_total_capitalization",
-          "fli_lenovo_de_2023-03-31_total_capitalization",
-          "fli_lenovo_de_2022-03-31_total_capitalization"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_total_capitalization",
-          "fli_lenovo_hk_2024-03-31_total_capitalization",
-          "fli_lenovo_hk_2023-03-31_total_capitalization",
-          "fli_lenovo_hk_2022-03-31_total_capitalization"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_total_capitalization",
-          "fli_lenovo_us_2024-03-31_total_capitalization",
-          "fli_lenovo_us_2023-03-31_total_capitalization",
-          "fli_lenovo_us_2022-03-31_total_capitalization"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "CAPITAL",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether 'Total Capitalization' represents a permanent equity position or includes temporary or reclassified items.",
-        "Clarify if any component of this line item is linked to active business operations that generate profits under DIPN 21."
-      ],
-      "narrative_template": "This capital position of {{engine:amount}} is a balance-sheet item without direct profit-generating activity; no DIPN 21 rule applies to its source of profits."
-    },
-    {
-      "line_item": "Total Equity Gross Minority Interest",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_total_equity_gross_minority_interest",
-          "fli_lenovo_de_2024-03-31_total_equity_gross_minority_interest",
-          "fli_lenovo_de_2023-03-31_total_equity_gross_minority_interest",
-          "fli_lenovo_de_2022-03-31_total_equity_gross_minority_interest"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_total_equity_gross_minority_interest",
-          "fli_lenovo_hk_2024-03-31_total_equity_gross_minority_interest",
-          "fli_lenovo_hk_2023-03-31_total_equity_gross_minority_interest",
-          "fli_lenovo_hk_2022-03-31_total_equity_gross_minority_interest"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_total_equity_gross_minority_interest",
-          "fli_lenovo_us_2024-03-31_total_equity_gross_minority_interest",
-          "fli_lenovo_us_2023-03-31_total_equity_gross_minority_interest",
-          "fli_lenovo_us_2022-03-31_total_equity_gross_minority_interest"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": true,
-        "jurisdictions": [
-          "DE",
-          "HK",
-          "US"
-        ],
-        "note": "Same tax-relevant base reported in multiple jurisdictions."
-      },
-      "evidence_requests": [
-        "Confirm whether this line item represents a residual equity position with no active profit-generating activity.",
-        "Clarify if any portion of this equity is attributable to ongoing trading, service, or financing activities that could generate taxable profits."
-      ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} does not reflect an active profit-generating operation and therefore falls outside the scope of DIPN 21 source-of-profits rules."
-    },
-    {
-      "line_item": "Minority Interest",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_minority_interest",
-          "fli_lenovo_de_2024-03-31_minority_interest",
-          "fli_lenovo_de_2023-03-31_minority_interest",
-          "fli_lenovo_de_2022-03-31_minority_interest"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_minority_interest",
-          "fli_lenovo_hk_2024-03-31_minority_interest",
-          "fli_lenovo_hk_2023-03-31_minority_interest",
-          "fli_lenovo_hk_2022-03-31_minority_interest"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_minority_interest",
-          "fli_lenovo_us_2024-03-31_minority_interest",
-          "fli_lenovo_us_2023-03-31_minority_interest",
-          "fli_lenovo_us_2022-03-31_minority_interest"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "CAPITAL",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the minority interest represents a capital contribution or a residual equity claim in a subsidiary.",
-        "Determine if the minority interest is associated with any ongoing profit-generating operations or merely a balance-sheet allocation."
-      ],
-      "narrative_template": "This capital position of {{engine:amount}} arises from a non-operational equity interest and does not reflect a profit-generating activity under DIPN 21; thus, no source-of-profits rule applies."
-    },
-    {
-      "line_item": "Stockholders Equity",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_stockholders_equity",
-          "fli_lenovo_de_2024-03-31_stockholders_equity",
-          "fli_lenovo_de_2023-03-31_stockholders_equity",
-          "fli_lenovo_de_2022-03-31_stockholders_equity"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_stockholders_equity",
-          "fli_lenovo_hk_2024-03-31_stockholders_equity",
-          "fli_lenovo_hk_2023-03-31_stockholders_equity",
-          "fli_lenovo_hk_2022-03-31_stockholders_equity"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_stockholders_equity",
-          "fli_lenovo_us_2024-03-31_stockholders_equity",
-          "fli_lenovo_us_2023-03-31_stockholders_equity",
-          "fli_lenovo_us_2022-03-31_stockholders_equity"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": true,
-        "jurisdictions": [
-          "DE",
-          "HK",
-          "US"
-        ],
-        "note": "Same tax-relevant base reported in multiple jurisdictions."
-      },
-      "evidence_requests": [
-        "Confirm whether this line item represents a dynamic equity position with profit-generating activity or a static balance-sheet figure.",
-        "Determine if any component of stockholders' equity reflects income from trading, services, or other profit-generating activities subject to DIPN 21."
-      ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} is not a profit-generating activity and does not fall within the scope of any DIPN 21 source-of-profits rule."
-    },
-    {
-      "line_item": "Other Equity Interest",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_other_equity_interest",
-          "fli_lenovo_de_2023-03-31_other_equity_interest",
-          "fli_lenovo_de_2022-03-31_other_equity_interest"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_other_equity_interest",
-          "fli_lenovo_hk_2023-03-31_other_equity_interest",
-          "fli_lenovo_hk_2022-03-31_other_equity_interest"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_other_equity_interest",
-          "fli_lenovo_us_2023-03-31_other_equity_interest",
-          "fli_lenovo_us_2022-03-31_other_equity_interest"
-        ]
-      },
-      "node_count": 9,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "CAPITAL",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": true,
-        "jurisdictions": [
-          "DE",
-          "HK",
-          "US"
-        ],
-        "note": "Same tax-relevant base reported in multiple jurisdictions."
-      },
-      "evidence_requests": [
-        "Confirm whether 'Other Equity Interest' represents a capital investment or a trading position in equity instruments.",
-        "Determine if any profit-generating activity (e.g., active trading, management, or control) is associated with this equity interest.",
-        "Clarify the location of the entity holding this interest and whether it engages in operational or passive investment activities."
-      ],
-      "narrative_template": "This capital position of {{engine:amount}} is not inherently a profit-generating activity under DIPN 21; further assessment is required to determine if any underlying source-of-profits rule applies."
-    },
-    {
-      "line_item": "Fixed Assets Revaluation Reserve",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2023-03-31_fixed_assets_revaluation_reserve",
-          "fli_lenovo_de_2022-03-31_fixed_assets_revaluation_reserve"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2023-03-31_fixed_assets_revaluation_reserve",
-          "fli_lenovo_hk_2022-03-31_fixed_assets_revaluation_reserve"
-        ],
-        "US": [
-          "fli_lenovo_us_2023-03-31_fixed_assets_revaluation_reserve",
-          "fli_lenovo_us_2022-03-31_fixed_assets_revaluation_reserve"
-        ]
-      },
-      "node_count": 6,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the revaluation reserve reflects an active profit-generating activity or is a passive accounting adjustment.",
-        "Determine if the revaluation reserve is linked to any underlying trading, service, or investment activity that would trigger source-of-profits rules."
-      ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} is not indicative of an active profit-generating activity and does not fall within the scope of DIPN 21 source-of-profits rules."
-    },
-    {
-      "line_item": "Retained Earnings",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_retained_earnings",
-          "fli_lenovo_de_2023-03-31_retained_earnings",
-          "fli_lenovo_de_2022-03-31_retained_earnings"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_retained_earnings",
-          "fli_lenovo_hk_2023-03-31_retained_earnings",
-          "fli_lenovo_hk_2022-03-31_retained_earnings"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_retained_earnings",
-          "fli_lenovo_us_2023-03-31_retained_earnings",
-          "fli_lenovo_us_2022-03-31_retained_earnings"
-        ]
-      },
-      "node_count": 9,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": true,
-        "jurisdictions": [
-          "DE",
-          "HK",
-          "US"
-        ],
-        "note": "Same tax-relevant base reported in multiple jurisdictions."
-      },
-      "evidence_requests": [
-        "Confirm whether this retained earnings line item represents a cumulative profit accumulation from taxable activities or is purely a balance-sheet reclassification without current profit generation.",
-        "Clarify if any underlying profit-generating transactions (e.g., trading, services, financing) are associated with this retained earnings figure."
-      ],
-      "narrative_template": "This line item is a balance-sheet position with no direct income flow; no DIPN 21 source-of-profits rule applies without evidence of active profit-generating operations."
-    },
-    {
-      "line_item": "Capital Stock",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_capital_stock",
-          "fli_lenovo_de_2024-03-31_capital_stock",
-          "fli_lenovo_de_2023-03-31_capital_stock",
-          "fli_lenovo_de_2022-03-31_capital_stock"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_capital_stock",
-          "fli_lenovo_hk_2024-03-31_capital_stock",
-          "fli_lenovo_hk_2023-03-31_capital_stock",
-          "fli_lenovo_hk_2022-03-31_capital_stock"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_capital_stock",
-          "fli_lenovo_us_2024-03-31_capital_stock",
-          "fli_lenovo_us_2023-03-31_capital_stock",
-          "fli_lenovo_us_2022-03-31_capital_stock"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "CAPITAL",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the capital stock represents an active equity investment or a passive balance-sheet entry with no ongoing profit-generating activity.",
-        "Determine if the capital stock is associated with any profit-generating operations such as trading, services, or financing that might trigger source-of-profits rules."
-      ],
-      "narrative_template": "This capital position of {{engine:amount}} is not linked to any active profit-generating activity and therefore does not fall under any DIPN 21 source-of-profits rule."
-    },
-    {
-      "line_item": "Common Stock",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_common_stock",
-          "fli_lenovo_de_2024-03-31_common_stock",
-          "fli_lenovo_de_2023-03-31_common_stock",
-          "fli_lenovo_de_2022-03-31_common_stock"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_common_stock",
-          "fli_lenovo_hk_2024-03-31_common_stock",
-          "fli_lenovo_hk_2023-03-31_common_stock",
-          "fli_lenovo_hk_2022-03-31_common_stock"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_common_stock",
-          "fli_lenovo_us_2024-03-31_common_stock",
-          "fli_lenovo_us_2023-03-31_common_stock",
-          "fli_lenovo_us_2022-03-31_common_stock"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "CAPITAL",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the 'Common Stock' line item represents a capital contribution, equity issuance, or a revaluation reserve with no underlying profit-generating activity.",
-        "Clarify if this item is part of a capital restructuring, dividend distribution, or share buyback, which may indicate a non-income flow."
-      ],
-      "narrative_template": "This capital position of {{engine:amount}} is not derived from a profit-generating activity and therefore does not fall under any DIPN 21 source-of-profits rule."
-    },
-    {
-      "line_item": "Total Liabilities Net Minority Interest",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_total_liabilities_net_minority_interest",
-          "fli_lenovo_de_2024-03-31_total_liabilities_net_minority_interest",
-          "fli_lenovo_de_2023-03-31_total_liabilities_net_minority_interest",
-          "fli_lenovo_de_2022-03-31_total_liabilities_net_minority_interest"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_total_liabilities_net_minority_interest",
-          "fli_lenovo_hk_2024-03-31_total_liabilities_net_minority_interest",
-          "fli_lenovo_hk_2023-03-31_total_liabilities_net_minority_interest",
-          "fli_lenovo_hk_2022-03-31_total_liabilities_net_minority_interest"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_total_liabilities_net_minority_interest",
-          "fli_lenovo_us_2024-03-31_total_liabilities_net_minority_interest",
-          "fli_lenovo_us_2023-03-31_total_liabilities_net_minority_interest",
-          "fli_lenovo_us_2022-03-31_total_liabilities_net_minority_interest"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether this line item represents a financial obligation arising from active business operations or is purely a balance-sheet consolidation adjustment.",
-        "Determine if this liability has any direct link to profit-generating activities such as trading, services, or financing that would trigger DIPN 21 sourcing rules."
-      ],
-      "narrative_template": "This line item is a balance-sheet position with no clear income-generating activity; therefore, no DIPN 21 source-of-profits rule applies."
-    },
-    {
-      "line_item": "Total Non Current Liabilities Net Minority Interest",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_total_non_current_liabilities_net_minority_interest",
-          "fli_lenovo_de_2024-03-31_total_non_current_liabilities_net_minority_interest",
-          "fli_lenovo_de_2023-03-31_total_non_current_liabilities_net_minority_interest",
-          "fli_lenovo_de_2022-03-31_total_non_current_liabilities_net_minority_interest"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_total_non_current_liabilities_net_minority_interest",
-          "fli_lenovo_hk_2024-03-31_total_non_current_liabilities_net_minority_interest",
-          "fli_lenovo_hk_2023-03-31_total_non_current_liabilities_net_minority_interest",
-          "fli_lenovo_hk_2022-03-31_total_non_current_liabilities_net_minority_interest"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_total_non_current_liabilities_net_minority_interest",
-          "fli_lenovo_us_2024-03-31_total_non_current_liabilities_net_minority_interest",
-          "fli_lenovo_us_2023-03-31_total_non_current_liabilities_net_minority_interest",
-          "fli_lenovo_us_2022-03-31_total_non_current_liabilities_net_minority_interest"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether this line item represents an active liability with ongoing financing or operational activity.",
-        "Determine if this balance-sheet position is linked to any profit-generating transaction, such as debt financing or intercompany arrangements.",
-        "Clarify whether the minority interest component arises from a taxable profit stream or is purely a capital allocation."
-      ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} does not reflect an active income-generating activity and is therefore not subject to source-of-profits rules under DIPN 21."
-    },
-    {
-      "line_item": "Other Non Current Liabilities",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_other_non_current_liabilities",
-          "fli_lenovo_de_2024-03-31_other_non_current_liabilities",
-          "fli_lenovo_de_2023-03-31_other_non_current_liabilities",
-          "fli_lenovo_de_2022-03-31_other_non_current_liabilities"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_other_non_current_liabilities",
-          "fli_lenovo_hk_2024-03-31_other_non_current_liabilities",
-          "fli_lenovo_hk_2023-03-31_other_non_current_liabilities",
-          "fli_lenovo_hk_2022-03-31_other_non_current_liabilities"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_other_non_current_liabilities",
-          "fli_lenovo_us_2024-03-31_other_non_current_liabilities",
-          "fli_lenovo_us_2023-03-31_other_non_current_liabilities",
-          "fli_lenovo_us_2022-03-31_other_non_current_liabilities"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the 'Other Non Current Liabilities' line item represents a balance-sheet accrual with no underlying profit-generating activity.",
-        "Determine if any of these liabilities are linked to ongoing trading, service, or financing operations that could generate taxable profits."
-      ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} is not associated with an active profit-generating transaction and therefore does not fall under any DIPN 21 source-of-profits rule."
-    },
-    {
-      "line_item": "Derivative Product Liabilities",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_derivative_product_liabilities",
-          "fli_lenovo_de_2024-03-31_derivative_product_liabilities",
-          "fli_lenovo_de_2023-03-31_derivative_product_liabilities",
-          "fli_lenovo_de_2022-03-31_derivative_product_liabilities"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_derivative_product_liabilities",
-          "fli_lenovo_hk_2024-03-31_derivative_product_liabilities",
-          "fli_lenovo_hk_2023-03-31_derivative_product_liabilities",
-          "fli_lenovo_hk_2022-03-31_derivative_product_liabilities"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_derivative_product_liabilities",
-          "fli_lenovo_us_2024-03-31_derivative_product_liabilities",
-          "fli_lenovo_us_2023-03-31_derivative_product_liabilities",
-          "fli_lenovo_us_2022-03-31_derivative_product_liabilities"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the derivative product liabilities represent active trading or hedging activities generating taxable profits.",
-        "Determine if the derivatives are actively managed or settled in a jurisdiction where profit-earning activities occur.",
-        "Clarify whether the liabilities are part of a financial instrument portfolio with profit-generating operations or merely a balance-sheet adjustment."
-      ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} does not reflect an active profit-generating operation and therefore falls outside the scope of DIPN 21 source-of-profits rules."
-    },
-    {
-      "line_item": "Non Current Pension And Other Postretirement Benefit Plans",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_non_current_pension_and_other_postretirement_benefit_plans",
-          "fli_lenovo_de_2024-03-31_non_current_pension_and_other_postretirement_benefit_plans",
-          "fli_lenovo_de_2023-03-31_non_current_pension_and_other_postretirement_benefit_plans",
-          "fli_lenovo_de_2022-03-31_non_current_pension_and_other_postretirement_benefit_plans"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_non_current_pension_and_other_postretirement_benefit_plans",
-          "fli_lenovo_hk_2024-03-31_non_current_pension_and_other_postretirement_benefit_plans",
-          "fli_lenovo_hk_2023-03-31_non_current_pension_and_other_postretirement_benefit_plans",
-          "fli_lenovo_hk_2022-03-31_non_current_pension_and_other_postretirement_benefit_plans"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_non_current_pension_and_other_postretirement_benefit_plans",
-          "fli_lenovo_us_2024-03-31_non_current_pension_and_other_postretirement_benefit_plans",
-          "fli_lenovo_us_2023-03-31_non_current_pension_and_other_postretirement_benefit_plans",
-          "fli_lenovo_us_2022-03-31_non_current_pension_and_other_postretirement_benefit_plans"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether this line item represents an active profit-generating activity or is purely a balance-sheet liability without ongoing operational profit generation.",
-        "Determine if any service or financing activity underpins this pension and postretirement benefit plan that could give rise to taxable profits."
-      ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} is not associated with any active trading, service, or profit-generating operation and therefore does not fall under any DIPN 21 source-of-profits rule."
-    },
-    {
-      "line_item": "Non Current Deferred Revenue",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_non_current_deferred_revenue",
-          "fli_lenovo_de_2024-03-31_non_current_deferred_revenue",
-          "fli_lenovo_de_2023-03-31_non_current_deferred_revenue",
-          "fli_lenovo_de_2022-03-31_non_current_deferred_revenue"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_non_current_deferred_revenue",
-          "fli_lenovo_hk_2024-03-31_non_current_deferred_revenue",
-          "fli_lenovo_hk_2023-03-31_non_current_deferred_revenue",
-          "fli_lenovo_hk_2022-03-31_non_current_deferred_revenue"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_non_current_deferred_revenue",
-          "fli_lenovo_us_2024-03-31_non_current_deferred_revenue",
-          "fli_lenovo_us_2023-03-31_non_current_deferred_revenue",
-          "fli_lenovo_us_2022-03-31_non_current_deferred_revenue"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": true,
-        "jurisdictions": [
-          "DE",
-          "HK",
-          "US"
-        ],
-        "note": "Same tax-relevant base reported in multiple jurisdictions."
-      },
-      "evidence_requests": [
-        "Confirm whether the deferred revenue represents unearned income from a profit-generating activity such as service delivery, product shipment, or licensing, and if so, the location where the underlying performance obligations are fulfilled.",
-        "Clarify whether this item arises from a contractual arrangement that involves ongoing operations or is merely a balance-sheet deferral without active profit generation."
-      ],
-      "narrative_template": "This line item is a balance-sheet position without clear evidence of active profit-generating operations; no DIPN 21 rule applies at this stage."
-    },
-    {
-      "line_item": "Non Current Deferred Taxes Liabilities",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_non_current_deferred_taxes_liabilities",
-          "fli_lenovo_de_2024-03-31_non_current_deferred_taxes_liabilities",
-          "fli_lenovo_de_2023-03-31_non_current_deferred_taxes_liabilities",
-          "fli_lenovo_de_2022-03-31_non_current_deferred_taxes_liabilities"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_non_current_deferred_taxes_liabilities",
-          "fli_lenovo_hk_2024-03-31_non_current_deferred_taxes_liabilities",
-          "fli_lenovo_hk_2023-03-31_non_current_deferred_taxes_liabilities",
-          "fli_lenovo_hk_2022-03-31_non_current_deferred_taxes_liabilities"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_non_current_deferred_taxes_liabilities",
-          "fli_lenovo_us_2024-03-31_non_current_deferred_taxes_liabilities",
-          "fli_lenovo_us_2023-03-31_non_current_deferred_taxes_liabilities",
-          "fli_lenovo_us_2022-03-31_non_current_deferred_taxes_liabilities"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
+      "flow_classification": "LOAN",
       "candidate_jurisdictions": [
         "HK",
         "US",
         "DE"
       ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
+      "primary_taxing_jurisdiction": "DE",
+      "taxing_jurisdictions_summary": {
+        "DE": [
+          "DE_KSTG_8A_ZINSSCHRANKE"
+        ],
+        "US": [
+          "US_IRC_163J_INTEREST_LIMIT"
+        ]
       },
-      "cross_border_conflict": {
-        "is_flagged": true,
-        "jurisdictions": [
+      "retrieved_rules": [
+        {
+          "rule_id": "DE_KSTG_8A_ZINSSCHRANKE",
+          "source_citation": "German Corporate Income Tax Act (KStG) Section 8a & Income Tax Act (EStG) Section 4h; summary: [Jurisdiction: DE] Under the German interest barrier rules (Zinsschranke), interest expenses arising from Total Debt or Net Debt are fully deductible up to the amount of interest income. Net interest expense exceeding €3 million is deductible only up to 30% of taxable EBITDA. Exceptions apply if the German entity's equity ratio is not lower than the worldwide group's equity ratio (Equity Escape Clause).",
+          "as_of_date": "2024-01-01",
+          "confidence": 0.85,
+          "taxing_jurisdiction": "DE",
+          "reasoning": "The line item 'Capital Lease Obligations' represents a long-term lease liability that is treated as a debt obligation in the balance sheet. DE_KSTG_8A_ZINSSCHRANKE governs interest expense deductions related to Total Debt or Net Debt, and capital lease obligations are considered part of a company's total debt for tax purposes under German law."
+        },
+        {
+          "rule_id": "US_IRC_163J_INTEREST_LIMIT",
+          "source_citation": "US Internal Revenue Code (IRC) Section 163(j) - Limitation on business interest; summary: [Jurisdiction: US] The deduction for business interest expense generated by Total Debt or Net Debt is limited to the sum of business interest income plus 30% of Adjusted Taxable Income (ATI). Disallowed interest associated with these debt positions is not permanently lost but carried forward indefinitely.",
+          "as_of_date": "2024-01-01",
+          "confidence": 0.8,
+          "taxing_jurisdiction": "US",
+          "reasoning": "Capital lease obligations are treated as debt for accounting and tax purposes in the US. US_IRC_163J_INTEREST_LIMIT applies to interest expenses arising from Total Debt or Net Debt, and thus directly governs the tax treatment of interest associated with capital lease obligations."
+        }
+      ],
+      "top_confidence": 0.85,
+      "abstain": false,
+      "needs_human_review": false,
+      "rule_conflict": {
+        "has_conflict": true,
+        "conflict_type": "cross_jurisdiction_conflict",
+        "taxing_jurisdictions": [
           "DE",
-          "HK",
           "US"
         ],
-        "note": "Same tax-relevant base reported in multiple jurisdictions."
-      },
-      "evidence_requests": [
-        "Confirm whether this deferred tax liability represents a temporary difference arising from taxable or deductible timing differences in the financial statements.",
-        "Determine if any underlying taxable or deductible events giving rise to this liability are attributable to activities in HK, US, or DE.",
-        "Clarify whether this item reflects an active tax provision related to profit-generating operations or is purely a book accounting adjustment."
-      ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} is not a flow of income or profit and does not reflect a transaction subject to DIPN 21 source-of-profits rules; it is a deferred tax liability arising from timing differences in tax accounting."
-    },
-    {
-      "line_item": "Long Term Debt And Capital Lease Obligation",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_long_term_debt_and_capital_lease_obligation",
-          "fli_lenovo_de_2024-03-31_long_term_debt_and_capital_lease_obligation",
-          "fli_lenovo_de_2023-03-31_long_term_debt_and_capital_lease_obligation",
-          "fli_lenovo_de_2022-03-31_long_term_debt_and_capital_lease_obligation"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_long_term_debt_and_capital_lease_obligation",
-          "fli_lenovo_hk_2024-03-31_long_term_debt_and_capital_lease_obligation",
-          "fli_lenovo_hk_2023-03-31_long_term_debt_and_capital_lease_obligation",
-          "fli_lenovo_hk_2022-03-31_long_term_debt_and_capital_lease_obligation"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_long_term_debt_and_capital_lease_obligation",
-          "fli_lenovo_us_2024-03-31_long_term_debt_and_capital_lease_obligation",
-          "fli_lenovo_us_2023-03-31_long_term_debt_and_capital_lease_obligation",
-          "fli_lenovo_us_2022-03-31_long_term_debt_and_capital_lease_obligation"
+        "details": "Rules from multiple taxing authorities (DE, US) apply to this item. Requires treaty analysis or transfer-pricing reconciliation.",
+        "rule_ids": [
+          "DE_KSTG_8A_ZINSSCHRANKE",
+          "US_IRC_163J_INTEREST_LIMIT"
         ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "LOAN",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
       },
       "cross_border_conflict": {
         "is_flagged": false,
@@ -1784,2024 +941,11 @@
         "note": ""
       },
       "evidence_requests": [
-        "Confirm whether the long-term debt and capital lease obligations are directly linked to financing activities performed in HK or elsewhere.",
-        "Determine if the debt instruments were initiated, negotiated, approved, documented, or funded within HK.",
-        "Clarify the jurisdiction where the underlying financial arrangements and servicing of these obligations are managed."
-      ],
-      "narrative_template": "This loan position of {{engine:amount}} is assessed under the applicable DIPN 21 rules; the source of profit, if any, depends on the location of the financing activities and funding decisions."
-    },
-    {
-      "line_item": "Long Term Capital Lease Obligation",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_long_term_capital_lease_obligation",
-          "fli_lenovo_de_2024-03-31_long_term_capital_lease_obligation",
-          "fli_lenovo_de_2023-03-31_long_term_capital_lease_obligation",
-          "fli_lenovo_de_2022-03-31_long_term_capital_lease_obligation"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_long_term_capital_lease_obligation",
-          "fli_lenovo_hk_2024-03-31_long_term_capital_lease_obligation",
-          "fli_lenovo_hk_2023-03-31_long_term_capital_lease_obligation",
-          "fli_lenovo_hk_2022-03-31_long_term_capital_lease_obligation"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_long_term_capital_lease_obligation",
-          "fli_lenovo_us_2024-03-31_long_term_capital_lease_obligation",
-          "fli_lenovo_us_2023-03-31_long_term_capital_lease_obligation",
-          "fli_lenovo_us_2022-03-31_long_term_capital_lease_obligation"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "CAPITAL",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the long-term capital lease obligation arises from a financing arrangement involving active profit-generating activities or is purely a balance-sheet liability without underlying profit-generating operations.",
-        "Determine if the lease obligation is associated with the use of tangible assets in a specific jurisdiction, and whether any service or financing income is generated from the lease arrangement."
-      ],
-      "narrative_template": "This capital position of {{engine:amount}} is not directly linked to a profit-generating activity governed by DIPN 21 rules, as it reflects a balance-sheet liability without evidence of trading, services, or financing income."
-    },
-    {
-      "line_item": "Long Term Debt",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_long_term_debt",
-          "fli_lenovo_de_2024-03-31_long_term_debt",
-          "fli_lenovo_de_2023-03-31_long_term_debt",
-          "fli_lenovo_de_2022-03-31_long_term_debt"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_long_term_debt",
-          "fli_lenovo_hk_2024-03-31_long_term_debt",
-          "fli_lenovo_hk_2023-03-31_long_term_debt",
-          "fli_lenovo_hk_2022-03-31_long_term_debt"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_long_term_debt",
-          "fli_lenovo_us_2024-03-31_long_term_debt",
-          "fli_lenovo_us_2023-03-31_long_term_debt",
-          "fli_lenovo_us_2022-03-31_long_term_debt"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "LOAN",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the long-term debt is held by a financial institution and whether the loan origination, negotiation, approval, documentation, and funding occurred in HK or outside HK.",
-        "Determine if the entity holding the long-term debt is a financial institution engaged in lending activities."
-      ],
-      "narrative_template": "This loan position of {{engine:amount}} is assessed under the applicable DIPN 21 rules; the source of profits depends on the location of the key lending activities and the nature of the entity involved."
-    },
-    {
-      "line_item": "Long Term Provisions",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_long_term_provisions",
-          "fli_lenovo_de_2024-03-31_long_term_provisions",
-          "fli_lenovo_de_2023-03-31_long_term_provisions",
-          "fli_lenovo_de_2022-03-31_long_term_provisions"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_long_term_provisions",
-          "fli_lenovo_hk_2024-03-31_long_term_provisions",
-          "fli_lenovo_hk_2023-03-31_long_term_provisions",
-          "fli_lenovo_hk_2022-03-31_long_term_provisions"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_long_term_provisions",
-          "fli_lenovo_us_2024-03-31_long_term_provisions",
-          "fli_lenovo_us_2023-03-31_long_term_provisions",
-          "fli_lenovo_us_2022-03-31_long_term_provisions"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the long-term provisions represent a liability arising from actual business operations or are purely accounting reserves without active profit-generating activity.",
-        "Determine if the provisions relate to contingent liabilities, restructuring, or other non-operational adjustments that do not reflect ongoing trading, service, or financing profits."
-      ],
-      "narrative_template": "This balance-sheet item of {{engine:amount}} is not an income-generating activity and does not reflect a profit from trading, services, financing, or other taxable operations under DIPN 21."
-    },
-    {
-      "line_item": "Current Liabilities",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_current_liabilities",
-          "fli_lenovo_de_2024-03-31_current_liabilities",
-          "fli_lenovo_de_2023-03-31_current_liabilities",
-          "fli_lenovo_de_2022-03-31_current_liabilities"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_current_liabilities",
-          "fli_lenovo_hk_2024-03-31_current_liabilities",
-          "fli_lenovo_hk_2023-03-31_current_liabilities",
-          "fli_lenovo_hk_2022-03-31_current_liabilities"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_current_liabilities",
-          "fli_lenovo_us_2024-03-31_current_liabilities",
-          "fli_lenovo_us_2023-03-31_current_liabilities",
-          "fli_lenovo_us_2022-03-31_current_liabilities"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether this current liabilities line item represents an active obligation arising from profit-generating operations (e.g., trade payables, accrued expenses) or is purely a balance-sheet aggregation without income flow."
-      ],
-      "narrative_template": "This line item is a balance-sheet position with no clear income-generating activity; therefore, no DIPN 21 source-of-profits rule applies."
-    },
-    {
-      "line_item": "Other Current Liabilities",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2022-03-31_other_current_liabilities"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2022-03-31_other_current_liabilities"
-        ],
-        "US": [
-          "fli_lenovo_us_2022-03-31_other_current_liabilities"
-        ]
-      },
-      "node_count": 3,
-      "periods": [
-        "2022-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether 'Other Current Liabilities' represents a liability arising from an active profit-generating transaction (e.g., accrued expenses, short-term borrowings, or deferred revenue).",
-        "Clarify if this line item is linked to any ongoing trading, service, or financing activity that generates taxable profits."
-      ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} does not represent an active profit-generating activity and is therefore not governed by any DIPN 21 source-of-profits rule."
-    },
-    {
-      "line_item": "Current Debt And Capital Lease Obligation",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_current_debt_and_capital_lease_obligation",
-          "fli_lenovo_de_2024-03-31_current_debt_and_capital_lease_obligation",
-          "fli_lenovo_de_2023-03-31_current_debt_and_capital_lease_obligation",
-          "fli_lenovo_de_2022-03-31_current_debt_and_capital_lease_obligation"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_current_debt_and_capital_lease_obligation",
-          "fli_lenovo_hk_2024-03-31_current_debt_and_capital_lease_obligation",
-          "fli_lenovo_hk_2023-03-31_current_debt_and_capital_lease_obligation",
-          "fli_lenovo_hk_2022-03-31_current_debt_and_capital_lease_obligation"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_current_debt_and_capital_lease_obligation",
-          "fli_lenovo_us_2024-03-31_current_debt_and_capital_lease_obligation",
-          "fli_lenovo_us_2023-03-31_current_debt_and_capital_lease_obligation",
-          "fli_lenovo_us_2022-03-31_current_debt_and_capital_lease_obligation"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "LOAN",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the capital lease obligation involves a lease agreement initiated, negotiated, and funded in HK.",
-        "Determine the location of the entity that originated the lease financing and where the lease documentation was executed.",
-        "Clarify whether the lease is treated as a financing arrangement or a true lease under local accounting standards."
-      ],
-      "narrative_template": "This loan obligation of {{engine:amount}} is assessed under the applicable DIPN 21 rules; source of profit depends on the location of lease initiation, negotiation, and funding activities."
-    },
-    {
-      "line_item": "Current Capital Lease Obligation",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_current_capital_lease_obligation",
-          "fli_lenovo_de_2024-03-31_current_capital_lease_obligation",
-          "fli_lenovo_de_2023-03-31_current_capital_lease_obligation",
-          "fli_lenovo_de_2022-03-31_current_capital_lease_obligation"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_current_capital_lease_obligation",
-          "fli_lenovo_hk_2024-03-31_current_capital_lease_obligation",
-          "fli_lenovo_hk_2023-03-31_current_capital_lease_obligation",
-          "fli_lenovo_hk_2022-03-31_current_capital_lease_obligation"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_current_capital_lease_obligation",
-          "fli_lenovo_us_2024-03-31_current_capital_lease_obligation",
-          "fli_lenovo_us_2023-03-31_current_capital_lease_obligation",
-          "fli_lenovo_us_2022-03-31_current_capital_lease_obligation"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "LOAN",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the capital lease obligation arises from a financing arrangement initiated, negotiated, and funded in HK.",
-        "Determine the location where the lease contracts were executed and performed.",
-        "Verify if the lessee entity is located in HK, DE, or US, and whether the lease is treated as a financing arrangement under local accounting standards."
-      ],
-      "narrative_template": "This loan obligation of {{engine:amount}} is classified as a capital lease; its source of profit is contingent on the jurisdiction where the lease transaction was initiated, negotiated, and performed."
-    },
-    {
-      "line_item": "Current Debt",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_current_debt",
-          "fli_lenovo_de_2024-03-31_current_debt",
-          "fli_lenovo_de_2023-03-31_current_debt",
-          "fli_lenovo_de_2022-03-31_current_debt"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_current_debt",
-          "fli_lenovo_hk_2024-03-31_current_debt",
-          "fli_lenovo_hk_2023-03-31_current_debt",
-          "fli_lenovo_hk_2022-03-31_current_debt"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_current_debt",
-          "fli_lenovo_us_2024-03-31_current_debt",
-          "fli_lenovo_us_2023-03-31_current_debt",
-          "fli_lenovo_us_2022-03-31_current_debt"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "LOAN",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the current debt is part of a financing arrangement involving the HK entity as a borrower or lender.",
-        "Determine the location where the loan agreement was initiated, negotiated, and funded.",
-        "Verify if the HK entity is acting as a financial institution under DIPN 21 and whether the loan is classified as offshore."
-      ],
-      "narrative_template": "This loan position of {{engine:amount}} is assessed under the relevant DIPN 21 rules; source of profit depends on the location of loan initiation, negotiation, and funding."
-    },
-    {
-      "line_item": "Current Provisions",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_current_provisions",
-          "fli_lenovo_de_2024-03-31_current_provisions",
-          "fli_lenovo_de_2023-03-31_current_provisions",
-          "fli_lenovo_de_2022-03-31_current_provisions"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_current_provisions",
-          "fli_lenovo_hk_2024-03-31_current_provisions",
-          "fli_lenovo_hk_2023-03-31_current_provisions",
-          "fli_lenovo_hk_2022-03-31_current_provisions"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_current_provisions",
-          "fli_lenovo_us_2024-03-31_current_provisions",
-          "fli_lenovo_us_2023-03-31_current_provisions",
-          "fli_lenovo_us_2022-03-31_current_provisions"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the current provisions represent a liability arising from past transactions or operations that generated taxable profits.",
-        "Determine if the provisions are linked to any ongoing or completed profit-generating activities (e.g., warranty obligations, restructuring costs, tax accruals)."
-      ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} does not represent an income-generating activity and is therefore not subject to source-of-profits rules under DIPN 21. Its taxability depends on underlying operational events, which require further clarification."
-    },
-    {
-      "line_item": "Payables",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_payables",
-          "fli_lenovo_de_2024-03-31_payables",
-          "fli_lenovo_de_2023-03-31_payables",
-          "fli_lenovo_de_2022-03-31_payables"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_payables",
-          "fli_lenovo_hk_2024-03-31_payables",
-          "fli_lenovo_hk_2023-03-31_payables",
-          "fli_lenovo_hk_2022-03-31_payables"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_payables",
-          "fli_lenovo_us_2024-03-31_payables",
-          "fli_lenovo_us_2023-03-31_payables",
-          "fli_lenovo_us_2022-03-31_payables"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the payables represent a liability arising from a revenue-generating activity or a mere balance-sheet item without ongoing profit-generating operations.",
-        "Clarify if the payables are associated with any trading, service, or financing activity that would trigger a source-of-profits rule under DIPN 21."
-      ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} does not reflect an active profit-generating transaction and therefore falls outside the scope of DIPN 21 source-of-profits rules."
-    },
-    {
-      "line_item": "Other Payable",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_other_payable",
-          "fli_lenovo_de_2024-03-31_other_payable",
-          "fli_lenovo_de_2023-03-31_other_payable",
-          "fli_lenovo_de_2022-03-31_other_payable"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_other_payable",
-          "fli_lenovo_hk_2024-03-31_other_payable",
-          "fli_lenovo_hk_2023-03-31_other_payable",
-          "fli_lenovo_hk_2022-03-31_other_payable"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_other_payable",
-          "fli_lenovo_us_2024-03-31_other_payable",
-          "fli_lenovo_us_2023-03-31_other_payable",
-          "fli_lenovo_us_2022-03-31_other_payable"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the 'Other Payable' represents a liability arising from an active business transaction (e.g., goods, services, financing) or is a purely passive balance-sheet item.",
-        "Determine if there is any underlying activity (e.g., trade, service, financing) that could generate taxable profits attributable to a specific jurisdiction."
-      ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} is not associated with any active profit-generating activity and therefore does not fall under any DIPN 21 source-of-profits rule."
-    },
-    {
-      "line_item": "Total Tax Payable",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_total_tax_payable",
-          "fli_lenovo_de_2024-03-31_total_tax_payable",
-          "fli_lenovo_de_2023-03-31_total_tax_payable",
-          "fli_lenovo_de_2022-03-31_total_tax_payable"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_total_tax_payable",
-          "fli_lenovo_hk_2024-03-31_total_tax_payable",
-          "fli_lenovo_hk_2023-03-31_total_tax_payable",
-          "fli_lenovo_hk_2022-03-31_total_tax_payable"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_total_tax_payable",
-          "fli_lenovo_us_2024-03-31_total_tax_payable",
-          "fli_lenovo_us_2023-03-31_total_tax_payable",
-          "fli_lenovo_us_2022-03-31_total_tax_payable"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": true,
-        "jurisdictions": [
-          "DE",
-          "HK",
-          "US"
-        ],
-        "note": "Same tax-relevant base reported in multiple jurisdictions."
-      },
-      "evidence_requests": [
-        "Confirm whether 'Total Tax Payable' represents an accrued liability for tax obligations or a cash-settled payment.",
-        "Determine if this line item reflects an active tax provision for business profits or is a mere balance-sheet reclassification without profit-generating activity."
-      ],
-      "narrative_template": "This line item is a balance-sheet position and does not represent a profit-generating activity; therefore, no DIPN 21 source-of-profits rule applies."
-    },
-    {
-      "line_item": "Accounts Payable",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_accounts_payable",
-          "fli_lenovo_de_2024-03-31_accounts_payable",
-          "fli_lenovo_de_2023-03-31_accounts_payable",
-          "fli_lenovo_de_2022-03-31_accounts_payable"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_accounts_payable",
-          "fli_lenovo_hk_2024-03-31_accounts_payable",
-          "fli_lenovo_hk_2023-03-31_accounts_payable",
-          "fli_lenovo_hk_2022-03-31_accounts_payable"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_accounts_payable",
-          "fli_lenovo_us_2024-03-31_accounts_payable",
-          "fli_lenovo_us_2023-03-31_accounts_payable",
-          "fli_lenovo_us_2022-03-31_accounts_payable"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether this accounts payable line item represents a liability arising from an active business transaction that generates profit, or is purely a balance-sheet position without ongoing profit-generating activity."
-      ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} does not reflect an active profit-generating activity and therefore falls outside the scope of DIPN 21 source-of-profits rules."
-    },
-    {
-      "line_item": "Total Assets",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_total_assets",
-          "fli_lenovo_de_2024-03-31_total_assets",
-          "fli_lenovo_de_2023-03-31_total_assets",
-          "fli_lenovo_de_2022-03-31_total_assets"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_total_assets",
-          "fli_lenovo_hk_2024-03-31_total_assets",
-          "fli_lenovo_hk_2023-03-31_total_assets",
-          "fli_lenovo_hk_2022-03-31_total_assets"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_total_assets",
-          "fli_lenovo_us_2024-03-31_total_assets",
-          "fli_lenovo_us_2023-03-31_total_assets",
-          "fli_lenovo_us_2022-03-31_total_assets"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the 'Total Assets' line item represents active profit-generating operations or is purely a balance-sheet aggregation without income flow.",
-        "Clarify if any component of the total assets is tied to trading, services, or other taxable activities under DIPN 21."
-      ],
-      "narrative_template": "The line item 'Total Assets' is a balance-sheet position without a clear income-generating activity; no DIPN 21 source-of-profits rule applies without further evidence."
-    },
-    {
-      "line_item": "Total Non Current Assets",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_total_non_current_assets",
-          "fli_lenovo_de_2024-03-31_total_non_current_assets",
-          "fli_lenovo_de_2023-03-31_total_non_current_assets",
-          "fli_lenovo_de_2022-03-31_total_non_current_assets"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_total_non_current_assets",
-          "fli_lenovo_hk_2024-03-31_total_non_current_assets",
-          "fli_lenovo_hk_2023-03-31_total_non_current_assets",
-          "fli_lenovo_hk_2022-03-31_total_non_current_assets"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_total_non_current_assets",
-          "fli_lenovo_us_2024-03-31_total_non_current_assets",
-          "fli_lenovo_us_2023-03-31_total_non_current_assets",
-          "fli_lenovo_us_2022-03-31_total_non_current_assets"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether 'Total Non Current Assets' includes any active profit-generating components such as intangible assets, investment properties, or long-term financial instruments subject to trading or service activities.",
-        "Clarify if any portion of the non-current assets represents assets used in ongoing business operations that generate profits under DIPN 21, such as real estate, securities, or contract processing assets."
-      ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} does not represent an income-generating activity and therefore does not fall within the scope of any DIPN 21 source-of-profits rule. Its taxability depends on underlying operational activities not reflected in this line item."
-    },
-    {
-      "line_item": "Other Non Current Assets",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_other_non_current_assets",
-          "fli_lenovo_de_2024-03-31_other_non_current_assets",
-          "fli_lenovo_de_2023-03-31_other_non_current_assets",
-          "fli_lenovo_de_2022-03-31_other_non_current_assets"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_other_non_current_assets",
-          "fli_lenovo_hk_2024-03-31_other_non_current_assets",
-          "fli_lenovo_hk_2023-03-31_other_non_current_assets",
-          "fli_lenovo_hk_2022-03-31_other_non_current_assets"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_other_non_current_assets",
-          "fli_lenovo_us_2024-03-31_other_non_current_assets",
-          "fli_lenovo_us_2023-03-31_other_non_current_assets",
-          "fli_lenovo_us_2022-03-31_other_non_current_assets"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether 'Other Non Current Assets' includes any active profit-generating operations such as trading, service provision, or investment activities.",
-        "Clarify if any portion of this asset category represents intangible assets, goodwill, or deferred charges tied to ongoing business activities."
-      ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} is not associated with any active profit-generating activity and does not fall under any DIPN 21 source-of-profits rule."
-    },
-    {
-      "line_item": "Non Current Deferred Taxes Assets",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_non_current_deferred_taxes_assets",
-          "fli_lenovo_de_2024-03-31_non_current_deferred_taxes_assets",
-          "fli_lenovo_de_2023-03-31_non_current_deferred_taxes_assets",
-          "fli_lenovo_de_2022-03-31_non_current_deferred_taxes_assets"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_non_current_deferred_taxes_assets",
-          "fli_lenovo_hk_2024-03-31_non_current_deferred_taxes_assets",
-          "fli_lenovo_hk_2023-03-31_non_current_deferred_taxes_assets",
-          "fli_lenovo_hk_2022-03-31_non_current_deferred_taxes_assets"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_non_current_deferred_taxes_assets",
-          "fli_lenovo_us_2024-03-31_non_current_deferred_taxes_assets",
-          "fli_lenovo_us_2023-03-31_non_current_deferred_taxes_assets",
-          "fli_lenovo_us_2022-03-31_non_current_deferred_taxes_assets"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": true,
-        "jurisdictions": [
-          "DE",
-          "HK",
-          "US"
-        ],
-        "note": "Same tax-relevant base reported in multiple jurisdictions."
-      },
-      "evidence_requests": [
-        "Confirm whether the deferred tax asset arises from temporary differences related to revenue or expense activities that are part of a profit-generating operation.",
-        "Determine if the deferred tax asset is attributable to a taxable event that has a source of profit under DIPN 21, such as trading, services, or financing.",
-        "Clarify whether the deferred tax asset is a balance-sheet revaluation item without current income or expense activity."
-      ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} does not represent an active profit-generating transaction and therefore does not fall under any DIPN 21 source-of-profits rule."
-    },
-    {
-      "line_item": "Investmentin Financial Assets",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_investmentin_financial_assets",
-          "fli_lenovo_de_2024-03-31_investmentin_financial_assets",
-          "fli_lenovo_de_2023-03-31_investmentin_financial_assets",
-          "fli_lenovo_de_2022-03-31_investmentin_financial_assets"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_investmentin_financial_assets",
-          "fli_lenovo_hk_2024-03-31_investmentin_financial_assets",
-          "fli_lenovo_hk_2023-03-31_investmentin_financial_assets",
-          "fli_lenovo_hk_2022-03-31_investmentin_financial_assets"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_investmentin_financial_assets",
-          "fli_lenovo_us_2024-03-31_investmentin_financial_assets",
-          "fli_lenovo_us_2023-03-31_investmentin_financial_assets",
-          "fli_lenovo_us_2022-03-31_investmentin_financial_assets"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "CAPITAL",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the 'Investmentin Financial Assets' line item represents active trading of listed or unlisted securities.",
-        "Determine if the entity holds these financial assets as part of a trading book or for long-term investment purposes.",
-        "Identify the location where the contracts for purchase and sale of these securities are executed, if applicable."
-      ],
-      "narrative_template": "This capital position of {{engine:amount}} is not inherently a profit-generating activity under DIPN 21; further evidence is required to determine if it reflects trading or other taxable profits."
-    },
-    {
-      "line_item": "Available For Sale Securities",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_available_for_sale_securities",
-          "fli_lenovo_de_2024-03-31_available_for_sale_securities",
-          "fli_lenovo_de_2023-03-31_available_for_sale_securities",
-          "fli_lenovo_de_2022-03-31_available_for_sale_securities"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_available_for_sale_securities",
-          "fli_lenovo_hk_2024-03-31_available_for_sale_securities",
-          "fli_lenovo_hk_2023-03-31_available_for_sale_securities",
-          "fli_lenovo_hk_2022-03-31_available_for_sale_securities"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_available_for_sale_securities",
-          "fli_lenovo_us_2024-03-31_available_for_sale_securities",
-          "fli_lenovo_us_2023-03-31_available_for_sale_securities",
-          "fli_lenovo_us_2022-03-31_available_for_sale_securities"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the 'Available For Sale Securities' line item represents an active trading activity or is a passive investment held on the balance sheet.",
-        "Clarify if any profit-generating transactions (e.g., purchase or sale) related to these securities occurred during the period, and if so, where they were executed."
-      ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} does not reflect an active profit-generating activity and therefore does not fall under any DIPN 21 source-of-profits rule."
-    },
-    {
-      "line_item": "Financial Assets Designatedas Fair Value Through Profitor Loss Total",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_financial_assets_designatedas_fair_value_through_profitor_loss_total",
-          "fli_lenovo_de_2024-03-31_financial_assets_designatedas_fair_value_through_profitor_loss_total",
-          "fli_lenovo_de_2023-03-31_financial_assets_designatedas_fair_value_through_profitor_loss_total",
-          "fli_lenovo_de_2022-03-31_financial_assets_designatedas_fair_value_through_profitor_loss_total"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_financial_assets_designatedas_fair_value_through_profitor_loss_total",
-          "fli_lenovo_hk_2024-03-31_financial_assets_designatedas_fair_value_through_profitor_loss_total",
-          "fli_lenovo_hk_2023-03-31_financial_assets_designatedas_fair_value_through_profitor_loss_total",
-          "fli_lenovo_hk_2022-03-31_financial_assets_designatedas_fair_value_through_profitor_loss_total"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_financial_assets_designatedas_fair_value_through_profitor_loss_total",
-          "fli_lenovo_us_2024-03-31_financial_assets_designatedas_fair_value_through_profitor_loss_total",
-          "fli_lenovo_us_2023-03-31_financial_assets_designatedas_fair_value_through_profitor_loss_total",
-          "fli_lenovo_us_2022-03-31_financial_assets_designatedas_fair_value_through_profitor_loss_total"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether this balance-sheet item represents an active trading position in financial assets or is purely a valuation adjustment without underlying economic activity.",
-        "Determine if the financial assets are actively managed or traded in any jurisdiction, and if so, where the trading decisions and execution occur."
-      ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} is not associated with an active profit-generating operation and does not reflect a revenue or expense flow; therefore, no DIPN 21 source-of-profits rule applies."
-    },
-    {
-      "line_item": "Long Term Equity Investment",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_long_term_equity_investment",
-          "fli_lenovo_de_2024-03-31_long_term_equity_investment",
-          "fli_lenovo_de_2023-03-31_long_term_equity_investment",
-          "fli_lenovo_de_2022-03-31_long_term_equity_investment"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_long_term_equity_investment",
-          "fli_lenovo_hk_2024-03-31_long_term_equity_investment",
-          "fli_lenovo_hk_2023-03-31_long_term_equity_investment",
-          "fli_lenovo_hk_2022-03-31_long_term_equity_investment"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_long_term_equity_investment",
-          "fli_lenovo_us_2024-03-31_long_term_equity_investment",
-          "fli_lenovo_us_2023-03-31_long_term_equity_investment",
-          "fli_lenovo_us_2022-03-31_long_term_equity_investment"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "CAPITAL",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": true,
-        "jurisdictions": [
-          "DE",
-          "HK",
-          "US"
-        ],
-        "note": "Same tax-relevant base reported in multiple jurisdictions."
-      },
-      "evidence_requests": [
-        "Confirm whether the long-term equity investment involves active management or control of the investee company.",
-        "Determine if the investment generates income through dividends, capital gains, or other profit-generating activities.",
-        "Clarify the location where any underlying business operations (e.g., management, decision-making) for the investment are conducted."
-      ],
-      "narrative_template": "This capital position of {{engine:amount}} is not a revenue-generating activity in itself and does not reflect a profit from trading, services, or other taxable operations. Its source of profits, if any, depends on the nature of the underlying business activities of the investee."
-    },
-    {
-      "line_item": "Investmentsin Joint Venturesat Cost",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2023-03-31_investmentsin_joint_venturesat_cost",
-          "fli_lenovo_de_2022-03-31_investmentsin_joint_venturesat_cost"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2023-03-31_investmentsin_joint_venturesat_cost",
-          "fli_lenovo_hk_2022-03-31_investmentsin_joint_venturesat_cost"
-        ],
-        "US": [
-          "fli_lenovo_us_2023-03-31_investmentsin_joint_venturesat_cost",
-          "fli_lenovo_us_2022-03-31_investmentsin_joint_venturesat_cost"
-        ]
-      },
-      "node_count": 6,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31"
-      ],
-      "flow_classification": "CAPITAL",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the investments in joint ventures are actively managed or held passively.",
-        "Determine the location where the joint venture operations are conducted and whether any profit-generating activities occur.",
-        "Clarify if the joint ventures are structured as equity investments with operational control or purely passive holdings."
-      ],
-      "narrative_template": "This capital position of {{engine:amount}} reflects an investment in joint ventures and does not represent an active profit-generating transaction. Therefore, no DIPN 21 source-of-profits rule applies to this balance-sheet item."
-    },
-    {
-      "line_item": "Investmentsin Associatesat Cost",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2023-03-31_investmentsin_associatesat_cost",
-          "fli_lenovo_de_2022-03-31_investmentsin_associatesat_cost"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2023-03-31_investmentsin_associatesat_cost",
-          "fli_lenovo_hk_2022-03-31_investmentsin_associatesat_cost"
-        ],
-        "US": [
-          "fli_lenovo_us_2023-03-31_investmentsin_associatesat_cost",
-          "fli_lenovo_us_2022-03-31_investmentsin_associatesat_cost"
-        ]
-      },
-      "node_count": 6,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31"
-      ],
-      "flow_classification": "CAPITAL",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the 'Investments in Associates at Cost' represent active equity holdings with ongoing operational influence or are passive, non-operational financial positions.",
-        "Determine if any profit-generating activities (e.g., management, strategic decisions, or operational oversight) related to these associates are conducted in HK, DE, or US.",
-        "Clarify whether the associates are engaged in trading, services, or other profit-generating activities that could trigger source-of-profits rules under DIPN 21."
-      ],
-      "narrative_template": "This capital position of {{engine:amount}} is not directly linked to an active profit-generating activity and thus does not trigger any DIPN 21 source-of-profits rule without further evidence of operational involvement."
-    },
-    {
-      "line_item": "Goodwill And Other Intangible Assets",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_goodwill_and_other_intangible_assets",
-          "fli_lenovo_de_2024-03-31_goodwill_and_other_intangible_assets",
-          "fli_lenovo_de_2023-03-31_goodwill_and_other_intangible_assets",
-          "fli_lenovo_de_2022-03-31_goodwill_and_other_intangible_assets"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_goodwill_and_other_intangible_assets",
-          "fli_lenovo_hk_2024-03-31_goodwill_and_other_intangible_assets",
-          "fli_lenovo_hk_2023-03-31_goodwill_and_other_intangible_assets",
-          "fli_lenovo_hk_2022-03-31_goodwill_and_other_intangible_assets"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_goodwill_and_other_intangible_assets",
-          "fli_lenovo_us_2024-03-31_goodwill_and_other_intangible_assets",
-          "fli_lenovo_us_2023-03-31_goodwill_and_other_intangible_assets",
-          "fli_lenovo_us_2022-03-31_goodwill_and_other_intangible_assets"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "CAPITAL",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": true,
-        "jurisdictions": [
-          "DE",
-          "HK",
-          "US"
-        ],
-        "note": "Same tax-relevant base reported in multiple jurisdictions."
-      },
-      "evidence_requests": [
-        "Confirm whether the goodwill and other intangible assets represent acquired business intangibles from past transactions or are internally generated.",
-        "Determine if any active business operations (e.g., R&D, licensing, IP management) are conducted in HK or other jurisdictions that could generate taxable profits.",
-        "Clarify whether the intangible assets are used in revenue-generating activities that fall under DIPN 21 categories such as services, trading, or financing."
-      ],
-      "narrative_template": "This capital position of {{engine:amount}} is not inherently a source of profits under DIPN 21; its taxability depends on underlying activities that generate income. Further evidence is required to determine if any profit-generating activity is attributable to HK or other jurisdictions."
-    },
-    {
-      "line_item": "Other Intangible Assets",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_other_intangible_assets",
-          "fli_lenovo_de_2024-03-31_other_intangible_assets",
-          "fli_lenovo_de_2023-03-31_other_intangible_assets",
-          "fli_lenovo_de_2022-03-31_other_intangible_assets"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_other_intangible_assets",
-          "fli_lenovo_hk_2024-03-31_other_intangible_assets",
-          "fli_lenovo_hk_2023-03-31_other_intangible_assets",
-          "fli_lenovo_hk_2022-03-31_other_intangible_assets"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_other_intangible_assets",
-          "fli_lenovo_us_2024-03-31_other_intangible_assets",
-          "fli_lenovo_us_2023-03-31_other_intangible_assets",
-          "fli_lenovo_us_2022-03-31_other_intangible_assets"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether 'Other Intangible Assets' represent amortizable assets tied to active business operations (e.g., IP development, R&D, or licensing) or are purely balance-sheet carry-forwards without ongoing profit-generating activity.",
-        "Clarify if any revenue-generating activities (e.g., licensing, exploitation, or use of intangibles) are conducted in HK, DE, or US, and whether such activities are distinct from mere holding or consolidation."
-      ],
-      "narrative_template": "This balance-sheet item of {{engine:amount}} does not reflect an active profit-generating operation and is therefore not governed by any DIPN 21 source-of-profits rule. Its taxability depends on underlying operational activities not currently evident."
-    },
-    {
-      "line_item": "Net PPE",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_net_ppe",
-          "fli_lenovo_de_2024-03-31_net_ppe",
-          "fli_lenovo_de_2023-03-31_net_ppe",
-          "fli_lenovo_de_2022-03-31_net_ppe"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_net_ppe",
-          "fli_lenovo_hk_2024-03-31_net_ppe",
-          "fli_lenovo_hk_2023-03-31_net_ppe",
-          "fli_lenovo_hk_2022-03-31_net_ppe"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_net_ppe",
-          "fli_lenovo_us_2024-03-31_net_ppe",
-          "fli_lenovo_us_2023-03-31_net_ppe",
-          "fli_lenovo_us_2022-03-31_net_ppe"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "CAPITAL",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the Net PPE line item represents a capital asset used in profit-generating activities, or is purely a balance-sheet residual.",
-        "Clarify if any ongoing operational activities (e.g., manufacturing, leasing, service provision) are directly tied to the use or management of this PPE."
-      ],
-      "narrative_template": "This capital position of {{engine:amount}} is not inherently profit-generating and does not reflect an active business operation. Therefore, no DIPN 21 source-of-profits rule applies unless supporting operational activity is confirmed."
-    },
-    {
-      "line_item": "Accumulated Depreciation",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_accumulated_depreciation",
-          "fli_lenovo_de_2024-03-31_accumulated_depreciation",
-          "fli_lenovo_de_2023-03-31_accumulated_depreciation",
-          "fli_lenovo_de_2022-03-31_accumulated_depreciation"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_accumulated_depreciation",
-          "fli_lenovo_hk_2024-03-31_accumulated_depreciation",
-          "fli_lenovo_hk_2023-03-31_accumulated_depreciation",
-          "fli_lenovo_hk_2022-03-31_accumulated_depreciation"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_accumulated_depreciation",
-          "fli_lenovo_us_2024-03-31_accumulated_depreciation",
-          "fli_lenovo_us_2023-03-31_accumulated_depreciation",
-          "fli_lenovo_us_2022-03-31_accumulated_depreciation"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the accumulated depreciation relates to assets used in profit-generating activities such as trading, services, or financing.",
-        "Determine if the depreciation is associated with tangible or intangible assets that support ongoing operations in any jurisdiction."
-      ],
-      "narrative_template": "This balance-sheet position of {{engine:amount}} does not represent a profit-generating activity and is not governed by any DIPN 21 source-of-profits rule."
-    },
-    {
-      "line_item": "Gross PPE",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_gross_ppe",
-          "fli_lenovo_de_2024-03-31_gross_ppe",
-          "fli_lenovo_de_2023-03-31_gross_ppe",
-          "fli_lenovo_de_2022-03-31_gross_ppe"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_gross_ppe",
-          "fli_lenovo_hk_2024-03-31_gross_ppe",
-          "fli_lenovo_hk_2023-03-31_gross_ppe",
-          "fli_lenovo_hk_2022-03-31_gross_ppe"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_gross_ppe",
-          "fli_lenovo_us_2024-03-31_gross_ppe",
-          "fli_lenovo_us_2023-03-31_gross_ppe",
-          "fli_lenovo_us_2022-03-31_gross_ppe"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "CAPITAL",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the gross PPE line item represents an active asset used in profit-generating operations or is purely a non-operational balance-sheet position.",
-        "Determine if any part of the asset's use or management involves activities that could generate taxable profits under DIPN 21, such as leasing, servicing, or operational use in a jurisdiction."
-      ],
-      "narrative_template": "This capital position of {{engine:amount}} is not associated with an active profit-generating activity and therefore does not fall under any DIPN 21 source-of-profits rule."
-    },
-    {
-      "line_item": "Construction In Progress",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_construction_in_progress",
-          "fli_lenovo_de_2024-03-31_construction_in_progress",
-          "fli_lenovo_de_2023-03-31_construction_in_progress",
-          "fli_lenovo_de_2022-03-31_construction_in_progress"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_construction_in_progress",
-          "fli_lenovo_hk_2024-03-31_construction_in_progress",
-          "fli_lenovo_hk_2023-03-31_construction_in_progress",
-          "fli_lenovo_hk_2022-03-31_construction_in_progress"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_construction_in_progress",
-          "fli_lenovo_us_2024-03-31_construction_in_progress",
-          "fli_lenovo_us_2023-03-31_construction_in_progress",
-          "fli_lenovo_us_2022-03-31_construction_in_progress"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "CAPITAL",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the 'Construction In Progress' line item represents an active construction project with ongoing work or is a dormant capital reserve.",
-        "Determine if the construction activities are being performed in HK, DE, or US, and whether any contracts or site operations are located in these jurisdictions.",
-        "Clarify whether the construction is part of a trading or service activity, or merely a balance-sheet accumulation of capital expenditure."
-      ],
-      "narrative_template": "This capital position of {{engine:amount}} is not directly governed by any DIPN 21 source-of-profits rule as it reflects a non-income-generating balance-sheet item. Further evidence is required to assess whether underlying activities qualify as trading, services, or real estate development."
-    },
-    {
-      "line_item": "Other Properties",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_other_properties",
-          "fli_lenovo_de_2024-03-31_other_properties",
-          "fli_lenovo_de_2023-03-31_other_properties",
-          "fli_lenovo_de_2022-03-31_other_properties"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_other_properties",
-          "fli_lenovo_hk_2024-03-31_other_properties",
-          "fli_lenovo_hk_2023-03-31_other_properties",
-          "fli_lenovo_hk_2022-03-31_other_properties"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_other_properties",
-          "fli_lenovo_us_2024-03-31_other_properties",
-          "fli_lenovo_us_2023-03-31_other_properties",
-          "fli_lenovo_us_2022-03-31_other_properties"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether 'Other Properties' represents a tangible asset with active income-generating potential (e.g., rental, sale) or is a passive balance-sheet item.",
-        "If active, clarify the nature of the property (e.g., real estate, intellectual property, equipment) and where it is located and managed."
-      ],
-      "narrative_template": "This balance-sheet line item of {{engine:amount}} is not associated with any active profit-generating activity and therefore does not trigger a source-of-profits rule under DIPN 21."
-    },
-    {
-      "line_item": "Machinery Furniture Equipment",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_machinery_furniture_equipment",
-          "fli_lenovo_de_2024-03-31_machinery_furniture_equipment",
-          "fli_lenovo_de_2023-03-31_machinery_furniture_equipment",
-          "fli_lenovo_de_2022-03-31_machinery_furniture_equipment"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_machinery_furniture_equipment",
-          "fli_lenovo_hk_2024-03-31_machinery_furniture_equipment",
-          "fli_lenovo_hk_2023-03-31_machinery_furniture_equipment",
-          "fli_lenovo_hk_2022-03-31_machinery_furniture_equipment"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_machinery_furniture_equipment",
-          "fli_lenovo_us_2024-03-31_machinery_furniture_equipment",
-          "fli_lenovo_us_2023-03-31_machinery_furniture_equipment",
-          "fli_lenovo_us_2022-03-31_machinery_furniture_equipment"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "CAPITAL",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the 'Machinery Furniture Equipment' line item represents a capital asset held for use in operations, and not a trading inventory.",
-        "Determine if any active depreciation or impairment is being recognized for this asset, and if so, whether it relates to operations in HK or elsewhere."
-      ],
-      "narrative_template": "This capital position of {{engine:amount}} is not a profit-generating activity in itself and does not reflect a transaction that gives rise to taxable profits under DIPN 21."
-    },
-    {
-      "line_item": "Buildings And Improvements",
-      "statement_type": "balance_sheet",
-      "currency": "USD",
-      "reported_jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_buildings_and_improvements",
-          "fli_lenovo_de_2024-03-31_buildings_and_improvements",
-          "fli_lenovo_de_2023-03-31_buildings_and_improvements",
-          "fli_lenovo_de_2022-03-31_buildings_and_improvements"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_buildings_and_improvements",
-          "fli_lenovo_hk_2024-03-31_buildings_and_improvements",
-          "fli_lenovo_hk_2023-03-31_buildings_and_improvements",
-          "fli_lenovo_hk_2022-03-31_buildings_and_improvements"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_buildings_and_improvements",
-          "fli_lenovo_us_2024-03-31_buildings_and_improvements",
-          "fli_lenovo_us_2023-03-31_buildings_and_improvements",
-          "fli_lenovo_us_2022-03-31_buildings_and_improvements"
-        ]
-      },
-      "node_count": 12,
-      "periods": [
-        "2022-03-31",
-        "2023-03-31",
-        "2024-03-31",
-        "2025-03-31"
-      ],
-      "flow_classification": "CAPITAL",
-      "candidate_jurisdictions": [
-        "HK",
-        "DE",
-        "US"
-      ],
-      "retrieved_rules": [],
-      "top_confidence": 0.0,
-      "abstain": true,
-      "needs_human_review": true,
-      "rule_conflict": {
-        "has_conflict": false,
-        "conflict_type": null,
-        "details": "",
-        "rule_ids": []
-      },
-      "cross_border_conflict": {
-        "is_flagged": false,
-        "jurisdictions": [],
-        "note": ""
-      },
-      "evidence_requests": [
-        "Confirm whether the buildings and improvements are held as part of a profit-generating business operation or are purely non-income-producing assets.",
-        "Determine the location(s) where the buildings and improvements are physically situated and whether they are used in the conduct of business activities.",
-        "Verify if any rental income or profit from sale of these properties is generated, and if so, the jurisdiction(s) where such income arises."
-      ],
-      "narrative_template": "This capital asset of {{engine:amount}} is not inherently a source of business profit; its taxability depends on whether it generates income through use in operations or sale. The applicable source rule would be determined by the location of the property and the nature of the related income-generating activity."
+        "What is the specific nature of the capital lease obligations (e.g., operating vs. finance lease) and how are they classified in the financial statements under IFRS or GAAP?",
+        "Is the lease obligation directly attributable to a German, US, or Hong Kong entity, or is it a group-level intercompany arrangement?",
+        "Are there any intercompany loans or financing arrangements that could be recharacterized under OECD TP CH10 financial rules?"
+      ],
+      "narrative_template": "The tax treatment of capital lease obligations is governed by interest expense rules. In {{engine:DE}}, interest expenses from Total Debt or Net Debt are deductible up to the amount of interest income, with excess expenses deductible only up to 30% of taxable EBITDA. In {{engine:US}}, interest expenses from Total Debt or Net Debt are limited to business interest income plus 30% of Adjusted Taxable Income (ATI). These rules apply to the capital lease obligations as a form of debt."
     }
   ],
   "cross_border_conflicts": [
@@ -3813,7 +957,10 @@
         "US"
       ],
       "flow_classification": "CAPITAL",
-      "matched_rule_ids": [],
+      "matched_rule_ids": [
+        "HK_FSIE_EQUITY_HOLDING",
+        "HK_IRO_14_CAPITAL_ASSETS"
+      ],
       "node_ids_by_jurisdiction": {
         "DE": [
           "fli_lenovo_de_2025-03-31_invested_capital",
@@ -3832,341 +979,6 @@
           "fli_lenovo_us_2024-03-31_invested_capital",
           "fli_lenovo_us_2023-03-31_invested_capital",
           "fli_lenovo_us_2022-03-31_invested_capital"
-        ]
-      },
-      "rationale": "A tax-relevant base reported under multiple listings may be claimed by more than one jurisdiction; reconcile the source determination downstream."
-    },
-    {
-      "line_item": "Common Stock Equity",
-      "jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "flow_classification": "CAPITAL",
-      "matched_rule_ids": [],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_common_stock_equity",
-          "fli_lenovo_de_2024-03-31_common_stock_equity",
-          "fli_lenovo_de_2023-03-31_common_stock_equity",
-          "fli_lenovo_de_2022-03-31_common_stock_equity"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_common_stock_equity",
-          "fli_lenovo_hk_2024-03-31_common_stock_equity",
-          "fli_lenovo_hk_2023-03-31_common_stock_equity",
-          "fli_lenovo_hk_2022-03-31_common_stock_equity"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_common_stock_equity",
-          "fli_lenovo_us_2024-03-31_common_stock_equity",
-          "fli_lenovo_us_2023-03-31_common_stock_equity",
-          "fli_lenovo_us_2022-03-31_common_stock_equity"
-        ]
-      },
-      "rationale": "A tax-relevant base reported under multiple listings may be claimed by more than one jurisdiction; reconcile the source determination downstream."
-    },
-    {
-      "line_item": "Total Equity Gross Minority Interest",
-      "jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "matched_rule_ids": [],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_total_equity_gross_minority_interest",
-          "fli_lenovo_de_2024-03-31_total_equity_gross_minority_interest",
-          "fli_lenovo_de_2023-03-31_total_equity_gross_minority_interest",
-          "fli_lenovo_de_2022-03-31_total_equity_gross_minority_interest"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_total_equity_gross_minority_interest",
-          "fli_lenovo_hk_2024-03-31_total_equity_gross_minority_interest",
-          "fli_lenovo_hk_2023-03-31_total_equity_gross_minority_interest",
-          "fli_lenovo_hk_2022-03-31_total_equity_gross_minority_interest"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_total_equity_gross_minority_interest",
-          "fli_lenovo_us_2024-03-31_total_equity_gross_minority_interest",
-          "fli_lenovo_us_2023-03-31_total_equity_gross_minority_interest",
-          "fli_lenovo_us_2022-03-31_total_equity_gross_minority_interest"
-        ]
-      },
-      "rationale": "A tax-relevant base reported under multiple listings may be claimed by more than one jurisdiction; reconcile the source determination downstream."
-    },
-    {
-      "line_item": "Stockholders Equity",
-      "jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "matched_rule_ids": [],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_stockholders_equity",
-          "fli_lenovo_de_2024-03-31_stockholders_equity",
-          "fli_lenovo_de_2023-03-31_stockholders_equity",
-          "fli_lenovo_de_2022-03-31_stockholders_equity"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_stockholders_equity",
-          "fli_lenovo_hk_2024-03-31_stockholders_equity",
-          "fli_lenovo_hk_2023-03-31_stockholders_equity",
-          "fli_lenovo_hk_2022-03-31_stockholders_equity"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_stockholders_equity",
-          "fli_lenovo_us_2024-03-31_stockholders_equity",
-          "fli_lenovo_us_2023-03-31_stockholders_equity",
-          "fli_lenovo_us_2022-03-31_stockholders_equity"
-        ]
-      },
-      "rationale": "A tax-relevant base reported under multiple listings may be claimed by more than one jurisdiction; reconcile the source determination downstream."
-    },
-    {
-      "line_item": "Other Equity Interest",
-      "jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "flow_classification": "CAPITAL",
-      "matched_rule_ids": [],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_other_equity_interest",
-          "fli_lenovo_de_2023-03-31_other_equity_interest",
-          "fli_lenovo_de_2022-03-31_other_equity_interest"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_other_equity_interest",
-          "fli_lenovo_hk_2023-03-31_other_equity_interest",
-          "fli_lenovo_hk_2022-03-31_other_equity_interest"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_other_equity_interest",
-          "fli_lenovo_us_2023-03-31_other_equity_interest",
-          "fli_lenovo_us_2022-03-31_other_equity_interest"
-        ]
-      },
-      "rationale": "A tax-relevant base reported under multiple listings may be claimed by more than one jurisdiction; reconcile the source determination downstream."
-    },
-    {
-      "line_item": "Retained Earnings",
-      "jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "matched_rule_ids": [],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_retained_earnings",
-          "fli_lenovo_de_2023-03-31_retained_earnings",
-          "fli_lenovo_de_2022-03-31_retained_earnings"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_retained_earnings",
-          "fli_lenovo_hk_2023-03-31_retained_earnings",
-          "fli_lenovo_hk_2022-03-31_retained_earnings"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_retained_earnings",
-          "fli_lenovo_us_2023-03-31_retained_earnings",
-          "fli_lenovo_us_2022-03-31_retained_earnings"
-        ]
-      },
-      "rationale": "A tax-relevant base reported under multiple listings may be claimed by more than one jurisdiction; reconcile the source determination downstream."
-    },
-    {
-      "line_item": "Non Current Deferred Revenue",
-      "jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "matched_rule_ids": [],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_non_current_deferred_revenue",
-          "fli_lenovo_de_2024-03-31_non_current_deferred_revenue",
-          "fli_lenovo_de_2023-03-31_non_current_deferred_revenue",
-          "fli_lenovo_de_2022-03-31_non_current_deferred_revenue"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_non_current_deferred_revenue",
-          "fli_lenovo_hk_2024-03-31_non_current_deferred_revenue",
-          "fli_lenovo_hk_2023-03-31_non_current_deferred_revenue",
-          "fli_lenovo_hk_2022-03-31_non_current_deferred_revenue"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_non_current_deferred_revenue",
-          "fli_lenovo_us_2024-03-31_non_current_deferred_revenue",
-          "fli_lenovo_us_2023-03-31_non_current_deferred_revenue",
-          "fli_lenovo_us_2022-03-31_non_current_deferred_revenue"
-        ]
-      },
-      "rationale": "A tax-relevant base reported under multiple listings may be claimed by more than one jurisdiction; reconcile the source determination downstream."
-    },
-    {
-      "line_item": "Non Current Deferred Taxes Liabilities",
-      "jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "matched_rule_ids": [],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_non_current_deferred_taxes_liabilities",
-          "fli_lenovo_de_2024-03-31_non_current_deferred_taxes_liabilities",
-          "fli_lenovo_de_2023-03-31_non_current_deferred_taxes_liabilities",
-          "fli_lenovo_de_2022-03-31_non_current_deferred_taxes_liabilities"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_non_current_deferred_taxes_liabilities",
-          "fli_lenovo_hk_2024-03-31_non_current_deferred_taxes_liabilities",
-          "fli_lenovo_hk_2023-03-31_non_current_deferred_taxes_liabilities",
-          "fli_lenovo_hk_2022-03-31_non_current_deferred_taxes_liabilities"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_non_current_deferred_taxes_liabilities",
-          "fli_lenovo_us_2024-03-31_non_current_deferred_taxes_liabilities",
-          "fli_lenovo_us_2023-03-31_non_current_deferred_taxes_liabilities",
-          "fli_lenovo_us_2022-03-31_non_current_deferred_taxes_liabilities"
-        ]
-      },
-      "rationale": "A tax-relevant base reported under multiple listings may be claimed by more than one jurisdiction; reconcile the source determination downstream."
-    },
-    {
-      "line_item": "Total Tax Payable",
-      "jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "matched_rule_ids": [],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_total_tax_payable",
-          "fli_lenovo_de_2024-03-31_total_tax_payable",
-          "fli_lenovo_de_2023-03-31_total_tax_payable",
-          "fli_lenovo_de_2022-03-31_total_tax_payable"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_total_tax_payable",
-          "fli_lenovo_hk_2024-03-31_total_tax_payable",
-          "fli_lenovo_hk_2023-03-31_total_tax_payable",
-          "fli_lenovo_hk_2022-03-31_total_tax_payable"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_total_tax_payable",
-          "fli_lenovo_us_2024-03-31_total_tax_payable",
-          "fli_lenovo_us_2023-03-31_total_tax_payable",
-          "fli_lenovo_us_2022-03-31_total_tax_payable"
-        ]
-      },
-      "rationale": "A tax-relevant base reported under multiple listings may be claimed by more than one jurisdiction; reconcile the source determination downstream."
-    },
-    {
-      "line_item": "Non Current Deferred Taxes Assets",
-      "jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "flow_classification": "UNCLASSIFIED",
-      "matched_rule_ids": [],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_non_current_deferred_taxes_assets",
-          "fli_lenovo_de_2024-03-31_non_current_deferred_taxes_assets",
-          "fli_lenovo_de_2023-03-31_non_current_deferred_taxes_assets",
-          "fli_lenovo_de_2022-03-31_non_current_deferred_taxes_assets"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_non_current_deferred_taxes_assets",
-          "fli_lenovo_hk_2024-03-31_non_current_deferred_taxes_assets",
-          "fli_lenovo_hk_2023-03-31_non_current_deferred_taxes_assets",
-          "fli_lenovo_hk_2022-03-31_non_current_deferred_taxes_assets"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_non_current_deferred_taxes_assets",
-          "fli_lenovo_us_2024-03-31_non_current_deferred_taxes_assets",
-          "fli_lenovo_us_2023-03-31_non_current_deferred_taxes_assets",
-          "fli_lenovo_us_2022-03-31_non_current_deferred_taxes_assets"
-        ]
-      },
-      "rationale": "A tax-relevant base reported under multiple listings may be claimed by more than one jurisdiction; reconcile the source determination downstream."
-    },
-    {
-      "line_item": "Long Term Equity Investment",
-      "jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "flow_classification": "CAPITAL",
-      "matched_rule_ids": [],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_long_term_equity_investment",
-          "fli_lenovo_de_2024-03-31_long_term_equity_investment",
-          "fli_lenovo_de_2023-03-31_long_term_equity_investment",
-          "fli_lenovo_de_2022-03-31_long_term_equity_investment"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_long_term_equity_investment",
-          "fli_lenovo_hk_2024-03-31_long_term_equity_investment",
-          "fli_lenovo_hk_2023-03-31_long_term_equity_investment",
-          "fli_lenovo_hk_2022-03-31_long_term_equity_investment"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_long_term_equity_investment",
-          "fli_lenovo_us_2024-03-31_long_term_equity_investment",
-          "fli_lenovo_us_2023-03-31_long_term_equity_investment",
-          "fli_lenovo_us_2022-03-31_long_term_equity_investment"
-        ]
-      },
-      "rationale": "A tax-relevant base reported under multiple listings may be claimed by more than one jurisdiction; reconcile the source determination downstream."
-    },
-    {
-      "line_item": "Goodwill And Other Intangible Assets",
-      "jurisdictions": [
-        "DE",
-        "HK",
-        "US"
-      ],
-      "flow_classification": "CAPITAL",
-      "matched_rule_ids": [],
-      "node_ids_by_jurisdiction": {
-        "DE": [
-          "fli_lenovo_de_2025-03-31_goodwill_and_other_intangible_assets",
-          "fli_lenovo_de_2024-03-31_goodwill_and_other_intangible_assets",
-          "fli_lenovo_de_2023-03-31_goodwill_and_other_intangible_assets",
-          "fli_lenovo_de_2022-03-31_goodwill_and_other_intangible_assets"
-        ],
-        "HK": [
-          "fli_lenovo_hk_2025-03-31_goodwill_and_other_intangible_assets",
-          "fli_lenovo_hk_2024-03-31_goodwill_and_other_intangible_assets",
-          "fli_lenovo_hk_2023-03-31_goodwill_and_other_intangible_assets",
-          "fli_lenovo_hk_2022-03-31_goodwill_and_other_intangible_assets"
-        ],
-        "US": [
-          "fli_lenovo_us_2025-03-31_goodwill_and_other_intangible_assets",
-          "fli_lenovo_us_2024-03-31_goodwill_and_other_intangible_assets",
-          "fli_lenovo_us_2023-03-31_goodwill_and_other_intangible_assets",
-          "fli_lenovo_us_2022-03-31_goodwill_and_other_intangible_assets"
         ]
       },
       "rationale": "A tax-relevant base reported under multiple listings may be claimed by more than one jurisdiction; reconcile the source determination downstream."

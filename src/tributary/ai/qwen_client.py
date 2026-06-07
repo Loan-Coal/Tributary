@@ -2,7 +2,8 @@
 Module: qwen_client
 Layer: ai
 Purpose: Local Qwen model adapter for structured AI output.
-Dependencies: json, re, typing, transformers, torch, tributary.common.errors, tributary.common.logging, tributary.ai.models
+Dependencies: json, re, typing, transformers, torch, bitsandbytes,
+              tributary.common.errors, tributary.common.logging, tributary.ai.models
 Used by: ai.service, examples
 """
 from __future__ import annotations
@@ -11,7 +12,7 @@ import json
 import re
 from typing import Any, Dict, List, Optional
 
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 import torch
 
 from tributary.common.errors import AIClientError
@@ -22,7 +23,11 @@ logger = get_logger(__name__)
 
 
 class QwenLocalClient:
-    def __init__(self, model_name: str = "Qwen/Qwen3-30B-A3B-Instruct-2507") -> None:
+    def __init__(
+        self,
+        model_name: str = "Qwen/Qwen3-30B-A3B-Instruct-2507",
+        use_4bit: bool = True,
+    ) -> None:
         self.model_name = model_name
         try:
             self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
@@ -31,24 +36,63 @@ class QwenLocalClient:
             raise AIClientError("Failed to load Qwen tokenizer") from exc
 
         try:
-            self.model = AutoModelForCausalLM.from_pretrained(
-                model_name,
-                torch_dtype="auto",
-                device_map="auto",
-                trust_remote_code=True,
-            )
+            # 4-bit quantization: reduces VRAM from ~60 GB to ~15 GB for the 30B model,
+            # making it comfortably runnable on a single A100 (80 GB) or even A6000.
+            quant_config: Optional[BitsAndBytesConfig] = None
+            if use_4bit:
+                quant_config = BitsAndBytesConfig(
+                    load_in_4bit=True,
+                    bnb_4bit_quant_type="nf4",
+                    bnb_4bit_compute_dtype=torch.bfloat16,
+                    bnb_4bit_use_double_quant=True,
+                )
+                print("Loading Qwen model with 4-bit NF4 quantization (~15 GB VRAM) ...", flush=True)
+            else:
+                print("Loading Qwen model in bfloat16 (~60 GB VRAM) ...", flush=True)
+
+            try:
+                self.model = AutoModelForCausalLM.from_pretrained(
+                    model_name,
+                    dtype=torch.bfloat16 if not use_4bit else None,
+                    quantization_config=quant_config,
+                    device_map="auto",
+                    trust_remote_code=True,
+                )
+            except Exception as exc:
+                # Surface the real error so the user can diagnose it.
+                print(f"[ERROR] Model loading failed: {type(exc).__name__}: {exc}", flush=True)
+                if use_4bit:
+                    # Automatically fall back to bfloat16 if 4-bit init fails
+                    # (e.g. bitsandbytes CUDA kernel mismatch on this driver version).
+                    print("[WARN] 4-bit loading failed — retrying in bfloat16 (needs ~60 GB VRAM).", flush=True)
+                    self.model = AutoModelForCausalLM.from_pretrained(
+                        model_name,
+                        dtype=torch.bfloat16,
+                        device_map="auto",
+                        trust_remote_code=True,
+                    )
+                else:
+                    raise
         except Exception as exc:
             logger.error("Failed to load Qwen model", exc_info=exc)
-            raise AIClientError("Failed to load Qwen model") from exc
+            raise AIClientError(f"Failed to load Qwen model: {type(exc).__name__}: {exc}") from exc
 
-    def generate(self, prompt: str, max_tokens: int = 800) -> AILayerOutput:
-        """Generate structured output from a local Qwen model."""
+
+    def generate(self, prompt: str, max_tokens: int = 1200) -> AILayerOutput:
+        """Generate structured output from a local Qwen model.
+
+        max_tokens is set to 1200 (up from 800) to accommodate multi-rule outputs
+        with taxing_jurisdiction fields across HK/US/DE/OECD rule packs.
+        """
         try:
             messages = [{"role": "user", "content": prompt}]
+            # enable_thinking=False: suppresses Qwen3's internal chain-of-thought
+            # so the model outputs clean JSON directly without a <think>...</think> block.
             text = self.tokenizer.apply_chat_template(
                 messages,
                 tokenize=False,
                 add_generation_prompt=True,
+                enable_thinking=False,
             )
             model_inputs = self.tokenizer([text], return_tensors="pt").to(self.model.device)
             generated_ids = self.model.generate(
@@ -139,6 +183,7 @@ class QwenLocalClient:
                     "source_citation": str(rule.get("source_citation", "")),
                     "as_of_date": str(rule.get("as_of_date", "")),
                     "confidence": float(rule.get("confidence", 0.5)) if rule.get("confidence") is not None else 0.5,
+                    "taxing_jurisdiction": str(rule.get("taxing_jurisdiction", "")),
                     "reasoning": str(rule.get("reasoning", rule.get("comment", ""))) or "Rule referenced by AI output.",
                 }
             )

@@ -1,0 +1,14 @@
+==========================================
+ Tributary AI Layer
+ Job: 15988  Node: hctlrds
+ Start: 2026-06-07 08:49:50
+==========================================
+Loading rule packs ...
+  Loaded 12 rules from hk_dipn21_rules.json
+  Loaded 8 rules from balance_sheet_tax_rules.json
+  Loaded 11 rules from oecd_corporate_rates.json
+Read 909 line-item nodes -> 80 distinct line items (backend=qwen); 8 already done, 72 to do.
+Loading Qwen model 'Qwen/Qwen3-4B-Instruct-2507' [bfloat16 (no quantization)] (one-time) ...
+Loading Qwen model in bfloat16 (~60 GB VRAM) ...
+  [1/72] Net Tangible Assets: UNCLASSIFIED, taxing_jur=HK, top_conf=0.92 
+  [2/72] Capital Lease Obligations: LOAN, taxing_jur=DE, top_conf=0.85 ⚠ CONFLICT

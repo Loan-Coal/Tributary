@@ -2,13 +2,20 @@
 Example runner for the grounded AI layer over the graph snapshot.
 
 Reads `graph/graph_snapshot.json`, and for every distinct balance-sheet line item
-performs the grounded AI-layer analysis against the DIPN 21 rule pack
-(`examples/Datasets/hk_dipn21_rules.json`, used as the RAG source):
+performs the grounded AI-layer analysis against ALL available rule packs:
 
+  Rule packs used (merged and passed to the LLM as a single grounded context):
+    - hk_dipn21_rules.json      HK source-of-profits rules
+    - balance_sheet_tax_rules.json  Per-jurisdiction balance-sheet rules (HK/US/DE/GLOBAL)
+    - oecd_corporate_rates.json     OECD corporate-tax rate metadata
+
+  Analysis per line item:
   1. flow classification           (REVENUE / EXPENSE / INTERCOMPANY / CAPITAL / LOAN / UNCLASSIFIED)
   2. candidate-jurisdiction attribution  (the jurisdictions reporting the base)
-  3. grounded rule retrieval       (mandatory citation + confidence + abstention)
-  4. brief narrative drafting      (engine placeholders only -- never figures)
+  3. grounded rule retrieval       (mandatory citation + confidence + taxing_jurisdiction + abstention)
+  4. cross-jurisdiction conflict detection  (two rules from different taxing authorities =>
+                                            needs_human_review + cross_border_conflict flag)
+  5. brief narrative drafting      (engine placeholders only -- never figures)
 
 Design notes:
 - Monetary amounts are intentionally IGNORED. The layer judges which regulation
@@ -44,7 +51,17 @@ from tributary.ai.models import AILayerOutput, RuleCitation, RuleSummary, Transa
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_INPUT = REPO_ROOT / "graph" / "graph_snapshot.json"
 DEFAULT_RULES = REPO_ROOT / "examples" / "Datasets" / "hk_dipn21_rules.json"
+DEFAULT_BALANCE_SHEET_RULES = REPO_ROOT / "examples" / "Datasets" / "balance_sheet_tax_rules.json"
+DEFAULT_OECD_RATES = REPO_ROOT / "examples" / "Datasets" / "oecd_corporate_rates.json"
 DEFAULT_OUTPUT = REPO_ROOT / "examples" / "ai_layer_output.json"
+
+# Use the locally-cached Qwen3-4B model (fits in ~8 GB VRAM on a single A100 without quantization).
+# Point HuggingFace at the shared model hub so no re-download is needed.
+_LOCAL_HF_HUB = Path("/mnt/disk2/ivojunior/models/hub")
+if _LOCAL_HF_HUB.is_dir():
+    import os
+    os.environ.setdefault("HF_HUB_CACHE", str(_LOCAL_HF_HUB))
+DEFAULT_QWEN_MODEL = "Qwen/Qwen3-4B-Instruct-2507"
 
 LINE_ITEM_LABEL = "FinancialLineItem"
 ENTITY_LABEL = "Entity"
@@ -87,7 +104,7 @@ TAX_BASE_KEYWORDS = frozenset(
 # --- Rule pack loading -------------------------------------------------------
 
 def load_rule_pack(rules_path: Path) -> Tuple[List[Dict[str, Any]], Dict[str, Dict[str, Any]]]:
-    """Load the DIPN 21 rule pack JSON.
+    """Load a rule pack JSON file.
 
     Args:
         rules_path: Path to the rule pack JSON file.
@@ -100,28 +117,57 @@ def load_rule_pack(rules_path: Path) -> Tuple[List[Dict[str, Any]], Dict[str, Di
     return rules, params_by_id
 
 
-class JsonRuleRetriever:
-    """RAG rule loader backed by the DIPN 21 JSON pack.
+def load_all_rule_packs(
+    *paths: Path,
+) -> Tuple[List[Dict[str, Any]], Dict[str, Dict[str, Any]]]:
+    """Merge multiple rule pack files into one flat list.
 
-    Implements ``get_rule_summaries(jurisdictions)`` (RulePackLoaderProtocol). The pack
-    is the single body of HK source-of-profits law every item is tested against, so all
-    rules are returned for grounding regardless of the candidate jurisdictions.
+    Returns:
+        A tuple of (merged rule list, merged mapping of rule_id -> parameters).
+    """
+    merged_rules: List[Dict[str, Any]] = []
+    merged_params: Dict[str, Dict[str, Any]] = {}
+    for path in paths:
+        if not path.exists():
+            print(f"  [warn] Rule pack not found, skipping: {path}", flush=True)
+            continue
+        rules, params = load_rule_pack(path)
+        merged_rules.extend(rules)
+        merged_params.update(params)
+        print(f"  Loaded {len(rules)} rules from {path.name}", flush=True)
+    return merged_rules, merged_params
+
+
+class JsonRuleRetriever:
+    """RAG rule loader backed by one or more merged JSON rule packs.
+
+    Implements ``get_rule_summaries(jurisdictions)`` (RulePackLoaderProtocol). All rules
+    from every loaded pack are returned for grounding, regardless of candidate jurisdictions,
+    so the LLM can choose the most specific rule across HK / US / DE / OECD.
+    Each RuleSummary carries a `jurisdiction` tag extracted from the rule entry so the
+    LLM can reason about which tax authority owns each rule.
     """
 
     def __init__(self, rules: List[Dict[str, Any]]) -> None:
         self.rules = rules
 
     def get_rule_summaries(self, jurisdictions: Iterable[str]) -> List[RuleSummary]:
-        """Return every rule in the pack as a RuleSummary for prompt grounding."""
-        return [
-            RuleSummary(
-                id=rule["id"],
-                summary=rule.get("summary", ""),
-                as_of_date=rule.get("as_of_date", ""),
-                source_citation=rule.get("source_citation", ""),
+        """Return every rule in the merged pack as a RuleSummary for prompt grounding."""
+        summaries = []
+        for rule in self.rules:
+            jur = rule.get("jurisdiction", "")
+            # Enrich summary with jurisdiction prefix so the LLM sees it clearly.
+            base_summary = rule.get("summary", "")
+            jur_tag = f"[Jurisdiction: {jur}] " if jur else ""
+            summaries.append(
+                RuleSummary(
+                    id=rule["id"],
+                    summary=f"{jur_tag}{base_summary}",
+                    as_of_date=rule.get("as_of_date", ""),
+                    source_citation=rule.get("source_citation", ""),
+                )
             )
-            for rule in self.rules
-        ]
+        return summaries
 
 
 # --- Graph snapshot ingestion ------------------------------------------------
@@ -188,9 +234,11 @@ def build_context(line_item: str, statement_type: str, jurisdictions: List[str])
     text = (
         f"Balance-sheet line item '{line_item}' (statement: {statement_type}) of Lenovo "
         f"Group Limited, a multinational reported under listings in "
-        f"{', '.join(jurisdictions)}. Monetary amounts are excluded by design: assess "
-        f"only which DIPN 21 source-of-profits rule (if any) governs this item, with what "
-        f"confidence, and which of these jurisdictions may tax it."
+        f"{', '.join(jurisdictions)} (HK=Hong Kong Profits Tax, US=US Federal+State CIT, "
+        f"DE=German CIT+Trade Tax). Monetary amounts are excluded by design. "
+        f"Identify which tax rule(s) from the provided multi-jurisdiction rule pack govern "
+        f"this specific balance-sheet item, assign a taxing_jurisdiction per rule, and "
+        f"flag cross-border conflicts if multiple taxing authorities apply."
     )
     return TransactionContext(
         transaction_text=text,
@@ -280,7 +328,7 @@ def _score_rule(rule_tokens: set[str], item_tokens: set[str]) -> float:
 
 
 def classify_group_deterministic(group: Dict[str, Any], rules: List[Dict[str, Any]]) -> AILayerOutput:
-    """Classify a line item by deterministic keyword matching against the rule pack."""
+    """Classify a line item by deterministic keyword matching against the merged rule pack."""
     item_tokens = _line_item_tokens(group["line_item"])
     scored = sorted(
         ((rule, _score_rule(_rule_keywords(rule), item_tokens)) for rule in rules),
@@ -290,14 +338,17 @@ def classify_group_deterministic(group: Dict[str, Any], rules: List[Dict[str, An
     citations = [_citation(rule, score) for rule, score in scored[:MAX_REPORTED_RULES] if score > 0.0]
     top_confidence = citations[0].confidence if citations else 0.0
     abstain = top_confidence < MIN_MATCH_CONFIDENCE
+    # Cross-jurisdiction conflict: multiple rules from different taxing jurisdictions
+    taxing_jurs = {c.taxing_jurisdiction for c in citations if c.taxing_jurisdiction}
+    has_jur_conflict = len(taxing_jurs) > 1
     return AILayerOutput(
         transaction_id=group["rep_id"],
         flow_classification=classify_flow(group["line_item"]),
         candidate_jurisdictions=group["jurisdictions"],
         retrieved_rules=[] if abstain else citations,
-        evidence_requests=_evidence_requests(abstain),
+        evidence_requests=_evidence_requests(abstain, has_jur_conflict, taxing_jurs),
         narrative_template=_narrative_template(classify_flow(group["line_item"]), abstain),
-        needs_human_review=abstain or top_confidence < REVIEW_CONFIDENCE,
+        needs_human_review=abstain or top_confidence < REVIEW_CONFIDENCE or has_jur_conflict,
         abstain=abstain,
     )
 
@@ -305,27 +356,45 @@ def classify_group_deterministic(group: Dict[str, Any], rules: List[Dict[str, An
 def _citation(rule: Dict[str, Any], score: float) -> RuleCitation:
     """Build a RuleCitation from a rule pack entry and its match score."""
     applies = rule.get("parameters", {}).get("applies_to", "n/a")
+    # Derive taxing_jurisdiction from the rule's own `jurisdiction` field, falling back
+    # to a prefix heuristic (HK_*, US_*, DE_*) so deterministic mode works without LLM.
+    jur = rule.get("jurisdiction", "")
+    if not jur:
+        rid = rule.get("id", "")
+        for prefix, code in (("HK_", "HK"), ("US_", "US"), ("DE_", "DE"), ("OECD_", "GLOBAL")):
+            if rid.startswith(prefix):
+                jur = code
+                break
     return RuleCitation(
         rule_id=rule["id"],
         source_citation=rule.get("source_citation", ""),
         as_of_date=rule.get("as_of_date", ""),
         confidence=score,
+        taxing_jurisdiction=jur,
         reasoning=f"Line-item wording overlaps the rule scope '{applies}'.",
     )
 
 
-def _evidence_requests(abstain: bool) -> List[str]:
+def _evidence_requests(abstain: bool, has_jur_conflict: bool = False, taxing_jurs: set = frozenset()) -> List[str]:
     """Build CPA evidence requests for an item."""
     if abstain:
         return [
-            "No DIPN 21 source rule clearly applies to this balance-sheet line item. "
+            "No rule in the multi-jurisdiction pack clearly applies to this balance-sheet line item. "
             "Confirm the underlying transactions (trading, services, financing, securities) "
             "and where the profit-generating operations were performed.",
         ]
-    return [
+    requests = [
         "Confirm where the operations giving rise to this balance reside to validate "
         "the source determination.",
     ]
+    if has_jur_conflict:
+        jur_list = ", ".join(sorted(taxing_jurs))
+        requests.append(
+            f"CROSS-JURISDICTION CONFLICT: rules from multiple taxing authorities ({jur_list}) "
+            "apply to this item. Reconcile which jurisdiction has primary taxing rights and "
+            "whether a tax treaty or transfer-pricing adjustment is needed."
+        )
+    return requests
 
 
 def _narrative_template(flow: str, abstain: bool) -> str:
@@ -353,12 +422,13 @@ class _SingleContextGraphReader:
         return self.context
 
 
-def build_qwen_client(model_name: str) -> Any:
+def build_qwen_client(model_name: str, use_4bit: bool = True) -> Any:
     """Load the local Qwen model ONCE for reuse across all line items."""
     from tributary.ai.qwen_client import QwenLocalClient
 
-    print(f"Loading Qwen model '{model_name}' (one-time) ...", flush=True)
-    return QwenLocalClient(model_name=model_name)
+    quant_tag = "4-bit NF4" if use_4bit else "bfloat16 (no quantization)"
+    print(f"Loading Qwen model '{model_name}' [{quant_tag}] (one-time) ...", flush=True)
+    return QwenLocalClient(model_name=model_name, use_4bit=use_4bit)
 
 
 def classify_group_qwen(group: Dict[str, Any], retriever: JsonRuleRetriever, client: Any) -> AILayerOutput:
@@ -378,13 +448,30 @@ def classify_group_qwen(group: Dict[str, Any], retriever: JsonRuleRetriever, cli
 def detect_rule_conflict(output: AILayerOutput, params_by_id: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
     """Flag regulatory conflicts among the material matched rules.
 
-    Detects (a) apportionment disagreement between applicable rules and
-    (b) ambiguous classification when two material rules score within a tie band.
+    Detects:
+    (a) cross-jurisdiction conflict: rules from different taxing authorities both apply
+    (b) apportionment disagreement between applicable rules
+    (c) ambiguous classification when two material rules score within a tie band.
     """
     material = [c for c in output.retrieved_rules if c.confidence >= MATERIAL_CONFIDENCE]
     if len(material) < 2:
         return _no_conflict()
 
+    # (a) Cross-jurisdiction conflict: different taxing_jurisdiction values among material rules
+    taxing_jurs = {c.taxing_jurisdiction for c in material if c.taxing_jurisdiction and c.taxing_jurisdiction != "GLOBAL"}
+    if len(taxing_jurs) > 1:
+        return {
+            "has_conflict": True,
+            "conflict_type": "cross_jurisdiction_conflict",
+            "taxing_jurisdictions": sorted(taxing_jurs),
+            "details": (
+                f"Rules from multiple taxing authorities ({', '.join(sorted(taxing_jurs))}) "
+                "apply to this item. Requires treaty analysis or transfer-pricing reconciliation."
+            ),
+            "rule_ids": [c.rule_id for c in material],
+        }
+
+    # (b) Apportionment disagreement within the same jurisdiction
     apportionment = {
         c.rule_id: params_by_id.get(c.rule_id, {}).get("apportionment_allowed")
         for c in material
@@ -394,15 +481,18 @@ def detect_rule_conflict(output: AILayerOutput, params_by_id: Dict[str, Dict[str
         return {
             "has_conflict": True,
             "conflict_type": "apportionment_disagreement",
+            "taxing_jurisdictions": sorted(taxing_jurs),
             "details": "Applicable rules disagree on whether profit apportionment is allowed.",
             "rule_ids": [c.rule_id for c in material if apportionment.get(c.rule_id) is not None],
         }
 
+    # (c) Ambiguous classification: two top rules too close in confidence
     if material[0].confidence - material[1].confidence <= CONFIDENCE_TIE_BAND:
         return {
             "has_conflict": True,
             "conflict_type": "ambiguous_classification",
-            "details": "Two source rules match with near-equal confidence; scope is ambiguous.",
+            "taxing_jurisdictions": sorted(taxing_jurs),
+            "details": "Two rules match with near-equal confidence; scope is ambiguous.",
             "rule_ids": [material[0].rule_id, material[1].rule_id],
         }
     return _no_conflict()
@@ -410,7 +500,7 @@ def detect_rule_conflict(output: AILayerOutput, params_by_id: Dict[str, Dict[str
 
 def _no_conflict() -> Dict[str, Any]:
     """Return the canonical no-conflict record."""
-    return {"has_conflict": False, "conflict_type": None, "details": "", "rule_ids": []}
+    return {"has_conflict": False, "conflict_type": None, "taxing_jurisdictions": [], "details": "", "rule_ids": []}
 
 
 def is_tax_base_relevant(line_item: str) -> bool:
@@ -438,6 +528,17 @@ def build_group_record(
     cross_border: Dict[str, Any],
 ) -> Dict[str, Any]:
     """Assemble the downstream JSON record for one analysed line item."""
+    # Build a concise taxing_jurisdictions_summary: {jurisdiction: [rule_ids]}
+    jur_summary: Dict[str, List[str]] = defaultdict(list)
+    for c in output.retrieved_rules:
+        key = c.taxing_jurisdiction if c.taxing_jurisdiction else "UNKNOWN"
+        jur_summary[key].append(c.rule_id)
+    # Determine primary taxing jurisdiction (highest-confidence rule's jurisdiction)
+    primary_taxing_jurisdiction = (
+        output.retrieved_rules[0].taxing_jurisdiction
+        if output.retrieved_rules
+        else None
+    )
     return {
         "line_item": group["line_item"],
         "statement_type": group["statement_type"],
@@ -448,6 +549,8 @@ def build_group_record(
         "periods": group["periods"],
         "flow_classification": output.flow_classification,
         "candidate_jurisdictions": output.candidate_jurisdictions,
+        "primary_taxing_jurisdiction": primary_taxing_jurisdiction,
+        "taxing_jurisdictions_summary": dict(jur_summary),
         "retrieved_rules": [c.model_dump() for c in output.retrieved_rules],
         "top_confidence": output.retrieved_rules[0].confidence if output.retrieved_rules else 0.0,
         "abstain": output.abstain,
@@ -548,14 +651,18 @@ def load_done_line_items(output_path: Path) -> Tuple[List[Dict[str, Any]], set[s
 def run(
     input_path: Path,
     rules_path: Path,
+    balance_sheet_rules_path: Path,
+    oecd_rates_path: Path,
     output_path: Path,
     backend: str,
     qwen_model: str,
+    use_4bit: bool,
     limit: Optional[int],
     resume: bool,
 ) -> None:
     """Run the grounded AI layer over all line items, checkpointing after each one."""
-    rules, params_by_id = load_rule_pack(rules_path)
+    print("Loading rule packs ...", flush=True)
+    rules, params_by_id = load_all_rule_packs(rules_path, balance_sheet_rules_path, oecd_rates_path)
     rule_as_of = rules[0].get("as_of_date", "") if rules else ""
     retriever = JsonRuleRetriever(rules)
 
@@ -571,7 +678,7 @@ def run(
     print(f"Read {len(line_items)} line-item nodes -> {len(groups)} distinct line items "
           f"(backend={backend}); {len(done)} already done, {len(pending)} to do.", flush=True)
 
-    client = build_qwen_client(qwen_model) if (backend == "qwen" and pending) else None
+    client = build_qwen_client(qwen_model, use_4bit=use_4bit) if (backend == "qwen" and pending) else None
 
     for index, group in enumerate(pending, start=1):
         if backend == "qwen":
@@ -580,15 +687,25 @@ def run(
             output = classify_group_deterministic(group, rules)
         rule_conflict = detect_rule_conflict(output, params_by_id)
         cross_border = cross_border_for_group(group)
-        group_records.append(build_group_record(group, output, rule_conflict, cross_border))
+        record = build_group_record(group, output, rule_conflict, cross_border)
+        group_records.append(record)
         write_report(output_path, input_path, rules_path, backend, len(line_items), group_records, rule_as_of)
-        print(f"  [{index}/{len(pending)}] {group['line_item']}: {output.flow_classification}, "
-              f"abstain={output.abstain}, top_conf={group_records[-1]['top_confidence']}", flush=True)
+        taxing_jur = record.get("primary_taxing_jurisdiction") or "abstain"
+        conflict_flag = "⚠ CONFLICT" if rule_conflict["has_conflict"] else ""
+        print(
+            f"  [{index}/{len(pending)}] {group['line_item']}: {output.flow_classification}, "
+            f"taxing_jur={taxing_jur}, top_conf={record['top_confidence']:.2f} {conflict_flag}",
+            flush=True,
+        )
 
     matched = sum(1 for r in group_records if not r["abstain"])
+    conflict_count = sum(1 for r in group_records if r["rule_conflict"]["has_conflict"])
     flagged = sum(1 for r in group_records if r["cross_border_conflict"]["is_flagged"])
-    print(f"Grounded a DIPN 21 rule for {matched}/{len(group_records)} line items; "
-          f"flagged {flagged} cross-border conflicts.", flush=True)
+    print(
+        f"Grounded a rule for {matched}/{len(group_records)} line items; "
+        f"{conflict_count} rule conflicts; {flagged} cross-border base conflicts.",
+        flush=True,
+    )
     print(f"Wrote AI layer report to: {output_path}", flush=True)
 
 
@@ -596,20 +713,44 @@ def main() -> None:
     """CLI entry point."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", "-i", type=Path, default=DEFAULT_INPUT)
-    parser.add_argument("--rules", "-r", type=Path, default=DEFAULT_RULES)
+    parser.add_argument("--rules", "-r", type=Path, default=DEFAULT_RULES,
+                        help="HK DIPN 21 rule pack (default: hk_dipn21_rules.json)")
+    parser.add_argument("--balance-sheet-rules", type=Path, default=DEFAULT_BALANCE_SHEET_RULES,
+                        help="Multi-jurisdiction balance-sheet rule pack")
+    parser.add_argument("--oecd-rates", type=Path, default=DEFAULT_OECD_RATES,
+                        help="OECD corporate-tax rate metadata")
     parser.add_argument("--output", "-o", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--backend", "-b", choices=["deterministic", "qwen"], default="deterministic")
-    parser.add_argument("--qwen-model", default="Qwen/Qwen3-30B-A3B-Instruct-2507")
+    parser.add_argument(
+        "--qwen-model", default=DEFAULT_QWEN_MODEL,
+        help=f"HuggingFace model name or local path (default: {DEFAULT_QWEN_MODEL}). "
+             "Use Qwen/Qwen3-30B-A3B-Instruct-2507 for the large MoE model.",
+    )
+    parser.add_argument(
+        "--use-4bit", action="store_true",
+        help="Enable 4-bit NF4 quantization via bitsandbytes. "
+             "Only needed for models >20 B on a single A100. "
+             "Not required for Qwen3-4B (default model).",
+    )
     parser.add_argument("--limit", type=int, default=None, help="Analyse only the first N line items.")
     parser.add_argument("--resume", action="store_true", help="Skip line items already in the output file.")
     args = parser.parse_args()
 
     if not args.input.exists():
         raise SystemExit(f"Input file not found: {args.input}")
-    if not args.rules.exists():
-        raise SystemExit(f"Rule pack not found: {args.rules}")
 
-    run(args.input, args.rules, args.output, args.backend, args.qwen_model, args.limit, args.resume)
+    run(
+        args.input,
+        args.rules,
+        args.balance_sheet_rules,
+        args.oecd_rates,
+        args.output,
+        args.backend,
+        args.qwen_model,
+        use_4bit=args.use_4bit,
+        limit=args.limit,
+        resume=args.resume,
+    )
 
 
 if __name__ == "__main__":
