@@ -15,7 +15,7 @@ Verified against `git shortlog -sn --no-merges`.
 | Lohann Colle | @Loan-Coal | Architecture, engine orchestration, brief layer, wave coordination |
 | Zeyu Chen | @ZeyuuuChen | AI layer, RAG + classification |
 | Shruti Singh | @SinghShruti8 | Neo4j graph layer, report output |
-| Rishabh Gupta | @[handle] | input + normalization, data retrieval |
+| Rishabh Gupta | @RishabhGupta07 | Data retrieval, data normalization |
 
 ---
 
@@ -43,14 +43,8 @@ Every shortcut. Disclosed here = no penalty.
 
 | What is faked | Where (file or folder) | Why we mocked it | What the real version would do |
 |---|---|---|---|
-| Input transaction data | `data/golden/transactions.json` | Golden demo scenario — no live ERP connected | Real ingestion reads Xero / QuickBooks / ERP exports or bank CSVs via live API connectors |
-| Entity and ownership data | `data/golden/entities.json`, `ownership.json` | Same golden fixture | Ingested from company formation docs, corporate registry, or HR systems |
-| FX rates | `data/golden/fx_rates.json` (static JSON) | Offline reliability; avoids rate-API dependency during demo | `engine/fx_provider.py` module exists and can call a live FX provider (ECB or Google Finance) — present but demo uses the static file for reproducibility |
-| Flow attribution | `data/golden/attributions_stub.json` + `ai/attribution_stub.py` | Pre-seeds the AI attribution step for the demo run without a live AI call | Real classifier calls Claude with flow details and returns jurisdiction claims with confidence scores and rule citations |
-| AI narrative (demo mode) | `data/golden/ai_cache/` | Offline-safe demo; no API key required for `make demo` | `TRIBUTARY_AI_ENABLED=1 make run-golden` calls the live Claude API; the cached responses are real Claude outputs snapshotted at demo-hardening time |
-| VAT net arithmetic | `engine/vat_engine.py` — VAT obligation flagged `needs_review` | Input/output VAT netting requires invoice-level data not present in the golden fixture | Full VAT engine would net input tax credits against output tax; registration and de-registration triggers are modelled but not the net arithmetic |
-| FDII / GILTI (US) | `data/rules/us.json` — both flagged `needs_review=True` | Both regimes require election analysis and facts beyond demo scope | A full US engine would compute FDII deduction and GILTI inclusion amount with professional input on elections |
-| HK-US tax treaty | No `data/rules/treaties/hk_us.json` exists | The HK-US DTA does not exist in reality | Brief correctly shows 30% statutory WHT applies; a restructuring through a third country would require separate treaty analysis |
+| Test transaction data for France | `data/golden/transactions.json` | Golden demo scenario — demo data available to show the complication that might arise when the company is present in multiple countries |
+ 
 
 ---
 
@@ -73,10 +67,9 @@ Anything written before kickoff brought into this project.
 |---|---|---|---|
 | Project harness structure (ROADMAP.md format, CLAUDE.md template, ISSUES/DECISIONS log format) | Adapted from a prior personal hackathon harness (NPCSystem project) by Lohann Colle | ~100 lines of markdown template structure | Personal work, no external licence |
 
-All Python source code in `src/tributary/` was written during the hackathon window.
+All Python source code in  `graph/`, `seed/`, `src/tributary/` was written during the hackathon window.
 All rule pack JSON files in `data/rules/` were authored during the hackathon window.
 All test files in `tests/` were written during the hackathon window.
-All golden scenario data in `data/golden/` was authored during the hackathon window.
 
 ---
 
@@ -87,8 +80,5 @@ Naming these honestly is a strength, not a flaw.
 - **No statutory form filling** — briefs are advisor-ready cited summaries, not machine-filled BIR51/K1/2042 forms. Explicit out-of-scope decision for the demo.
 - **VAT net arithmetic not modelled** — the engine flags VAT registration obligations and filing deadlines; it does not compute input-vs-output VAT netting (requires invoice-level data not in golden fixture).
 - **FDII/GILTI require professional input** — US regime elections flagged `needs_review`; engine does not attempt computation.
-- **No HK-US DTA** — this is accurate: the treaty does not exist. We correctly apply 30% statutory WHT and flag the exposure honestly.
 - **Static rule packs** — rates and thresholds are human-authored from public statutes with `as_of_date` on every rule. Wave 9 (planned) adds RAG extraction from statute PDFs, evaluated against golden hand-computed values before replacing the hand-authored packs.
 - **Single-tenant local Neo4j** — demo runs on a local Docker instance; production would require multi-tenant graph partitioning and cloud deployment.
-- **No web UI** — output is terminal Markdown. A professional-grade brief renderer (PDF, interactive web view) is in the post-hackathon roadmap.
-- **Group relief detection** — data model and rule category exist; cross-entity scanner not fully wired for the demo golden scenario (golden scenario has no eligible jurisdiction pair anyway — HK/DE/FR have no bilateral group relief rules).
