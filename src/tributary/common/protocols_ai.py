@@ -1,16 +1,16 @@
 """
 Module: protocols_ai
 Layer: common
-Purpose: The AILayerProtocol the engine depends on for flow classification, jurisdiction
-    attribution, and rule retrieval. Defined in common/ because the engine may not import
-    ai/ and the ai layer may not import engine/ — common is the only shared layer (DEC-018).
-    Re-exported by ai/protocol.py as the published surface for the AI colleague.
+Purpose: Protocol interfaces the AI layer and its callers depend on. Defined in common/
+    so the engine and ai layers share a stable contract without cross-importing (DEC-018).
+    Includes AILayerProtocol, GraphReaderProtocol, RulePackLoaderProtocol, LLMClientProtocol.
 Dependencies: typing, models_ai, models_entity
-Used by: engine (depends on protocol), ai (implements it), engine.attribution_stub, tests
+Used by: engine (AILayerProtocol), ai.service (GraphReaderProtocol, RulePackLoaderProtocol,
+    LLMClientProtocol), ai.adapter, engine.attribution_stub, tests
 """
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from .models_ai import (
     FlowAttribution,
@@ -19,6 +19,52 @@ from .models_ai import (
     RuleRetrievalResult,
 )
 from .models_entity import FlowNature, JurisdictionCode
+
+if TYPE_CHECKING:
+    from tributary.ai.models import AILayerOutput, RuleSummary, TransactionContext
+
+
+class GraphReaderProtocol(Protocol):
+    """Narrow read interface the AI service uses to fetch transaction context."""
+
+    def get_transaction_context(self, transaction_id: str) -> TransactionContext:
+        """Fetch transaction text and graph facts WITHOUT amounts."""
+        ...
+
+
+class RulePackLoaderProtocol(Protocol):
+    """Narrow rule-loader interface the AI service uses to fetch rule summaries."""
+
+    def get_rule_summaries(self, jurisdictions: list[str]) -> list[RuleSummary]:
+        """Fetch rule summaries for prompt injection (id, summary, as_of_date, source_citation)."""
+        ...
+
+
+class LLMClientProtocol(Protocol):
+    """Interface any LLM client must satisfy to be injected into AILayerService."""
+
+    def generate(self, prompt: str, max_tokens: int = 800) -> AILayerOutput:
+        """Generate structured AI output from a prompt string."""
+        ...
+
+
+class NarratorClientProtocol(Protocol):
+    """Interface for an LLM client that generates free-text prose narratives.
+
+    Distinct from LLMClientProtocol: returns a plain string rather than a
+    structured AILayerOutput, and accepts a system + user message pair.
+    """
+
+    def generate(self, system_prompt: str, user_message: str) -> str:
+        """Generate a prose narrative string.
+
+        Args:
+            system_prompt: Instruction context for the model.
+            user_message: Specific generation request.
+        Returns:
+            Prose narrative string.
+        """
+        ...
 
 
 @runtime_checkable

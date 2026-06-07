@@ -5,7 +5,7 @@ golden scenario. Every obligation, threshold check, and deadline that the determ
 compute must match these figures exactly. If the engine disagrees with any value here, the engine
 has a bug — not this file.
 
-**Scenario:** The Meridian Group — three entities, four jurisdictions of tax exposure, one planted
+**Scenario:** The Meridian Group — four entities, four jurisdictions of tax exposure, one planted
 PE Triangle conflict designed to exercise double-taxation detection, treaty credit computation, and
 multi-jurisdiction CIT attribution.
 
@@ -31,6 +31,7 @@ All amounts in this file are denominated in **HKD** unless otherwise stated.
 | MERID-HK | HK Profits Tax year | 1 April 2025 – 31 March 2026 |
 | MERID-DE | German CIT year | 1 January 2025 – 31 December 2025 |
 | MERID-FR | French CIT year | 1 January 2025 – 31 December 2025 |
+| MERID-US | US federal CIT year | 1 January 2025 – 31 December 2025 |
 
 ### 1.3 Rule As-of Dates (DEC-004)
 
@@ -77,6 +78,8 @@ The following items are modeled with simplifying assumptions for the demo. They 
 | T007 | MERID-FR | MERID-HK | Management fee (IC) | 300,000 | FR pays HK; 12.8% WHT |
 | T008 | 3rd party | MERID-DE | Revenue | 6,200,000 | Third-party; DE records as revenue |
 | T009 | 3rd party | MERID-FR | Revenue | 2,800,000 | Third-party; FR records as revenue |
+| T010 | 3rd party | MERID-US | Revenue | 3,890,000 | USD 500,000 × 7.78; US records as revenue |
+| T011 | MERID-US | MERID-HK | Dividend (IC) | 389,000 | USD 50,000 × 7.78; 30% US WHT (no HK-US DTA) |
 
 ---
 
@@ -439,6 +442,65 @@ WHT:                                    HKD         0
 
 ---
 
+## 9. MERID-US — Federal CIT and WHT (FY 1 January 2025 – 31 December 2025)
+
+### 9.1 Applicable Rules
+
+| Rule | Rate | as_of_date | source |
+|------|------|-----------|--------|
+| Federal CIT | 21% | 2024-01-01 | IRC §11 (TCJA 2017) |
+| WHT on dividends (domestic) | 30% | 2024-01-01 | IRC §881 (non-treaty recipient) |
+
+**Note:** There is no Hong Kong–United States tax treaty. The domestic 30% withholding rate applies
+in full to T011. FDII (§250) and GILTI (§951A) regime computations are out of scope for v1 — these
+require qualified business asset investment (QBAI) data not captured in the golden scenario.
+A professional reviewer must assess FDII/GILTI before filing.
+
+### 9.2 Income Classification
+
+| Transaction | Amount (HKD) | Treatment |
+|------------|-------------|-----------|
+| T010 third-party US revenue | 3,890,000 | US-source revenue — taxable |
+| T011 dividend to MERID-HK | 389,000 | Outbound distribution — not income |
+
+### 9.3 CIT Computation
+
+```
+Taxable base (T010):                    HKD 3,890,000
+Federal CIT rate:                       21%
+
+CIT:
+  3,890,000 × 0.21:                     HKD   816,900
+  (exact, no rounding required)
+```
+
+**MERID-US Federal CIT: HKD 816,900**
+
+### 9.4 WHT on Outbound Payments from MERID-US
+
+#### T011 — Dividend to MERID-HK (HKD 389,000)
+
+Rule as_of_date: 2024-01-01 | source: IRC §881
+
+```
+Gross dividend:                         HKD   389,000
+
+Domestic US WHT rate:                   30%  (no HK-US DTA)
+WHT:  389,000 × 0.30:                  HKD   116,700
+Treaty relief:                          HKD         0  (no applicable treaty)
+```
+
+**T011 WHT payable: HKD 116,700 (full domestic rate; no treaty)**
+
+MERID-HK receives T011: territorial exclusion applies (foreign-source dividend, HK IRO s.14).
+
+### 9.5 Filing Deadline
+
+- **April 15, 2026** (US Form 1120 due 15th day of 4th month after year-end)
+- Rule as_of_date: 2024-01-01 | source: IRC §6072(b)
+
+---
+
 ## 6. PE Triangle Conflict — Detection, Attribution, and Treaty Resolution
 
 ### 6.1 Conflict Identification
@@ -540,6 +602,7 @@ unrelieved. The DE-FR treaty uses exemption for PE profits, so this figure is il
 | MERID-DE | CIT (incl. soli surcharge; post loss offset) | 301,250 | 15.825% | **47,673** |
 | MERID-DE | Trade Tax | 301,250 | 14% | **42,175** |
 | MERID-FR | CIT | 4,123,750 | 25% | **1,030,938** |
+| MERID-US | Federal CIT | 3,890,000 | 21% | **816,900** |
 
 ### 7.2 WHT Obligations
 
@@ -549,6 +612,7 @@ unrelieved. The DE-FR treaty uses exemption for PE profits, so this figure is il
 | MERID-DE | MERID-HK | T006 interest | 320,000 | 0% (treaty) | **0** | HK-DE DTA Art.11 |
 | MERID-FR | MERID-HK | T007 management fee | 300,000 | 12.8% | **38,400** | No DTA (non-EU) |
 | MERID-FR | MERID-DE | T004 dividend | 900,000 | 0% (EU PSD) | **0** | EU Directive 2011/96/EU |
+| MERID-US | MERID-HK | T011 dividend | 389,000 | 30% | **116,700** | No HK-US DTA |
 
 ### 7.3 Filing Obligations
 
@@ -558,6 +622,7 @@ unrelieved. The DE-FR treaty uses exemption for PE profits, so this figure is il
 | MERID-DE | CIT + Trade Tax return | July 31, 2026 |
 | MERID-FR | CIT return | May 31, 2026 |
 | MERID-FR | VAT filing (quarterly) | TRIGGERED — quarterly returns |
+| MERID-US | Federal CIT (Form 1120) | April 15, 2026 |
 
 ### 7.4 Threshold Checks
 

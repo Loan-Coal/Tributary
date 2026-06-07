@@ -22,6 +22,8 @@ dev = [
     "pytest>=8.0",
     "pytest-cov>=5.0",
     "pytest-asyncio>=0.23",
+    "ruff>=0.6",
+    "vulture>=2.11",
 ]
 
 [tool.setuptools.packages.find]
@@ -33,3 +35,24 @@ asyncio_mode = "auto"
 
 [tool.coverage.run]
 source = ["src/tributary"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+# F = pyflakes (unused imports/vars), E/W = pycodestyle, I = isort,
+# UP = pyupgrade, B = bugbear, SIM = simplify, PL = pylint subset.
+select = ["F", "E", "W", "I", "UP", "B", "SIM", "PLC", "PLE"]
+# Engine/business logic must not contain magic numbers — but that is a CLAUDE.md
+# rule enforced by the audit, not ruff, so PLR magic-value checks stay off here.
+ignore = ["E501"]  # line length handled by formatter, not lint failures
+
+[tool.vulture]
+# Dead-code detection. min_confidence kept high to avoid flagging intentional
+# scaffolding (api/, brief/, graph/) that the ROADMAP wires in a later wave.
+# The /audit skill cross-checks every finding against ROADMAP before reporting.
+min_confidence = 80
+paths = ["src/tributary"]
+exclude = ["src/tributary/api", "src/tributary/brief"]

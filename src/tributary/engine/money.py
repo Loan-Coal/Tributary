@@ -1,8 +1,10 @@
 """
 Module: money
 Layer: engine
-Purpose: Shared monetary helpers for the deterministic engine — HKD rounding and effective-rate
-    derivation. Centralised so every sub-engine rounds identically (auditable, no drift).
+Purpose: Shared monetary helpers for the deterministic engine — base-currency rounding and
+    effective-rate derivation. All engine amounts are stored in HKD (DEC-025); this module
+    rounds to the nearest whole unit of the base currency. Centralised so every sub-engine
+    rounds identically (auditable, no drift).
 Dependencies: decimal
 Used by: all engine computation modules
 """
@@ -10,18 +12,18 @@ from __future__ import annotations
 
 from decimal import ROUND_HALF_UP, Decimal
 
-_HKD_QUANTUM = Decimal("1")
+_UNIT_QUANTUM = Decimal("1")
 
 
-def round_hkd(amount: Decimal) -> Decimal:
-    """Round an HKD amount to the nearest whole dollar (round-half-up).
+def round_amount(amount: Decimal) -> Decimal:
+    """Round a base-currency amount to the nearest whole unit (round-half-up).
 
     Args:
-        amount: The unrounded amount.
+        amount: The unrounded amount in the internal base currency (HKD, DEC-025).
     Returns:
-        The amount rounded to an integer number of HKD.
+        The amount rounded to an integer number of base-currency units.
     """
-    return amount.quantize(_HKD_QUANTUM, rounding=ROUND_HALF_UP)
+    return amount.quantize(_UNIT_QUANTUM, rounding=ROUND_HALF_UP)
 
 
 def effective_rate(base_rate: Decimal, surcharge_rate: Decimal | None) -> Decimal:

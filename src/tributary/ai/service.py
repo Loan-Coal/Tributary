@@ -7,13 +7,15 @@ Used by: examples, tests
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List
-
+from tributary.ai.models import AILayerOutput, RuleSummary, TransactionContext
 from tributary.common.errors import AIClientError, AILayerServiceError
 from tributary.common.logging import get_logger
+from tributary.common.protocols_ai import (
+    GraphReaderProtocol,
+    LLMClientProtocol,
+    RulePackLoaderProtocol,
+)
 from tributary.prompts.loader import load_ai_classification_prompt
-from tributary.ai.models import AILayerOutput, RuleSummary, TransactionContext
-from tributary.ai.protocols import GraphReaderProtocol, RulePackLoaderProtocol
 
 logger = get_logger(__name__)
 
@@ -23,7 +25,7 @@ class AILayerService:
         self,
         graph_reader: GraphReaderProtocol,
         rule_loader: RulePackLoaderProtocol,
-        llm_client: object,
+        llm_client: LLMClientProtocol,
     ) -> None:
         self.graph_reader = graph_reader
         self.rule_loader = rule_loader
@@ -39,7 +41,11 @@ class AILayerService:
             prompt = self._build_prompt(transaction_id, transaction_context, rule_summaries, prompt_data)
             output = self.llm_client.generate(prompt=prompt)
             if output.transaction_id != transaction_id:
-                output.transaction_id = transaction_id
+                logger.warning(
+                    "LLM returned mismatched transaction_id",
+                    extra={"expected": transaction_id, "got": output.transaction_id},
+                )
+                output = output.model_copy(update={"transaction_id": transaction_id})
             return output
         except AIClientError as exc:
             logger.error("AI classification failed", exc_info=exc, extra={"transaction_id": transaction_id})
@@ -48,7 +54,7 @@ class AILayerService:
             logger.error("Unexpected AI service error", exc_info=exc, extra={"transaction_id": transaction_id})
             raise AILayerServiceError("AI service encountered an unexpected error") from exc
 
-    def _extract_jurisdictions(self, context: TransactionContext) -> List[str]:
+    def _extract_jurisdictions(self, context: TransactionContext) -> list[str]:
         jurisdictions = context.candidate_jurisdictions
         return [str(item) for item in jurisdictions if item is not None]
 
@@ -56,8 +62,8 @@ class AILayerService:
         self,
         transaction_id: str,
         transaction_context: TransactionContext,
-        rule_summaries: List[RuleSummary],
-        prompt_data: Dict[str, str],
+        rule_summaries: list[RuleSummary],
+        prompt_data: dict[str, str],
     ) -> str:
         sanitized_context = self._serialize_context(transaction_context)
         serialized_rules = self._serialize_rule_summaries(rule_summaries)
@@ -69,7 +75,7 @@ class AILayerService:
 
     def _serialize_context(self, context: TransactionContext) -> str:
         context_data = context.model_dump()
-        items: List[str] = []
+        items: list[str] = []
         for key, value in sorted(context_data.items()):
             if key == "candidate_jurisdictions":
                 continue
@@ -80,10 +86,10 @@ class AILayerService:
             return "- no transaction context available"
         return "\n".join(items)
 
-    def _serialize_rule_summaries(self, rule_summaries: List[RuleSummary]) -> str:
+    def _serialize_rule_summaries(self, rule_summaries: list[RuleSummary]) -> str:
         if not rule_summaries:
             return "- no rule summaries available"
-        lines: List[str] = []
+        lines: list[str] = []
         for rule in rule_summaries:
             lines.append(
                 f"- id: {rule.id}; as_of_date: {rule.as_of_date}; "

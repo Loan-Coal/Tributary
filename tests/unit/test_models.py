@@ -32,6 +32,8 @@ from tributary.common.models import (
     FlowClassification,
     FlowContext,
     FlowNature,
+    GroupReliefMechanism,
+    GroupReliefOpportunity,
     JurisdictionClaim,
     LossCarryforwardRecord,
     ObligationResult,
@@ -666,3 +668,108 @@ class TestConflictFlag:
                 credit_method_note=None,
                 needs_review=False,
             )
+
+
+# ---------------------------------------------------------------------------
+# 12. GroupReliefOpportunity (Wave 6b)
+# ---------------------------------------------------------------------------
+
+def _make_group_relief_opportunity() -> GroupReliefOpportunity:
+    """Return a minimal valid GroupReliefOpportunity for reuse."""
+    return GroupReliefOpportunity(
+        opportunity_id="GRO-DE-FR-2025",
+        income_entity_id="MERID-DE",
+        loss_entity_id="MERID-FR",
+        income_jurisdiction="DE",
+        loss_jurisdiction="FR",
+        available_income_hkd=Decimal("500000.00"),
+        unused_loss_hkd=Decimal("300000.00"),
+        relief_mechanism=GroupReliefMechanism.ORGANSCHAFT,
+        applicable_rule_id="DE-GROUP-RELIEF-001",
+        as_of_date=date(2024, 1, 1),
+        source_citation="KStG §14-19 (Organschaft)",
+        conditions_summary="Profit and loss transfer agreement required.",
+    )
+
+
+class TestGroupReliefOpportunity:
+    """Tests for the GroupReliefOpportunity model (W6b.1)."""
+
+    def test_valid_instantiation(self) -> None:
+        """GroupReliefOpportunity constructs correctly with all required fields."""
+        opp = _make_group_relief_opportunity()
+        assert opp.opportunity_id == "GRO-DE-FR-2025"
+        assert opp.income_entity_id == "MERID-DE"
+        assert opp.loss_entity_id == "MERID-FR"
+        assert opp.available_income_hkd == Decimal("500000.00")
+        assert opp.unused_loss_hkd == Decimal("300000.00")
+        assert opp.relief_mechanism == GroupReliefMechanism.ORGANSCHAFT
+
+    def test_needs_review_defaults_true(self) -> None:
+        """needs_review defaults to True — always requires professional sign-off."""
+        opp = _make_group_relief_opportunity()
+        assert opp.needs_review is True
+
+    def test_all_mechanism_values_valid(self) -> None:
+        """All GroupReliefMechanism enum values are accessible."""
+        assert GroupReliefMechanism.GROUP_RELIEF.value == "group_relief"
+        assert GroupReliefMechanism.ORGANSCHAFT.value == "organschaft"
+        assert GroupReliefMechanism.INTEGRATION_FISCALE.value == "integration_fiscale"
+        assert GroupReliefMechanism.TRANSFER_PRICING_NOTE.value == "transfer_pricing_note"
+
+    def test_missing_required_field_raises(self) -> None:
+        """GroupReliefOpportunity missing a required field raises ValidationError."""
+        with pytest.raises(ValidationError):
+            GroupReliefOpportunity(
+                opportunity_id="GRO-001",
+                # income_entity_id missing
+                loss_entity_id="E2",
+                income_jurisdiction="DE",
+                loss_jurisdiction="FR",
+                available_income_hkd=Decimal("100.00"),
+                unused_loss_hkd=Decimal("50.00"),
+                relief_mechanism=GroupReliefMechanism.GROUP_RELIEF,
+                applicable_rule_id="DE-GR-001",
+                as_of_date=date(2024, 1, 1),
+                source_citation="KStG",
+                conditions_summary="Check.",
+            )
+
+
+class TestEngineRunResultGroupRelief:
+    """Tests for the group_relief_opportunities field on EngineRunResult (W6b.2)."""
+
+    def test_group_relief_opportunities_defaults_empty(self) -> None:
+        """EngineRunResult.group_relief_opportunities defaults to empty list."""
+        result = EngineRunResult(
+            run_id="run-001",
+            entity_id="MERID-HK",
+            fiscal_period=_make_fiscal_period("HK"),
+            base_currency="HKD",
+            obligations=[],
+            threshold_checks=[],
+            deadlines=[],
+            loss_carryforward_applied=[],
+            conflicts=[],
+            has_unresolved_items=False,
+        )
+        assert result.group_relief_opportunities == []
+
+    def test_group_relief_opportunities_populated(self) -> None:
+        """EngineRunResult accepts a list of GroupReliefOpportunity objects."""
+        opp = _make_group_relief_opportunity()
+        result = EngineRunResult(
+            run_id="run-002",
+            entity_id="MERID-DE",
+            fiscal_period=_make_fiscal_period("DE"),
+            base_currency="HKD",
+            obligations=[],
+            threshold_checks=[],
+            deadlines=[],
+            loss_carryforward_applied=[],
+            conflicts=[],
+            has_unresolved_items=False,
+            group_relief_opportunities=[opp],
+        )
+        assert len(result.group_relief_opportunities) == 1
+        assert result.group_relief_opportunities[0].opportunity_id == "GRO-DE-FR-2025"

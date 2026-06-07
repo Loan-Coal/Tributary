@@ -17,6 +17,7 @@ import pytest
 from tests.support.fakes import CollectingGraphWriter, FakeGraphReader
 from tributary.common.models import (
     ConflictFlag,
+    ConflictType,
     EngineRunResult,
     ObligationType,
     ReliefMechanism,
@@ -259,7 +260,7 @@ class TestPeTriangleConflict:
         return de.conflicts[0]
 
     def test_conflict_id(self, conflict):
-        assert conflict.conflict_id == "PE-TRIANGLE-2025"
+        assert conflict.conflict_id == "PE-MERID-DE-DE-2025"
 
     def test_attributed_base(self, conflict):
         assert conflict.attributed_base_hkd == Decimal("1023750")
@@ -300,6 +301,82 @@ class TestPeTriangleConflict:
 # Writer persistence assertions
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# WHT Exposure Regression Guard  (W6.4 regression + W6.7 cross-check)
+# ---------------------------------------------------------------------------
+
+class TestWhtExposureRegressionGuard:
+    def test_no_wht_over_withheld_flags_golden(self, engine_results):
+        """Golden scenario: all WHT is treaty-compliant — zero over-withheld flags."""
+        for result in engine_results:
+            over_withheld = [
+                c for c in result.conflicts
+                if c.conflict_type == ConflictType.WHT_OVER_WITHHELD
+            ]
+            assert over_withheld == [], (
+                f"Unexpected WHT_OVER_WITHHELD flag on {result.entity_id}: {over_withheld}"
+            )
+
+    def test_conflict_count_de(self, by_entity):
+        """MERID-DE has exactly one conflict: the PE Triangle — no WHT exposure."""
+        de = by_entity["MERID-DE"]
+        assert len(de.conflicts) == 1
+        assert de.conflicts[0].conflict_type == ConflictType.SERVICE_PE_DOUBLE_TAX
+
+    def test_no_conflicts_hk_or_fr(self, by_entity):
+        """MERID-HK, MERID-FR, and MERID-US have no conflict flags in the golden scenario."""
+        assert by_entity["MERID-HK"].conflicts == []
+        assert by_entity["MERID-FR"].conflicts == []
+        assert by_entity["MERID-US"].conflicts == []
+
+
+# ---------------------------------------------------------------------------
+# MERID-US — Federal CIT and WHT  (EXPECTED.md §9)
+# ---------------------------------------------------------------------------
+
+class TestMeridUS:
+    def test_cit_amount(self, by_entity):
+        """US CIT: 3,890,000 × 21% = 816,900."""
+        us = by_entity["MERID-US"]
+        cits = _obligation(us, ObligationType.CIT)
+        assert len(cits) == 1
+        assert cits[0].net_amount_hkd == Decimal("816900")
+
+    def test_cit_base(self, by_entity):
+        """T010 US third-party revenue only — T011 dividend is a distribution, not income."""
+        us = by_entity["MERID-US"]
+        cit = _obligation(us, ObligationType.CIT)[0]
+        assert cit.taxable_base_hkd == Decimal("3890000")
+
+    def test_cit_rate(self, by_entity):
+        us = by_entity["MERID-US"]
+        cit = _obligation(us, ObligationType.CIT)[0]
+        assert cit.rate == Decimal("0.21")
+
+    def test_no_trade_tax(self, by_entity):
+        us = by_entity["MERID-US"]
+        assert _obligation(us, ObligationType.TRADE_TAX) == []
+
+    def test_wht_t011_dividend_no_treaty(self, by_entity):
+        """T011 dividend to MERID-HK: 30% domestic rate, no HK-US DTA → HKD 116,700."""
+        us = by_entity["MERID-US"]
+        wht = _wht_for_flow(us, "T011")
+        assert wht.net_amount_hkd == Decimal("116700")
+        assert wht.rate == Decimal("0.30")
+        assert wht.treaty_citation is None
+
+    def test_filing_deadline(self, by_entity):
+        from datetime import date
+        us = by_entity["MERID-US"]
+        cit_dl = [d for d in us.deadlines if d.obligation_type == ObligationType.CIT]
+        assert len(cit_dl) == 1
+        assert cit_dl[0].filing_deadline == date(2026, 4, 15)
+
+    def test_no_conflicts(self, by_entity):
+        us = by_entity["MERID-US"]
+        assert us.conflicts == []
+
+
 class TestWriterPersistence:
     @pytest.fixture(scope="class")
     def writer(self, engine_results) -> CollectingGraphWriter:
@@ -321,4 +398,4 @@ class TestWriterPersistence:
         assert len(de_updates) >= 1
 
     def test_summaries_written(self, writer):
-        assert len(writer.summaries) == 3  # HK, DE, FR
+        assert len(writer.summaries) == 4  # HK, DE, FR, US

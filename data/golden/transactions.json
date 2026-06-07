@@ -151,5 +151,39 @@
     "activity_type": "revenue",
     "days_present": null,
     "has_agent_authority": false
+  },
+  {
+    "transaction_id": "T010",
+    "transaction_date": "2025-06-15",
+    "description": "Third-party US technology services revenue FY2025",
+    "amount_hkd": "3890000.00",
+    "source_amount": "500000.00",
+    "fx_rate": "7.78",
+    "fx_date": "2025-01-01",
+    "source_currency": "USD",
+    "source_entity_id": "MERID-US",
+    "counterparty_entity_id": null,
+    "counterparty_jurisdiction": null,
+    "is_intercompany": false,
+    "activity_type": "revenue",
+    "days_present": null,
+    "has_agent_authority": false
+  },
+  {
+    "transaction_id": "T011",
+    "transaction_date": "2025-12-31",
+    "description": "Dividend distribution to parent — MERID-US pays MERID-HK; 30% US WHT (no HK-US DTA)",
+    "amount_hkd": "389000.00",
+    "source_amount": "50000.00",
+    "fx_rate": "7.78",
+    "fx_date": "2025-01-01",
+    "source_currency": "USD",
+    "source_entity_id": "MERID-US",
+    "counterparty_entity_id": "MERID-HK",
+    "counterparty_jurisdiction": "HK",
+    "is_intercompany": true,
+    "activity_type": "dividend",
+    "days_present": null,
+    "has_agent_authority": false
   }
 ]

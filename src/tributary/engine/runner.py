@@ -23,13 +23,16 @@ from tributary.common.models import (
     GraphReader,
     GraphWriter,
     JurisdictionCode,
+    ObligationType,
 )
 from tributary.engine.aggregator import EntityBase, aggregate_entity
 from tributary.engine.conflict import build_pe_conflict
 from tributary.engine.entity_run import EntityArtifacts, build_entity_result
 from tributary.engine.flow_context import FlowJudgement, judge_flows
+from tributary.engine.group_relief import scan_group_relief
 from tributary.engine.pe import PeAttribution, detect_pe
 from tributary.engine.periods import compute_period
+from tributary.engine.wht_exposure import scan_wht_exposure
 from tributary.rules.models import Rule, RuleCategory, RulePackLoader
 
 _BASE_CURRENCY = "HKD"
@@ -134,16 +137,25 @@ class EngineRunner:
             )
             for e in entities
         }
-        conflicts_by_entity = self._build_conflicts(entities, pe_attrs, artifacts)
-        return [self._to_run_result(artifacts[e.entity_id], conflicts_by_entity.get(e.entity_id, [])) for e in entities]
+        conflicts_by_entity = self._build_conflicts(entities, pe_attrs, artifacts, bases)
+        group_relief = scan_group_relief(bases, entities, self._loader)
+        return [
+            self._to_run_result(
+                artifacts[e.entity_id],
+                conflicts_by_entity.get(e.entity_id, []),
+                [o for o in group_relief if o.income_entity_id == e.entity_id],
+            )
+            for e in entities
+        ]
 
     def _build_conflicts(
         self,
         entities: list[EntityRecord],
         pe_attrs: list[PeAttribution],
         artifacts: dict[str, EntityArtifacts],
+        bases: dict[str, EntityBase],
     ) -> dict[str, list[ConflictFlag]]:
-        """Phase 4: build a ConflictFlag per PE and attach its threshold to the residence entity."""
+        """Phase 4: build PE conflict flags and WHT exposure flags per entity."""
         conflicts: dict[str, list[ConflictFlag]] = defaultdict(list)
         for pe in pe_attrs:
             artifacts[pe.entity_id].threshold_checks.append(pe.threshold)
@@ -158,9 +170,23 @@ class EngineRunner:
                     self._year,
                 )
             )
+        for entity in entities:
+            base = bases[entity.entity_id]
+            art = artifacts[entity.entity_id]
+            wht_obs = [o for o in art.obligations if o.obligation_type is ObligationType.WHT]
+            if wht_obs and base.outbound_payments:
+                wht_flags = scan_wht_exposure(
+                    wht_obs, base.outbound_payments, self._loader, self._reader, base.period
+                )
+                conflicts[entity.entity_id].extend(wht_flags)
         return conflicts
 
-    def _to_run_result(self, art: EntityArtifacts, conflicts: list[ConflictFlag]) -> EngineRunResult:
+    def _to_run_result(
+        self,
+        art: EntityArtifacts,
+        conflicts: list[ConflictFlag],
+        group_relief: list,
+    ) -> EngineRunResult:
         """Assemble the final EngineRunResult for one entity."""
         unresolved = any(o.needs_review for o in art.obligations) or any(c.needs_review for c in conflicts)
         return EngineRunResult(
@@ -173,6 +199,7 @@ class EngineRunner:
             deadlines=art.deadlines,
             loss_carryforward_applied=art.loss_records,
             conflicts=conflicts,
+            group_relief_opportunities=group_relief,
             has_unresolved_items=unresolved,
         )
 
@@ -194,8 +221,15 @@ class EngineRunner:
         return None
 
     def _cit_rule(self, jurisdiction: JurisdictionCode) -> Rule:
-        """Return the CIT rate rule for a jurisdiction."""
-        return self._loader.get_rules(jurisdiction, RuleCategory.CIT_RATE)[0]
+        """Return the CIT rate rule for a jurisdiction.
+
+        Raises:
+            EngineError: When the rule pack contains no CIT rate rule for the jurisdiction.
+        """
+        rules = self._loader.get_rules(jurisdiction, RuleCategory.CIT_RATE)
+        if not rules:
+            raise EngineError(f"no CIT rate rule for jurisdiction {jurisdiction}")
+        return rules[0]
 
     def _elimination_rule(self, jur_a: JurisdictionCode, jur_b: JurisdictionCode) -> Rule:
         """Return the treaty elimination rule between two jurisdictions."""

@@ -17,7 +17,6 @@ class DummyGraphReader:
         return TransactionContext.model_validate(
             {
                 "transaction_text": "Sale of consulting services to related entity.",
-                "related_party": True,
                 "candidate_jurisdictions": ["US", "SG"],
             }
         )

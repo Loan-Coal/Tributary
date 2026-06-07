@@ -29,4 +29,52 @@ Rules:
 
 ---
 
+---
+
+## Pattern: Protocol Adapter with Per-Call Cache
+
+**Applied in:** `ai/adapter.py` (`AILayerAdapter`), used twice (two inner adapters + one outer).
+
+**When to use:** When two layers define incompatible protocol shapes for the same underlying resource, and one side may make multiple calls that should hit the backend only once per logical unit of work.
+
+**Why:** The engine calls `classify_flow`, `attribute_flow`, and `retrieve_applicable_rules` as three separate methods on the same flow. The underlying LLM call is expensive; it should fire once. The adapter caches by `flow_id` and maps the single `AILayerOutput` to whichever protocol return type the caller needs.
+
+**Minimal structure:**
+```python
+class TheirProtocol(Protocol):
+    def single_call(self, id: str) -> TheirOutput: ...
+
+class OurProtocol(Protocol):
+    def method_a(self, ctx: Ctx) -> A: ...
+    def method_b(self, ctx: Ctx) -> B: ...
+
+class Adapter:
+    def __init__(self, impl: TheirProtocol) -> None:
+        self._impl = impl
+        self._cache: dict[str, TheirOutput] = {}
+
+    def _get(self, id: str) -> TheirOutput:
+        if id not in self._cache:
+            self._cache[id] = self._impl.single_call(id)
+        return self._cache[id]
+
+    def method_a(self, ctx: Ctx) -> A:
+        return _map_to_a(self._get(ctx.id))
+
+    def method_b(self, ctx: Ctx) -> B:
+        return _map_to_b(self._get(ctx.id))
+```
+
+---
+
+## Pattern: Protocol Facade for Dependency Inversion
+
+**Applied in:** `common/protocols_ai.py`, `common/protocols_graph.py`; re-exported from each layer's `protocol.py`.
+
+**When to use:** When layer A must depend on an abstraction that layer B implements, but importing from B in A would create a circular dependency or layer violation.
+
+**Why:** Common layer has no upward dependencies — all layers can safely import from it. Defining protocols in `common/` and re-exporting them from each layer's `protocol.py` gives each implementor a single import point without coupling layers to each other.
+
+**Rule:** Protocols live in `common/`. Concrete implementations live in their own layer. Every `__init__` uses constructor injection — no layer creates its own dependencies.
+
 _(patterns are added as development proceeds and patterns emerge)_

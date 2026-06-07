@@ -20,7 +20,7 @@ from tributary.common.models import (
     ThresholdResult,
 )
 from tributary.engine.aggregator import EntityBase
-from tributary.engine.money import round_hkd
+from tributary.engine.money import round_amount
 from tributary.engine.thresholds import pe_days_check
 from tributary.rules.models import Rule, RuleCategory, RulePackLoader
 
@@ -79,16 +79,28 @@ def detect_pe(
         threshold = pe_days_check(base.entity_id, other, total_days, rule)
         if not threshold.breached:
             continue
-        pct = rule.parameters.attribution_pct or Decimal("0")
-        return PeAttribution(
-            entity_id=base.entity_id,
-            residence_jurisdiction=base.jurisdiction,
-            pe_jurisdiction=other,
-            total_days=total_days,
-            attribution_pct=pct,
-            attributed_income_hkd=round_hkd(base.net_income_hkd * pct),
-            threshold=threshold,
-            treaty_pe_rule_id=rule.id,
-            trigger_presence_ids=[r.presence_id for r in records],
-        )
+        return _compute_attribution(base, other, total_days, rule, records, threshold)
     return None
+
+
+def _compute_attribution(
+    base: EntityBase,
+    other: JurisdictionCode,
+    total_days: int,
+    rule: Rule,
+    records: list,
+    threshold: ThresholdResult,
+) -> PeAttribution:
+    """Build a PeAttribution from a confirmed PE breach."""
+    pct = rule.parameters.attribution_pct or Decimal("0")
+    return PeAttribution(
+        entity_id=base.entity_id,
+        residence_jurisdiction=base.jurisdiction,
+        pe_jurisdiction=other,
+        total_days=total_days,
+        attribution_pct=pct,
+        attributed_income_hkd=round_amount(base.net_income_hkd * pct),
+        threshold=threshold,
+        treaty_pe_rule_id=rule.id,
+        trigger_presence_ids=[r.presence_id for r in records],
+    )

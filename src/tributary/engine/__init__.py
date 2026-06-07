@@ -6,8 +6,8 @@ Public surface: EngineRunner, AttributionStub, aggregate_entity, compute_period.
 """
 from __future__ import annotations
 
-from .attribution_stub import AttributionStub
 from .aggregator import aggregate_entity
+from .attribution_stub import AttributionStub
 from .periods import compute_period
 from .runner import EngineRunner
 

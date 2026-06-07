@@ -12,5 +12,12 @@
     "ownership_pct": "100.00",
     "effective_from": "2021-03-15",
     "effective_to": null
+  },
+  {
+    "owner_entity_id": "MERID-HK",
+    "owned_entity_id": "MERID-US",
+    "ownership_pct": "100.00",
+    "effective_from": "2022-06-01",
+    "effective_to": null
   }
 ]

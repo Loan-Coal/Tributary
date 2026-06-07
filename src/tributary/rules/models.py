@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 from typing import Protocol, runtime_checkable
 
 from pydantic import BaseModel, model_validator
@@ -20,7 +20,7 @@ from pydantic import BaseModel, model_validator
 from tributary.common.models import ActivityType, FiscalCalendar, JurisdictionCode
 
 
-class RuleType(str, Enum):
+class RuleType(StrEnum):
     """Structural kind of a rule (mirrors the rule-pack contract `type` field)."""
 
     RATE = "rate"
@@ -33,7 +33,7 @@ class RuleType(str, Enum):
     LOSS_RELIEF = "loss_relief"
 
 
-class RuleCategory(str, Enum):
+class RuleCategory(StrEnum):
     """Country-agnostic semantic key the engine uses to find a rule by meaning.
 
     The engine asks ``get_rules(jurisdiction, category)`` — never by jurisdiction-specific
@@ -60,6 +60,7 @@ class RuleCategory(str, Enum):
     TREATY_ROYALTY = "treaty_royalty"
     TREATY_PE = "treaty_pe"
     TREATY_ELIMINATION = "treaty_elimination"
+    GROUP_RELIEF = "group_relief"
 
 
 class RuleParameters(BaseModel):
@@ -103,7 +104,7 @@ class Rule(BaseModel):
     source_citation: str
 
     @model_validator(mode="after")
-    def _require_params_for_category(self) -> "Rule":
+    def _require_params_for_category(self) -> Rule:
         """Fail fast if a rule omits the parameter its category requires."""
         required: dict[RuleCategory, str] = {
             RuleCategory.CIT_RATE: "rate",

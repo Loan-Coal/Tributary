@@ -15,6 +15,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel
 
+from tributary.common.errors import EngineError
 from tributary.common.models import (
     ComputationStep,
     ObligationResult,
@@ -23,7 +24,7 @@ from tributary.common.models import (
 )
 from tributary.engine.aggregator import EntityBase
 from tributary.engine.loss_ledger import LossOffsetResult, apply_loss_offset
-from tributary.engine.money import effective_rate, round_hkd
+from tributary.engine.money import effective_rate, round_amount
 from tributary.rules.models import Rule
 
 
@@ -42,6 +43,7 @@ def compute_cit(
     loss_rule: Rule | None,
     losses: list[PriorPeriodLoss],
     needs_review: bool,
+    review_reason: str | None = None,
 ) -> CitResult:
     """Compute the CIT obligation for one entity.
 
@@ -60,12 +62,26 @@ def compute_cit(
     offset = apply_loss_offset(pre_loss_base, losses, loss_rule, base.jurisdiction)
     post_loss_base = offset.post_loss_base_hkd
     if cit_rule.parameters.rate is None:
-        from tributary.common.errors import EngineError
         raise EngineError(f"CIT rate not found in rule pack for rule {cit_rule.id}")
     rate = effective_rate(cit_rule.parameters.rate, cit_rule.parameters.surcharge_rate)
-    gross = round_hkd(post_loss_base * rate)
+    gross = round_amount(post_loss_base * rate)
     trace = _build_trace(base, pe_adjustment_hkd, pre_loss_base, offset, post_loss_base, gross, cit_rule)
-    obligation = ObligationResult(
+    obligation = _make_obligation(base, post_loss_base, rate, gross, cit_rule, trace, needs_review, review_reason)
+    return CitResult(obligation=obligation, loss_offset=offset, pre_loss_base_hkd=pre_loss_base)
+
+
+def _make_obligation(
+    base: EntityBase,
+    post_loss_base: Decimal,
+    rate: Decimal,
+    gross: Decimal,
+    cit_rule: Rule,
+    trace: list[ComputationStep],
+    needs_review: bool,
+    review_reason: str | None = None,
+) -> ObligationResult:
+    """Construct the CIT ObligationResult from computed values."""
+    return ObligationResult(
         obligation_id=str(uuid.uuid4()),
         entity_id=base.entity_id,
         jurisdiction=base.jurisdiction,
@@ -83,8 +99,8 @@ def compute_cit(
         source_flow_ids=base.income_flow_ids + base.expense_flow_ids,
         computation_trace=trace,
         needs_review=needs_review,
+        review_reason=review_reason,
     )
-    return CitResult(obligation=obligation, loss_offset=offset, pre_loss_base_hkd=pre_loss_base)
 
 
 def _build_trace(
@@ -136,7 +152,7 @@ def _build_trace(
             rule_id=cit_rule.id,
             rule_as_of_date=cit_rule.as_of_date,
             result_value_hkd=gross,
-            note=f"effective rate applied to base",
+            note="effective rate applied to base",
         )
     )
     return steps
