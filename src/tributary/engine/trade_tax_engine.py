@@ -18,7 +18,7 @@ from tributary.common.models import (
     ObligationType,
 )
 from tributary.engine.aggregator import EntityBase
-from tributary.engine.money import round_hkd
+from tributary.engine.money import round_amount
 from tributary.rules.models import Rule
 
 
@@ -39,7 +39,7 @@ def compute_trade_tax(
         The trade-tax ObligationResult.
     """
     rate = trade_tax_rule.parameters.rate or Decimal("0")
-    gross = round_hkd(post_loss_base_hkd * rate)
+    gross = round_amount(post_loss_base_hkd * rate)
     step = ComputationStep(
         step_name="apply_rate",
         input_value_hkd=post_loss_base_hkd,

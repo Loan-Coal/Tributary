@@ -18,7 +18,7 @@ from tributary.common.models import (
     ConflictType,
     ReliefMechanism,
 )
-from tributary.engine.money import effective_rate, round_hkd
+from tributary.engine.money import effective_rate, round_amount
 from tributary.engine.pe import PeAttribution
 from tributary.rules.models import Rule
 
@@ -82,7 +82,7 @@ def _compute_taxes(
     res_rate = effective_rate(
         residence_cit_rule.parameters.rate or Decimal("0"), residence_cit_rule.parameters.surcharge_rate
     )
-    return round_hkd(pe.attributed_income_hkd * pe_rate), round_hkd(pe.attributed_income_hkd * res_rate)
+    return round_amount(pe.attributed_income_hkd * pe_rate), round_amount(pe.attributed_income_hkd * res_rate)
 
 
 def _resolve(

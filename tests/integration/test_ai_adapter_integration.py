@@ -47,9 +47,9 @@ def adapter_results() -> list[EngineRunResult]:
 
 
 class TestAdapterRunProducesResults:
-    def test_returns_three_entity_results(self, adapter_results):
-        """One result per entity in the golden scenario."""
-        assert len(adapter_results) == 3
+    def test_returns_four_entity_results(self, adapter_results):
+        """One result per entity in the golden scenario (HK, DE, FR, US)."""
+        assert len(adapter_results) == 4
 
     def test_all_entities_have_obligations(self, adapter_results):
         """Every entity should have at least a CIT obligation."""

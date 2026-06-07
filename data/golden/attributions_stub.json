@@ -207,6 +207,58 @@
           {"rule_id": "FR-CIT-RATE", "jurisdiction": "FR", "rule_type": "rate", "as_of_date": "2024-01-01", "source_citation": "CGI Art.219", "relevance_note": "Third-party revenue in FR CIT base"}
         ]
       }
+    },
+    "T010": {
+      "nature": "revenue",
+      "confidence": "HIGH",
+      "rule_citations": [
+        {"rule_id": "US-CIT-RATE", "jurisdiction": "US", "as_of_date": "2024-01-01", "source_citation": "IRC §11"}
+      ],
+      "abstain_reason": null,
+      "attribution": {
+        "primary_jurisdiction": "US",
+        "abstain": false,
+        "abstain_reason": null,
+        "claims": [
+          {
+            "jurisdiction": "US",
+            "confidence": "HIGH",
+            "claim_basis": "residence",
+            "rationale_citation": {"rule_id": "US-CIT-RATE", "jurisdiction": "US", "as_of_date": "2024-01-01", "source_citation": "IRC §11 — US-source third-party revenue taxable to US resident"}
+          }
+        ]
+      },
+      "applicable_rules": {
+        "US": [
+          {"rule_id": "US-CIT-RATE", "jurisdiction": "US", "rule_type": "rate", "as_of_date": "2024-01-01", "source_citation": "IRC §11", "relevance_note": "Third-party revenue in US CIT base"}
+        ]
+      }
+    },
+    "T011": {
+      "nature": "dividend",
+      "confidence": "HIGH",
+      "rule_citations": [
+        {"rule_id": "HK-DIVIDEND-EXEMPT", "jurisdiction": "HK", "as_of_date": "2023-04-01", "source_citation": "HK IRO s.14 territorial"}
+      ],
+      "abstain_reason": null,
+      "attribution": {
+        "primary_jurisdiction": "HK",
+        "abstain": false,
+        "abstain_reason": null,
+        "claims": [
+          {
+            "jurisdiction": "HK",
+            "confidence": "HIGH",
+            "claim_basis": "residence",
+            "rationale_citation": {"rule_id": "HK-DIVIDEND-EXEMPT", "jurisdiction": "HK", "as_of_date": "2023-04-01", "source_citation": "HK IRO s.14 — foreign-source dividend not taxable in HK"}
+          }
+        ]
+      },
+      "applicable_rules": {
+        "HK": [
+          {"rule_id": "HK-DIVIDEND-EXEMPT", "jurisdiction": "HK", "rule_type": "exemption", "as_of_date": "2023-04-01", "source_citation": "HK IRO s.14", "relevance_note": "US dividend excluded from HK taxable income"}
+        ]
+      }
     }
   }
 }

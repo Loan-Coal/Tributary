@@ -28,7 +28,7 @@ from tributary.common.models import (
 from tributary.engine.aggregator import EntityBase
 from tributary.engine.cit_engine import CitResult, compute_cit
 from tributary.engine.deadlines import compute_deadline
-from tributary.engine.flow_context import FlowJudgement, jurisdiction_needs_review
+from tributary.engine.flow_context import FlowJudgement, jurisdiction_needs_review, jurisdiction_review_reason
 from tributary.engine.thresholds import zinsschranke_check
 from tributary.engine.trade_tax_engine import compute_trade_tax
 from tributary.engine.vat_engine import compute_vat
@@ -81,7 +81,9 @@ def build_entity_result(
     post_loss = cit.loss_offset.post_loss_base_hkd
     obligations += _trade_tax(loader, base, post_loss, cit_review)
     obligations += _wht(reader, loader, base, cit_review, judgements)
-    thresholds += _vat(loader, base, deadlines)
+    vat_thresholds, vat_obligations = _vat(loader, base, deadlines)
+    thresholds += vat_thresholds
+    obligations += vat_obligations
     return EntityArtifacts(
         entity_id=base.entity_id,
         jurisdiction=jur,
@@ -106,9 +108,9 @@ def _run_cit(
     cit_rules = loader.get_rules(jur, RuleCategory.CIT_RATE)
     if not cit_rules:
         raise EngineError(f"No CIT rate rule for jurisdiction {jur}")
-    cit_review = jurisdiction_needs_review(
-        judgements, base.income_flow_ids + base.expense_flow_ids, jur
-    )
+    all_flow_ids = base.income_flow_ids + base.expense_flow_ids
+    cit_review = jurisdiction_needs_review(judgements, all_flow_ids, jur)
+    review_reason = jurisdiction_review_reason(judgements, all_flow_ids, jur) if cit_review else None
     return compute_cit(
         base,
         pe_adjustment_hkd,
@@ -116,6 +118,7 @@ def _run_cit(
         _first(loader.get_rules(jur, RuleCategory.LOSS_RELIEF)),
         reader.get_prior_period_losses(base.entity_id, jur),
         cit_review,
+        review_reason,
     ), cit_review
 
 
@@ -164,12 +167,15 @@ def _wht(
     return out
 
 
-def _vat(loader: RulePackLoader, base: EntityBase, deadlines: list[DeadlineResult]) -> list[ThresholdResult]:
-    """Build the VAT threshold check (and append its filing deadline) where a rule exists."""
+def _vat(
+    loader: RulePackLoader, base: EntityBase, deadlines: list[DeadlineResult]
+) -> tuple[list[ThresholdResult], list[ObligationResult]]:
+    """Build the VAT threshold check, filing deadline, and optional VAT obligation where rules exist."""
     threshold_rule = _first(loader.get_rules(base.jurisdiction, RuleCategory.VAT_THRESHOLD))
     if threshold_rule is None:
-        return []
+        return [], []
     result = compute_vat(base, threshold_rule, _first(loader.get_rules(base.jurisdiction, RuleCategory.VAT_FILING)))
     if result.deadline is not None:
         deadlines.append(result.deadline)
-    return [result.threshold]
+    vat_obligations = [result.obligation] if result.obligation is not None else []
+    return [result.threshold], vat_obligations

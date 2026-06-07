@@ -36,7 +36,7 @@ neo4j_required = pytest.mark.skipif(
 
 @neo4j_required
 def test_seed_entity_count() -> None:
-    """After seeding, exactly 3 Entity nodes exist."""
+    """After seeding, exactly 4 Entity nodes exist (HK, DE, FR, US)."""
     from neo4j import GraphDatabase
     from tributary.config.settings import NEO4J_PASSWORD, NEO4J_URI, NEO4J_USER
     from tributary.ingestion.seed import run_seed
@@ -45,7 +45,7 @@ def test_seed_entity_count() -> None:
     driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
     with driver.session() as session:
         result = session.run("MATCH (e:Entity) RETURN count(e) AS n")
-        assert result.single()["n"] == 3
+        assert result.single()["n"] == 4
     driver.close()
 
 
@@ -71,7 +71,7 @@ def test_seed_presence_record() -> None:
 
 @neo4j_required
 def test_seed_transaction_count() -> None:
-    """After seeding, exactly 9 Transaction nodes exist."""
+    """After seeding, exactly 11 Transaction nodes exist (T001–T009 + T010/T011 US)."""
     from neo4j import GraphDatabase
     from tributary.config.settings import NEO4J_PASSWORD, NEO4J_URI, NEO4J_USER
     from tributary.ingestion.seed import run_seed
@@ -80,7 +80,7 @@ def test_seed_transaction_count() -> None:
     driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
     with driver.session() as session:
         result = session.run("MATCH (t:Transaction) RETURN count(t) AS n")
-        assert result.single()["n"] == 9
+        assert result.single()["n"] == 11
     driver.close()
 
 
@@ -96,13 +96,13 @@ def test_seed_idempotent() -> None:
     driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
     with driver.session() as session:
         result = session.run("MATCH (e:Entity) RETURN count(e) AS n")
-        assert result.single()["n"] == 3
+        assert result.single()["n"] == 4
     driver.close()
 
 
 @neo4j_required
 def test_seed_ownership_relationships() -> None:
-    """Two OWNS relationships exist after seeding."""
+    """Three OWNS relationships exist after seeding (HK→DE, DE→FR, HK→US)."""
     from neo4j import GraphDatabase
     from tributary.config.settings import NEO4J_PASSWORD, NEO4J_URI, NEO4J_USER
     from tributary.ingestion.seed import run_seed
@@ -111,7 +111,7 @@ def test_seed_ownership_relationships() -> None:
     driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
     with driver.session() as session:
         result = session.run("MATCH ()-[r:OWNS]->() RETURN count(r) AS n")
-        assert result.single()["n"] == 2
+        assert result.single()["n"] == 3
     driver.close()
 
 

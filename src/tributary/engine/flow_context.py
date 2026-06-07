@@ -88,6 +88,38 @@ def judge_flows(
     return judgements
 
 
+def jurisdiction_review_reason(
+    judgements: dict[str, FlowJudgement],
+    flow_ids: list[str],
+    jurisdiction: JurisdictionCode,
+) -> str | None:
+    """Return a human-readable reason for the needs_review flag on a jurisdiction, if any.
+
+    Inspects LOW-confidence claims to derive the review reason text from the claim's
+    rationale_citation.source_citation, which is authored in attributions_stub.json or
+    the live AI adapter.
+
+    Args:
+        judgements: AI judgements keyed by flow id.
+        flow_ids: The flows contributing to a jurisdiction's obligation.
+        jurisdiction: The taxing jurisdiction to check claims for.
+    Returns:
+        A human-readable reason string, or None if no low-confidence claim found.
+    """
+    for flow_id in flow_ids:
+        judgement = judgements.get(flow_id)
+        if judgement is None:
+            continue
+        if judgement.classification.confidence is ConfidenceLevel.LOW:
+            return judgement.classification.abstain_reason or "Low-confidence flow classification."
+        for claim in judgement.attribution.claims:
+            if claim.jurisdiction == jurisdiction and claim.confidence is ConfidenceLevel.LOW:
+                if claim.rationale_citation:
+                    return claim.rationale_citation.source_citation
+                return "Low-confidence jurisdiction attribution."
+    return None
+
+
 def jurisdiction_needs_review(
     judgements: dict[str, FlowJudgement],
     flow_ids: list[str],

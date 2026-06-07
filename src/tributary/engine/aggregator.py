@@ -164,8 +164,10 @@ class _Accumulator:
 
     def _add_ic_income(self, txn: TransactionRecord) -> None:
         fraction, _ = exemption_for(self._loader, self._jurisdiction, txn.activity_type)
-        self.ic_income_taxable += txn.amount_hkd * (Decimal("1") - fraction)
-        self.income_flow_ids.append(txn.transaction_id)
+        taxable = txn.amount_hkd * (Decimal("1") - fraction)
+        self.ic_income_taxable += taxable
+        if taxable > Decimal("0"):
+            self.income_flow_ids.append(txn.transaction_id)
 
     def _add_outflow(self, txn: TransactionRecord) -> None:
         if txn.activity_type in DEDUCTIBLE_EXPENSE_ACTIVITIES:

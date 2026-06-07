@@ -48,6 +48,25 @@ class LLMClientProtocol(Protocol):
         ...
 
 
+class NarratorClientProtocol(Protocol):
+    """Interface for an LLM client that generates free-text prose narratives.
+
+    Distinct from LLMClientProtocol: returns a plain string rather than a
+    structured AILayerOutput, and accepts a system + user message pair.
+    """
+
+    def generate(self, system_prompt: str, user_message: str) -> str:
+        """Generate a prose narrative string.
+
+        Args:
+            system_prompt: Instruction context for the model.
+            user_message: Specific generation request.
+        Returns:
+            Prose narrative string.
+        """
+        ...
+
+
 @runtime_checkable
 class AILayerProtocol(Protocol):
     """Contract the AI layer must implement.

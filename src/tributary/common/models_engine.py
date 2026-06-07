@@ -97,6 +97,8 @@ class ObligationResult(BaseModel):
     source_flow_ids: list[str]
     computation_trace: list[ComputationStep]
     needs_review: bool
+    review_reason: str | None = None
+    is_intercompany: bool = False
 
 
 class ThresholdResult(BaseModel):
@@ -111,6 +113,7 @@ class ThresholdResult(BaseModel):
     breached: bool
     as_of_date: date
     source_citation: str
+    unit: str = "HKD"  # "days" for PE day counts; "HKD" for monetary thresholds
 
 
 class DeadlineResult(BaseModel):

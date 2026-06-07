@@ -98,13 +98,28 @@ def _open_questions(sections: list[BriefSection], result: EngineRunResult) -> li
     for section in sections:
         if section.needs_review:
             questions.append(f"Review required: {section.title}")
+        if (
+            section.obligation is not None
+            and section.obligation_type == ObligationType.WHT
+            and section.obligation.is_intercompany
+        ):
+            flow_ids = ", ".join(section.obligation.source_flow_ids)
+            questions.append(
+                f"Transfer pricing: arm's-length basis for intercompany payment "
+                f"({flow_ids}) has not been benchmarked — OECD Art.9 documentation required."
+            )
     for threshold in result.threshold_checks:
         if threshold.breached:
-            questions.append(
-                f"Threshold breached: {threshold.threshold_name} "
-                f"(actual {threshold.actual_value_hkd:,.0f} vs "
-                f"limit {threshold.threshold_value_hkd:,.0f} HKD)"
-            )
+            if getattr(threshold, "unit", "HKD") == "days":
+                questions.append(
+                    f"Threshold breached: {threshold.threshold_name} "
+                    f"(actual {threshold.actual_value_hkd:,.0f} vs "
+                    f"limit {threshold.threshold_value_hkd:,.0f} days)"
+                )
+            else:
+                # Monetary detail is already in the section body (local currency);
+                # omit amounts here to avoid the HKD-vs-local mismatch.
+                questions.append(f"Threshold breached: {threshold.threshold_name}")
     return questions
 
 
@@ -172,17 +187,27 @@ def build_filing_brief(result: EngineRunResult, entity_record: EntityRecord) -> 
         deadline_by_type.setdefault(deadline.obligation_type, []).append(deadline)
 
     all_types = sorted(obligation_by_type.keys(), key=lambda t: t.value)
-    sections: list[BriefSection] = [
-        _build_section(
-            obligation_type=ot,
-            obligations=obligation_by_type.get(ot, []),
-            thresholds=threshold_by_type.get(ot, []),
-            deadlines=deadline_by_type.get(ot, []),
-            loss_records=result.loss_carryforward_applied if ot == ObligationType.CIT else [],
-            jurisdiction=entity_record.resident_jurisdiction,
-        )
-        for ot in all_types
-    ]
+    sections: list[BriefSection] = []
+    for ot in all_types:
+        obs = obligation_by_type.get(ot, [])
+        thresholds = threshold_by_type.get(ot, [])
+        deadlines = deadline_by_type.get(ot, [])
+        loss = result.loss_carryforward_applied if ot == ObligationType.CIT else []
+
+        if ot == ObligationType.WHT and len(obs) > 1:
+            # One section per WHT flow — each payment is a distinct cross-border obligation.
+            # Thresholds and deadlines attach to the first section only.
+            for i, ob in enumerate(obs):
+                sections.append(_build_section(
+                    obligation_type=ot,
+                    obligations=[ob],
+                    thresholds=thresholds if i == 0 else [],
+                    deadlines=deadlines if i == 0 else [],
+                    loss_records=[],
+                    jurisdiction=entity_record.resident_jurisdiction,
+                ))
+        else:
+            sections.append(_build_section(ot, obs, thresholds, deadlines, loss, entity_record.resident_jurisdiction))
 
     conflict_explanations: list[ConflictExplanation] = [
         ConflictExplanation(

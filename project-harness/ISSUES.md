@@ -8,7 +8,7 @@ Rules:
 - Never delete entries. Mark as `[FIXED]` instead.
 - Severity: P1 (blocking) | P2 (annoying) | P3 (nice-to-fix).
 - New issues get the next monotonic ID.
-- **Next ID to use: ISSUE-027**
+- **Next ID to use: ISSUE-028**
 
 ---
 
@@ -234,6 +234,15 @@ Rules:
 **Description:** `import torch` at module top with no `try/except ImportError` guard. Any environment without torch (e.g. CI, the demo machine) will fail on `import tributary.ai` even though `qwen_client.py` is not the active backend. Also has two confirmed-unused imports: `Optional` (vulture 90%) and `torch` itself is never called directly.
 **Why deferred:** Surfaced by full-codebase audit; `qwen_client.py` is not wired in production path.
 **To fix:** Wrap `import torch` and `from transformers import ...` in `try/except ImportError: ...`. Remove unused `Optional` import. Route via refactor-cleaner.
+
+## [FIXED] ISSUE-027: MERID-DE CIT figure in generated brief does not match EXPECTED.md
+**Fixed:** 2026-06-07, W7a.0 — Makefile: `run-golden` now depends on `ingest`; integration test `TestMeridDE.test_cit_amount` already guards HKD 47,673.
+**Found:** 2026-06-07, during output analysis (Session 8)
+**Severity:** P1 (blocking — brief shows wrong number)
+**Where:** `output/MERID-DE_brief.md`; responsible code in `brief/renderer.py` or `engine/entity_run.py` / `engine/cit_engine.py`
+**Description:** `make run-golden` produces a MERID-DE brief showing CIT obligation of approximately HKD 300,873 (and Trade Tax ~HKD 266,175). EXPECTED.md mandates CIT = HKD 47,673 and Trade Tax = HKD 42,175. The gap matches the size of the prior-period loss offset (HKD 1,600,000 × ~15.825% = HKD 253,200), suggesting the brief renderer is displaying the pre-loss-relief taxable base or a stale intermediate value rather than the post-relief obligation. May alternatively be an engine wiring bug in `entity_run.py` where loss-offset is not applied before the final ObligationResult is assembled.
+**Why deferred:** Identified at end of Session 8; Wave 7a (brief output quality) is the correct context to fix this.
+**To fix:** Task W7a.0 — compare `engine/entity_run.py` output for MERID-DE against EXPECTED.md step by step. If the runner emits the correct post-relief figure but the renderer shows a wrong intermediate, fix in `brief/renderer.py`. If the runner emits the wrong figure, fix in `engine/entity_run.py` (loss-ledger application order). Add a regression test in `tests/integration/test_engine_golden.py` asserting CIT = HKD 47,673 for MERID-DE.
 
 ---
 

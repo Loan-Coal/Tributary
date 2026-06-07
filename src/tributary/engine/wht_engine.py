@@ -16,6 +16,7 @@ from decimal import Decimal
 
 from tributary.common.errors import EngineError, RulePackError
 from tributary.common.jurisdictions import EU_MEMBER_JURISDICTIONS
+from tributary.common.logging import get_logger
 from tributary.common.models import (
     ActivityType,
     ComputationStep,
@@ -26,8 +27,10 @@ from tributary.common.models import (
     RuleCitation,
 )
 from tributary.engine.aggregator import OutboundPayment
-from tributary.engine.money import round_hkd
+from tributary.engine.money import round_amount
 from tributary.rules.models import Rule, RuleCategory, RulePackLoader
+
+logger = get_logger(__name__)
 
 _DOMESTIC_CATEGORY: dict[ActivityType, RuleCategory] = {
     ActivityType.DIVIDEND: RuleCategory.WHT_DIVIDEND,
@@ -140,10 +143,20 @@ def compute_wht(
     domestic = domestic_rules[0]
     domestic_rate = domestic.parameters.domestic_rate or Decimal("0")
     treaty = get_treaty_rate(reader, loader, payment, period.end_date)
+    if treaty is None:
+        logger.warning(
+            "No treaty rule found — domestic WHT rate applied",
+            extra={
+                "payer": payment.payer_jurisdiction,
+                "payee": payment.payee_jurisdiction,
+                "activity": payment.activity.value,
+                "domestic_rate": str(domestic_rate),
+            },
+        )
     applicable_rate = treaty[0] if treaty is not None else domestic_rate
     treaty_citation = _citation(treaty[1]) if treaty is not None else None
-    gross = round_hkd(payment.gross_hkd * domestic_rate)
-    net = round_hkd(payment.gross_hkd * applicable_rate)
+    gross = round_amount(payment.gross_hkd * domestic_rate)
+    net = round_amount(payment.gross_hkd * applicable_rate)
     return _build_obligation(
         payment, period, domestic, applicable_rate, gross, net, treaty_citation, needs_review
     )
@@ -216,4 +229,5 @@ def _build_obligation(
         source_flow_ids=[payment.flow_id],
         computation_trace=trace,
         needs_review=needs_review,
+        is_intercompany=True,
     )

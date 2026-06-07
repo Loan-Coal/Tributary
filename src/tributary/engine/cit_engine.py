@@ -24,7 +24,7 @@ from tributary.common.models import (
 )
 from tributary.engine.aggregator import EntityBase
 from tributary.engine.loss_ledger import LossOffsetResult, apply_loss_offset
-from tributary.engine.money import effective_rate, round_hkd
+from tributary.engine.money import effective_rate, round_amount
 from tributary.rules.models import Rule
 
 
@@ -43,6 +43,7 @@ def compute_cit(
     loss_rule: Rule | None,
     losses: list[PriorPeriodLoss],
     needs_review: bool,
+    review_reason: str | None = None,
 ) -> CitResult:
     """Compute the CIT obligation for one entity.
 
@@ -63,9 +64,9 @@ def compute_cit(
     if cit_rule.parameters.rate is None:
         raise EngineError(f"CIT rate not found in rule pack for rule {cit_rule.id}")
     rate = effective_rate(cit_rule.parameters.rate, cit_rule.parameters.surcharge_rate)
-    gross = round_hkd(post_loss_base * rate)
+    gross = round_amount(post_loss_base * rate)
     trace = _build_trace(base, pe_adjustment_hkd, pre_loss_base, offset, post_loss_base, gross, cit_rule)
-    obligation = _make_obligation(base, post_loss_base, rate, gross, cit_rule, trace, needs_review)
+    obligation = _make_obligation(base, post_loss_base, rate, gross, cit_rule, trace, needs_review, review_reason)
     return CitResult(obligation=obligation, loss_offset=offset, pre_loss_base_hkd=pre_loss_base)
 
 
@@ -77,6 +78,7 @@ def _make_obligation(
     cit_rule: Rule,
     trace: list[ComputationStep],
     needs_review: bool,
+    review_reason: str | None = None,
 ) -> ObligationResult:
     """Construct the CIT ObligationResult from computed values."""
     return ObligationResult(
@@ -97,6 +99,7 @@ def _make_obligation(
         source_flow_ids=base.income_flow_ids + base.expense_flow_ids,
         computation_trace=trace,
         needs_review=needs_review,
+        review_reason=review_reason,
     )
 
 
