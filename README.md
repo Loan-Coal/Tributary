@@ -4,19 +4,6 @@ Cross-border tax copilot for multinationals. Produces per-jurisdiction, fully ci
 
 Built for the HKTE Euro Hackathon Munich 2026.
 
----
-
-# AI Layer Demo
-
-```bash
-cd /Tributary
-
-# Qwen backend
-python examples/run_ai_layer.py --backend qwen --limit 5
-
-# Deterministic backend
-python examples/run_ai_layer.py --backend deterministic --limit 10
-```
 
 ---
 
@@ -93,3 +80,17 @@ Dependencies flow downward only. Full rules in `project-harness/CLAUDE.md`.
 | `project-harness/FEATURES.md` | Feature status tracker |
 | `project-harness/NEXT_SESSION.md` | Next session handoff |
 | `data/golden/EXPECTED.md` | Hand-computed golden figures |
+
+---
+
+## AI Layer Demo
+
+```bash
+cd /Tributary
+
+# Qwen backend
+python examples/run_ai_layer.py --backend qwen --limit 5
+
+# Deterministic backend
+python examples/run_ai_layer.py --backend deterministic --limit 10
+```
