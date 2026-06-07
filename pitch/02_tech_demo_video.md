@@ -10,7 +10,7 @@
 
 **Show:** Browser, Tributary web interface. Dashboard or home screen visible.
 
-> "This is Tributary. You log in, you see your entities — in our demo, Meridian Group: a Hong Kong parent, subsidiaries in Germany, France, and the US. The intercompany flows between them are already mapped."
+> "This is Tributary. You log in, you see your entities — in our demo, Meridian Group: a Hong Kong parent, subsidiaries in Germany, Hongkong, and the US. The intercompany flows between them are already mapped."
 
 ---
 
@@ -18,7 +18,7 @@
 
 **Show:** Click "Run analysis" or equivalent. Show the engine processing and results appearing.
 
-> "We kick off the multi-jurisdiction analysis. The engine runs every applicable tax rule across all four jurisdictions simultaneously — CIT, withholding tax, VAT, trade tax, cross-border conflicts.
+> "We kick off the multi-jurisdiction analysis. The engine runs every applicable tax rule across all three jurisdictions simultaneously — CIT, withholding tax, VAT, trade tax, cross-border conflicts.
 >
 > This is what would take a team of advisors weeks to coordinate. It takes Tributary seconds."
 
